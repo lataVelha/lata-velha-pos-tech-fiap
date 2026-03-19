@@ -1,3 +1,13 @@
 spring:
   application:
     name: Lata-Velha
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/lata_velha
+    username: admin
+    password: admin123
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
