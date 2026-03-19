@@ -1,4 +1,4 @@
-package br.com.lata.velha.Lata.Velha;
+package br.com.lata.velha;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
