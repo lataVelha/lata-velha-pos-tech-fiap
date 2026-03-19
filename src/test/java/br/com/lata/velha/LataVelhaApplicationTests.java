@@ -1,4 +1,4 @@
-package br.com.lata.velha.Lata.Velha;
+package br.com.lata.velha;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
