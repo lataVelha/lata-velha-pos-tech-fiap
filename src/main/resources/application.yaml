@@ -7,7 +7,16 @@ spring:
     username: admin
     password: admin123
 
+  jpa:
+    hibernate:
+      ddl-auto: none
+
   flyway:
     enabled: true
     locations: classpath:db/migration
 
+jwt:
+  public:
+    key: classpath:app.pub
+  private:
+    key: classpath:app.key
