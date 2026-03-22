@@ -1,4 +1,4 @@
-package br.com.lata.velha.application.usecase;
+package br.com.lata.velha.application.usecase.auth;
 
 import br.com.lata.velha.application.dto.request.LoginRequest;
 import br.com.lata.velha.application.dto.response.LoginResponse;
@@ -25,7 +25,7 @@ public class LoginUseCase {
 
     public LoginResponse execute(LoginRequest request) {
 
-        Funcionario funcionario = funcionarioRepository.findByUsername(request.username())
+        Funcionario funcionario = funcionarioRepository.buscarPorNome(request.username())
                 .orElseThrow(() -> new InvalidLoginException());
 
         if (!funcionario.autenticar(request.password())) {

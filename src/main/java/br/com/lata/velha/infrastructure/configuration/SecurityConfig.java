@@ -34,37 +34,52 @@ public class SecurityConfig {
     @Value("${jwt.private.key}")
     private RSAPrivateKey privateKey;
 
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs.yaml"
-                        ).permitAll()
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/teste/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/teste/user/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/teste/mecanico/**").hasAnyRole("MECANICO", "ADMIN")
-                        .anyRequest().authenticated()
+            .csrf(csrf -> csrf.disable())
+
+            .authorizeHttpRequests(auth -> auth
+                // público
+                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/teste/publico").permitAll()
+
+                // CRUD — USER e ADMIN
+                .requestMatchers("/proprietarios/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/veiculos/**").hasAnyRole("USER", "ADMIN")
+
+                // teste de roles
+                .requestMatchers("/teste/admin/**").hasRole("ADMIN")
+                .requestMatchers("/teste/user/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/teste/mecanico/**").hasAnyRole("MECANICO", "ADMIN")
+
+                // qualquer outra rota exige autenticação
+                .anyRequest().authenticated()
+            )
+
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt
+                    .decoder(jwtDecoder())
+                    .jwtAuthenticationConverter(jwtAuthenticationConverter())
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .decoder(jwtDecoder())
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
-                );
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"Token inválido ou expirado\"}");
+                })
+            );
 
         return http.build();
     }
+
 
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
