@@ -1,13 +1,12 @@
 package br.com.lata.velha.domain.repository;
 
-import br.com.lata.velha.domain.entity.Funcionario;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
+import br.com.lata.velha.domain.model.Funcionario;
 import java.util.Optional;
+/**
+ * Contrato de persistência do domínio.
+ * A implementação concreta fica em infrastructure.persistence.repository
+ */
+public interface FuncionarioRepository {
 
-@Repository
-public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> {
-
-    Optional<Funcionario>findByUsername(String username);
+    Optional<Funcionario> findByUsername(String username);
 }
