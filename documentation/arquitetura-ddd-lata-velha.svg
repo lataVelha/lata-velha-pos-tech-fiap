@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 880" font-family="Segoe UI, Arial, sans-serif">
+
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <filter id="sh" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.07"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="880" fill="#FAFAF8" rx="16"/>
+
+  <!-- Title -->
+  <text x="450" y="44" text-anchor="middle" font-size="22" font-weight="700" fill="#2C2C2A">Arquitetura em camadas — DDD</text>
+  <text x="450" y="66" font-size="12" text-anchor="middle" fill="#888780">br.com.lata.velha</text>
+
+  <!-- ====== PRESENTATION ====== -->
+  <rect x="55" y="92" width="680" height="120" rx="14" fill="#E6F1FB" stroke="#85B7EB" stroke-width="1"/>
+  <text x="77" y="116" font-size="15" font-weight="600" fill="#0C447C">presentation</text>
+  <text x="240" y="116" font-size="11" fill="#185FA5">Ponto de entrada — recebe HTTP, devolve HTTP</text>
+
+  <rect x="77" y="132" width="150" height="62" rx="8" fill="#fff" stroke="#B5D4F4" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="152" y="156" text-anchor="middle" font-size="13" font-weight="600" fill="#0C447C">api/</text>
+  <text x="152" y="174" text-anchor="middle" font-size="10.5" fill="#185FA5">Controllers REST</text>
+
+  <rect x="247" y="132" width="150" height="62" rx="8" fill="#fff" stroke="#B5D4F4" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="322" y="156" text-anchor="middle" font-size="13" font-weight="600" fill="#0C447C">handler/</text>
+  <text x="322" y="174" text-anchor="middle" font-size="10.5" fill="#185FA5">Tratamento de erros</text>
+
+  <!-- Arrow down -->
+  <line x1="395" y1="214" x2="395" y2="250" stroke="#185FA5" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <!-- ====== APPLICATION ====== -->
+  <rect x="55" y="255" width="680" height="130" rx="14" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+  <text x="77" y="279" font-size="15" font-weight="600" fill="#085041">application</text>
+  <text x="240" y="279" font-size="11" fill="#0F6E56">Orquestração — coordena o fluxo sem regras de negócio</text>
+
+  <rect x="77" y="296" width="150" height="72" rx="8" fill="#fff" stroke="#9FE1CB" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="152" y="318" text-anchor="middle" font-size="13" font-weight="600" fill="#085041">usecase/</text>
+  <text x="152" y="336" text-anchor="middle" font-size="10.5" fill="#0F6E56">Casos de uso</text>
+  <text x="152" y="352" text-anchor="middle" font-size="10.5" fill="#0F6E56">1 classe = 1 ação</text>
+
+  <rect x="247" y="296" width="150" height="72" rx="8" fill="#fff" stroke="#9FE1CB" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="322" y="318" text-anchor="middle" font-size="13" font-weight="600" fill="#085041">dto/</text>
+  <text x="322" y="336" text-anchor="middle" font-size="10.5" fill="#0F6E56">Request / Response</text>
+  <text x="322" y="352" text-anchor="middle" font-size="10.5" fill="#0F6E56">objetos de transporte</text>
+
+  <rect x="417" y="296" width="150" height="72" rx="8" fill="#fff" stroke="#9FE1CB" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="492" y="318" text-anchor="middle" font-size="13" font-weight="600" fill="#085041">port/</text>
+  <text x="492" y="336" text-anchor="middle" font-size="10.5" fill="#0F6E56">Interfaces de saída</text>
+  <text x="492" y="352" text-anchor="middle" font-size="10.5" fill="#0F6E56">(contratos para infra)</text>
+
+  <!-- Arrow down -->
+  <line x1="395" y1="387" x2="395" y2="423" stroke="#0F6E56" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <!-- ====== DOMAIN ====== -->
+  <rect x="55" y="428" width="680" height="145" rx="14" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+  <text x="77" y="452" font-size="15" font-weight="600" fill="#26215C">domain</text>
+  <text x="190" y="452" font-size="11" fill="#534AB7">Núcleo — regras de negócio puras, zero frameworks</text>
+
+  <rect x="77" y="470" width="140" height="84" rx="8" fill="#fff" stroke="#CECBF6" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="147" y="492" text-anchor="middle" font-size="13" font-weight="600" fill="#26215C">model/</text>
+  <text x="147" y="510" text-anchor="middle" font-size="10.5" fill="#534AB7">Entidades e</text>
+  <text x="147" y="526" text-anchor="middle" font-size="10.5" fill="#534AB7">Aggregates</text>
+  <text x="147" y="546" text-anchor="middle" font-size="9.5" fill="#7F77DD">POJOs puros</text>
+
+  <rect x="232" y="470" width="140" height="84" rx="8" fill="#fff" stroke="#CECBF6" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="302" y="492" text-anchor="middle" font-size="13" font-weight="600" fill="#26215C">valueObject/</text>
+  <text x="302" y="510" text-anchor="middle" font-size="10.5" fill="#534AB7">Objetos de valor</text>
+  <text x="302" y="546" text-anchor="middle" font-size="9.5" fill="#7F77DD">imutáveis</text>
+
+  <rect x="387" y="470" width="165" height="84" rx="8" fill="#fff" stroke="#CECBF6" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="469" y="492" text-anchor="middle" font-size="13" font-weight="600" fill="#26215C">repository/</text>
+  <text x="469" y="510" text-anchor="middle" font-size="10.5" fill="#534AB7">Contratos de</text>
+  <text x="469" y="526" text-anchor="middle" font-size="10.5" fill="#534AB7">persistência</text>
+  <text x="469" y="546" text-anchor="middle" font-size="9.5" fill="#7F77DD">interfaces apenas</text>
+
+  <rect x="567" y="470" width="152" height="84" rx="8" fill="#fff" stroke="#CECBF6" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="643" y="492" text-anchor="middle" font-size="13" font-weight="600" fill="#26215C">exception/</text>
+  <text x="643" y="510" text-anchor="middle" font-size="10.5" fill="#534AB7">Exceções de</text>
+  <text x="643" y="526" text-anchor="middle" font-size="10.5" fill="#534AB7">domínio</text>
+
+  <!-- ====== INFRASTRUCTURE ====== -->
+  <rect x="55" y="610" width="680" height="140" rx="14" fill="#FAECE7" stroke="#F0997B" stroke-width="1"/>
+  <text x="77" y="634" font-size="15" font-weight="600" fill="#4A1B0C">infrastructure</text>
+  <text x="240" y="634" font-size="11" fill="#993C1D">Implementações concretas — frameworks e libs externas</text>
+
+  <rect x="77" y="652" width="200" height="80" rx="8" fill="#fff" stroke="#F5C4B3" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="177" y="674" text-anchor="middle" font-size="13" font-weight="600" fill="#4A1B0C">persistence/</text>
+  <text x="177" y="692" text-anchor="middle" font-size="10.5" fill="#993C1D">Entidades JPA, Mappers</text>
+  <text x="177" y="708" text-anchor="middle" font-size="10.5" fill="#993C1D">Repository Impl</text>
+  <text x="177" y="724" text-anchor="middle" font-size="9.5" fill="#D85A30">impl dos contratos do domain</text>
+
+  <rect x="297" y="652" width="200" height="80" rx="8" fill="#fff" stroke="#F5C4B3" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="397" y="674" text-anchor="middle" font-size="13" font-weight="600" fill="#4A1B0C">security/</text>
+  <text x="397" y="692" text-anchor="middle" font-size="10.5" fill="#993C1D">Provedores de token</text>
+  <text x="397" y="708" text-anchor="middle" font-size="10.5" fill="#993C1D">Filtros de segurança</text>
+  <text x="397" y="724" text-anchor="middle" font-size="9.5" fill="#D85A30">impl dos contratos do application</text>
+
+  <rect x="517" y="652" width="200" height="80" rx="8" fill="#fff" stroke="#F5C4B3" stroke-width="0.7" filter="url(#sh)"/>
+  <text x="617" y="674" text-anchor="middle" font-size="13" font-weight="600" fill="#4A1B0C">configuration/</text>
+  <text x="617" y="692" text-anchor="middle" font-size="10.5" fill="#993C1D">Beans, Security Config</text>
+  <text x="617" y="708" text-anchor="middle" font-size="10.5" fill="#993C1D">Swagger, CORS</text>
+
+  <!-- Infrastructure arrows going UP -->
+  <path d="M200 652 L200 575" fill="none" stroke="#993C1D" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <path d="M420 652 L420 387" fill="none" stroke="#993C1D" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+
+  <!-- Dependency rule arrow (right side) -->
+  <rect x="758" y="92" width="28" height="658" rx="6" fill="none" stroke="#D3D1C7" stroke-width="0.7" stroke-dasharray="4 3"/>
+  <line x1="772" y1="130" x2="772" y2="700" stroke="#B4B2A9" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="772" y="420" font-size="11" font-weight="600" fill="#5F5E5A" transform="rotate(90 772 420)" text-anchor="middle">Dependências apontam para dentro →</text>
+
+  <!-- ====== RULES TABLE ====== -->
+  <rect x="55" y="775" width="680" height="88" rx="12" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.7"/>
+  <text x="395" y="800" text-anchor="middle" font-size="14" font-weight="600" fill="#2C2C2A">Regras de dependência</text>
+
+  <text x="80" y="824" font-size="11.5" fill="#0F6E56">✔  presentation  →  application, domain</text>
+  <text x="80" y="844" font-size="11.5" fill="#0F6E56">✔  application   →  domain</text>
+  <text x="420" y="824" font-size="11.5" fill="#0F6E56">✔  infrastructure  →  application, domain</text>
+  <text x="420" y="844" font-size="11.5" fill="#A32D2D">✘  domain  →  ninguém (núcleo isolado)</text>
+
+</svg>
