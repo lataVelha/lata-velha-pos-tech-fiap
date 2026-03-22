@@ -1,4 +1,4 @@
-package br.com.lata.velha.domain.entity;
+package br.com.lata.velha.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -8,7 +8,7 @@ import java.util.Set;
 @Entity
 @Table(name = "CARGO")
 @Data
-public class Cargo {
+public class CargoEntity {
 
     @Id
     @GeneratedValue
@@ -24,6 +24,5 @@ public class Cargo {
             joinColumns = @JoinColumn(name = "cargo_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<Role> roles;
-
+    private Set<RoleEntity> roles;
 }

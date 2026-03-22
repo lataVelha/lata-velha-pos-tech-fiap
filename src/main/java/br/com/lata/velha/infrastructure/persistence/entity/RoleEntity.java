@@ -1,4 +1,4 @@
-package br.com.lata.velha.domain.entity;
+package br.com.lata.velha.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -6,7 +6,7 @@ import lombok.Data;
 @Entity
 @Table(name = "ROLE")
 @Data
-public class Role {
+public class RoleEntity {
 
     @Id
     @GeneratedValue
@@ -15,5 +15,4 @@ public class Role {
 
     @Column(name = "NOME", nullable = false)
     private String nome;
-
 }
