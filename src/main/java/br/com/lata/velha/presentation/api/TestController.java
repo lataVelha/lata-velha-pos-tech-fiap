@@ -1,4 +1,4 @@
-package br.com.lata.velha.domain.controller;
+package br.com.lata.velha.presentation.api;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
