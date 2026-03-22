@@ -1,0 +1,19 @@
+package br.com.lata.velha.infrastructure.persistence.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import lombok.Data;
+
+@Embeddable
+@Data
+public class EnderecoEmbeddable {
+
+    @Column(name = "RUA")
+    private String rua;
+
+    @Column(name = "CEP")
+    private String cep;
+
+    @Column(name = "NUMERO_CASA")
+    private String numeroCasa;
+}
