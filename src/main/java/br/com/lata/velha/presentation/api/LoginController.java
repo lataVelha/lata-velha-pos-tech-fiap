@@ -2,7 +2,7 @@ package br.com.lata.velha.presentation.api;
 
 import br.com.lata.velha.application.dto.request.LoginRequest;
 import br.com.lata.velha.application.dto.response.LoginResponse;
-import br.com.lata.velha.application.usecase.LoginUseCase;
+import br.com.lata.velha.application.usecase.auth.LoginUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
