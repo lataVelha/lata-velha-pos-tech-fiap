@@ -8,5 +8,5 @@ import java.util.Optional;
  */
 public interface FuncionarioRepository {
 
-    Optional<Funcionario> findByUsername(String username);
+    Optional<Funcionario> buscarPorNome(String username);
 }

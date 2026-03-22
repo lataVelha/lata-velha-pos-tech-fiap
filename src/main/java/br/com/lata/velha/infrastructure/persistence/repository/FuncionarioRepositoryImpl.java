@@ -20,7 +20,7 @@ public class FuncionarioRepositoryImpl implements FuncionarioRepository {
     }
 
     @Override
-    public Optional<Funcionario> findByUsername(String username) {
+    public Optional<Funcionario> buscarPorNome(String username) {
         return jpaRepository.findByUsername(username)
                 .map(mapper::toDomain);
     }
