@@ -1,0 +1,101 @@
+package br.com.lata.velha.domain.model;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class CargoTest {
+
+    private Cargo cargo;
+    private Role roleAdmin;
+    private Role roleUser;
+
+    @BeforeEach
+    void setUp() {
+        roleAdmin = new Role(1L, "ADMIN");
+        roleUser = new Role(2L, "USER");
+        cargo = new Cargo(1L, "Administrador", Set.of(roleAdmin, roleUser));
+    }
+
+    @Test
+    @DisplayName("deve criar cargo com roles")
+    void deveCriarCargoComRoles() {
+        assertEquals(1L, cargo.getId());
+        assertEquals("Administrador", cargo.getNome());
+        assertEquals(2, cargo.getRoles().size());
+    }
+
+    @Test
+    @DisplayName("deve criar cargo vazio com set de roles inicializado")
+    void deveCriarCargoVazio() {
+        Cargo vazio = new Cargo();
+
+        assertNotNull(vazio.getRoles());
+        assertTrue(vazio.getRoles().isEmpty());
+    }
+
+    @Test
+    @DisplayName("deve rejeitar nome nulo")
+    void deveRejeitarNomeNulo() {
+        assertThrows(IllegalArgumentException.class, () -> cargo.setNome(null));
+    }
+
+    @Test
+    @DisplayName("deve rejeitar nome vazio")
+    void deveRejeitarNomeVazio() {
+        assertThrows(IllegalArgumentException.class, () -> cargo.setNome(""));
+    }
+
+    @Test
+    @DisplayName("deve adicionar role")
+    void deveAdicionarRole() {
+        Cargo novoCargo = new Cargo(2L, "Teste", null);
+        Role role = new Role(3L, "MECANICO");
+
+        novoCargo.adicionarRole(role);
+
+        assertEquals(1, novoCargo.getRoles().size());
+    }
+
+    @Test
+    @DisplayName("deve remover role")
+    void deveRemoverRole() {
+        cargo.removerRole(roleUser);
+
+        assertEquals(1, cargo.getRoles().size());
+    }
+
+    @Test
+    @DisplayName("deve rejeitar role nula ao adicionar")
+    void deveRejeitarRoleNula() {
+        assertThrows(NullPointerException.class, () -> cargo.adicionarRole(null));
+    }
+
+    @Test
+    @DisplayName("deve verificar se possui role")
+    void deveVerificarPossuiRole() {
+        assertTrue(cargo.possuiRole("ADMIN"));
+        assertTrue(cargo.possuiRole("admin")); // case insensitive
+        assertFalse(cargo.possuiRole("MECANICO"));
+    }
+
+    @Test
+    @DisplayName("roles devem ser imutáveis via getRoles")
+    void rolesDevemSerImutaveis() {
+        assertThrows(UnsupportedOperationException.class,
+                () -> cargo.getRoles().add(new Role(3L, "MECANICO")));
+    }
+
+    @Test
+    @DisplayName("cargos com mesmo id devem ser equals")
+    void mesmoIdDevemSerEquals() {
+        Cargo outro = new Cargo();
+        outro.setId(1L);
+
+        assertEquals(cargo, outro);
+    }
+}
