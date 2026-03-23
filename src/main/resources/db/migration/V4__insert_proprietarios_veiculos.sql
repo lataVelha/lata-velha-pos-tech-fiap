@@ -1,13 +1,13 @@
 
 -- PROPRIETÁRIOS
 INSERT INTO PROPRIETARIO (NOME, EMAIL, DOCUMENTO, NUMERO_CELULAR, RUA, CEP, NUMERO_CASA)
-VALUES ('Carlos Silva', 'carlos@email.com', '12345678901', '11999990001', 'Rua das Flores', '01234567', '100');
+VALUES ('Carlos Silva', 'carlos@email.com', '46924388000', '11999990001', 'Rua das Flores', '01234567', '100');
 
 INSERT INTO PROPRIETARIO (NOME, EMAIL, DOCUMENTO, NUMERO_CELULAR, RUA, CEP, NUMERO_CASA)
-VALUES ('Ana Oliveira', 'ana@email.com', '98765432100', '11999990002', 'Av Paulista', '01310100', '1500');
+VALUES ('Ana Oliveira', 'ana@email.com', '57126491018', '11999990002', 'Av Paulista', '01310100', '1500');
 
 INSERT INTO PROPRIETARIO (NOME, EMAIL, DOCUMENTO, NUMERO_CELULAR, RUA, CEP, NUMERO_CASA)
-VALUES ('Auto Center Ltda', 'contato@autocenter.com', '12345678000199', '11999990003', 'Rua da Industria', '09876543', '250');
+VALUES ('Auto Center Ltda', 'contato@autocenter.com', '91555965091', '11999990003', 'Rua da Industria', '09876543', '250');
 
 -- VEÍCULOS
 -- Carlos (id=1)
