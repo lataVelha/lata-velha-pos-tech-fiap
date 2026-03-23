@@ -1,9 +1,11 @@
 package br.com.lata.velha.presentation.api;
 
 import br.com.lata.velha.application.dto.request.ProprietarioRequest;
+import br.com.lata.velha.application.dto.response.PaginatedResponse;
 import br.com.lata.velha.application.dto.response.ProprietarioResponse;
 import br.com.lata.velha.application.usecase.proprietario.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -11,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/proprietarios")
@@ -51,9 +51,11 @@ public class ProprietarioController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os proprietários")
-    public ResponseEntity<List<ProprietarioResponse>> listarTodos() {
-        return ResponseEntity.ok(listarUseCase.execute());
+    @Operation(summary = "Listar proprietários paginado")
+    public ResponseEntity<PaginatedResponse<ProprietarioResponse>> listarTodos(
+            @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(listarUseCase.execute(page, size));
     }
 
     @PutMapping("/{id}")
