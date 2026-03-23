@@ -2,9 +2,11 @@ package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.exception.ProprietarioNotFoundException;
 import br.com.lata.velha.domain.model.Veiculo;
+import br.com.lata.velha.domain.common.PaginatedResult;
 import br.com.lata.velha.domain.repository.VeiculoRepository;
 import br.com.lata.velha.infrastructure.persistence.entity.ProprietarioEntity;
 import br.com.lata.velha.infrastructure.persistence.mapper.VeiculoPersistenceMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -29,7 +31,7 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     public Veiculo salvar(Veiculo veiculo) {
         ProprietarioEntity proprietarioEntity = proprietarioJpaRepository
                 .findById(veiculo.getProprietarioId())
-                .orElseThrow(() -> new ProprietarioNotFoundException("Proprietário não encontrado: " + veiculo.getProprietarioId()));
+                .orElseThrow(() -> new ProprietarioNotFoundException(veiculo.getProprietarioId()));
 
         var entity = mapper.toEntity(veiculo, proprietarioEntity);
         var saved = jpaRepository.save(entity);
@@ -54,6 +56,14 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     @Override
     public List<Veiculo> listarTodos() {
         return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public PaginatedResult<Veiculo> listarPaginado(int page, int size) {
+        var resultado = jpaRepository.findAll(PageRequest.of(page, size));
+        var content = resultado.getContent().stream().map(mapper::toDomain).toList();
+        return new PaginatedResult<>(content, page, size,
+                resultado.getTotalElements(), resultado.getTotalPages());
     }
 
     @Override
