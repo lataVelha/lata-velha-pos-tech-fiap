@@ -109,4 +109,19 @@ O sistema utiliza **JWT com chaves RSA** para autenticação. Após o login, o t
 docker compose -f docker/docker-compose.yml down -v
 ```
 
-O flag `-v` remove os volumes, limpando os dados do banco.
+## O flag `-v` remove os volumes, limpando os dados do banco.
+
+## Testes
+
+**Rodar todos os testes:**
+
+```bash
+chmod +x mvnw
+./mvnw clean test
+```
+
+**Visualizar cobertura (JaCoCo):**
+
+```bash
+open target/site/jacoco/index.html
+```
