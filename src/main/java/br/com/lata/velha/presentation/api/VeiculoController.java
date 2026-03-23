@@ -1,9 +1,11 @@
 package br.com.lata.velha.presentation.api;
 
 import br.com.lata.velha.application.dto.request.VeiculoRequest;
+import br.com.lata.velha.application.dto.response.PaginatedResponse;
 import br.com.lata.velha.application.dto.response.VeiculoResponse;
 import br.com.lata.velha.application.usecase.veiculo.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -11,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/veiculos")
@@ -45,14 +45,16 @@ public class VeiculoController {
 
     @GetMapping("/proprietario/{proprietarioId}")
     @Operation(summary = "Listar veículos de um proprietário")
-    public ResponseEntity<List<VeiculoResponse>> listarPorProprietario(@PathVariable Long proprietarioId) {
+    public ResponseEntity<java.util.List<VeiculoResponse>> listarPorProprietario(@PathVariable Long proprietarioId) {
         return ResponseEntity.ok(buscarUseCase.porProprietario(proprietarioId));
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os veículos")
-    public ResponseEntity<List<VeiculoResponse>> listarTodos() {
-        return ResponseEntity.ok(listarUseCase.execute());
+    @Operation(summary = "Listar veículos paginado")
+    public ResponseEntity<PaginatedResponse<VeiculoResponse>> listarTodos(
+            @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(listarUseCase.execute(page, size));
     }
 
     @PutMapping("/{id}")
