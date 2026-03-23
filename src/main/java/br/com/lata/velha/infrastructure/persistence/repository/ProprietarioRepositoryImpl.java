@@ -1,8 +1,10 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.model.Proprietario;
+import br.com.lata.velha.domain.common.PaginatedResult;
 import br.com.lata.velha.domain.repository.ProprietarioRepository;
 import br.com.lata.velha.infrastructure.persistence.mapper.ProprietarioPersistenceMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -40,6 +42,14 @@ public class ProprietarioRepositoryImpl implements ProprietarioRepository {
     @Override
     public List<Proprietario> listarTodos() {
         return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public PaginatedResult<Proprietario> listarPaginado(int page, int size) {
+        var resultado = jpaRepository.findAll(PageRequest.of(page, size));
+        var content = resultado.getContent().stream().map(mapper::toDomain).toList();
+        return new PaginatedResult<>(content, page, size,
+                resultado.getTotalElements(), resultado.getTotalPages());
     }
 
     @Override
