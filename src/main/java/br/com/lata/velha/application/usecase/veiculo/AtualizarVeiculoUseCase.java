@@ -8,22 +8,17 @@ import br.com.lata.velha.domain.exception.VeiculoNotFoundException;
 import br.com.lata.velha.domain.model.Veiculo;
 import br.com.lata.velha.domain.repository.ProprietarioRepository;
 import br.com.lata.velha.domain.repository.VeiculoRepository;
-import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
-@Service
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
 public class AtualizarVeiculoUseCase {
 
     private final VeiculoRepository veiculoRepository;
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoAssembler assembler;
-
-    public AtualizarVeiculoUseCase(VeiculoRepository veiculoRepository,
-                                   ProprietarioRepository proprietarioRepository,
-                                   VeiculoAssembler assembler) {
-        this.veiculoRepository = veiculoRepository;
-        this.proprietarioRepository = proprietarioRepository;
-        this.assembler = assembler;
-    }
 
     public VeiculoResponse execute(Long id, VeiculoRequest request) {
         Veiculo existente = veiculoRepository.buscarPorId(id)

@@ -6,19 +6,15 @@ import br.com.lata.velha.application.dto.response.ProprietarioResponse;
 import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
 import br.com.lata.velha.domain.model.Proprietario;
 import br.com.lata.velha.domain.repository.ProprietarioRepository;
-import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
+@RequiredArgsConstructor
 public class CriarProprietarioUseCase {
 
     private final ProprietarioRepository repository;
     private final ProprietarioAssembler assembler;
-
-    public CriarProprietarioUseCase(ProprietarioRepository repository,
-                                    ProprietarioAssembler assembler) {
-        this.repository = repository;
-        this.assembler = assembler;
-    }
 
     public ProprietarioResponse execute(ProprietarioRequest request) {
         String docLimpo = request.documento().replaceAll("[^\\d]", "");

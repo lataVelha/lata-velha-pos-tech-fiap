@@ -2,16 +2,14 @@ package br.com.lata.velha.application.usecase.proprietario;
 
 import br.com.lata.velha.domain.exception.ProprietarioNotFoundException;
 import br.com.lata.velha.domain.repository.ProprietarioRepository;
-import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
-@Service
+import org.springframework.stereotype.Component;
+@Component
+@RequiredArgsConstructor
 public class DeletarProprietarioUseCase {
 
     private final ProprietarioRepository repository;
-
-    public DeletarProprietarioUseCase(ProprietarioRepository repository) {
-        this.repository = repository;
-    }
 
     public void execute(Long id) {
         repository.buscarPorId(id)

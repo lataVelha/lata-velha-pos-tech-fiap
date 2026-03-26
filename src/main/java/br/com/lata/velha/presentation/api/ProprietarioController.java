@@ -21,7 +21,8 @@ import org.springframework.web.bind.annotation.*;
 public class ProprietarioController {
 
     private final CriarProprietarioUseCase criarUseCase;
-    private final BuscarProprietarioUseCase buscarUseCase;
+    private final BuscarProprietarioPorIdUseCase buscarPorIdUseCase;
+    private final BuscarProprietarioPorDocumentoUseCase buscarPorDocumentoUseCase;
     private final ListarProprietariosUseCase listarUseCase;
     private final AtualizarProprietarioUseCase atualizarUseCase;
     private final DeletarProprietarioUseCase deletarUseCase;
@@ -39,7 +40,7 @@ public class ProprietarioController {
     @ApiResponse(responseCode = "200", description = "Proprietário encontrado")
     @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
     public ResponseEntity<ProprietarioResponse> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(buscarUseCase.porId(id));
+    return ResponseEntity.ok(buscarPorIdUseCase.execute(id));
     }
 
     @GetMapping("/documento/{documento}")
@@ -47,7 +48,7 @@ public class ProprietarioController {
     @ApiResponse(responseCode = "200", description = "Proprietário encontrado")
     @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
     public ResponseEntity<ProprietarioResponse> buscarPorDocumento(@PathVariable String documento) {
-        return ResponseEntity.ok(buscarUseCase.porDocumento(documento));
+    return ResponseEntity.ok(buscarPorDocumentoUseCase.execute(documento));
     }
 
     @GetMapping

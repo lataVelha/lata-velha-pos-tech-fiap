@@ -9,22 +9,17 @@ import br.com.lata.velha.domain.model.Veiculo;
 import br.com.lata.velha.domain.repository.ProprietarioRepository;
 import br.com.lata.velha.domain.repository.VeiculoRepository;
 import br.com.lata.velha.domain.valueObject.Placa;
-import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
-@Service
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
 public class CriarVeiculoUseCase {
 
     private final VeiculoRepository veiculoRepository;
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoAssembler assembler;
-
-    public CriarVeiculoUseCase(VeiculoRepository veiculoRepository,
-                               ProprietarioRepository proprietarioRepository,
-                               VeiculoAssembler assembler) {
-        this.veiculoRepository = veiculoRepository;
-        this.proprietarioRepository = proprietarioRepository;
-        this.assembler = assembler;
-    }
 
     public VeiculoResponse execute(VeiculoRequest request) {
         proprietarioRepository.buscarPorId(request.proprietarioId())

@@ -7,21 +7,19 @@ import br.com.lata.velha.domain.exception.InvalidLoginException;
 import br.com.lata.velha.domain.model.Funcionario;
 import br.com.lata.velha.domain.model.Role;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
-
+@Component
+@RequiredArgsConstructor
 @Service
 public class LoginUseCase {
 
     private final FuncionarioRepository funcionarioRepository;
     private final TokenProvider tokenProvider;
-
-    public LoginUseCase(FuncionarioRepository funcionarioRepository,
-                        TokenProvider tokenProvider) {
-        this.funcionarioRepository = funcionarioRepository;
-        this.tokenProvider = tokenProvider;
-    }
 
     public LoginResponse execute(LoginRequest request) {
 
