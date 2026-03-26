@@ -9,11 +9,8 @@ import br.com.lata.velha.domain.repository.ProprietarioRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
-
-
 @Component
 @RequiredArgsConstructor
 public class ListarProprietariosUseCase {
