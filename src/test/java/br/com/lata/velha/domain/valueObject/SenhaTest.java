@@ -9,8 +9,8 @@ class SenhaTest {
 
     @Test
     @DisplayName("deve criar senha a partir de hash")
-    void deveCriarSenhaDeHash() {
-        Senha senha = Senha.fromHash("hash123", (plana, hash) -> plana.equals("123456"));
+    void shouldCreateFromHash() {
+        Senha senha = Senha.fromHash("hash123", (raw, hash) -> raw.equals("123456"));
 
         assertNotNull(senha);
         assertEquals("hash123", senha.getHash());
@@ -18,62 +18,62 @@ class SenhaTest {
 
     @Test
     @DisplayName("deve retornar true quando senha corresponde")
-    void deveRetornarTrueQuandoCorresponde() {
-        Senha senha = Senha.fromHash("hash123", (plana, hash) -> plana.equals("123456"));
+    void shouldReturnTrueWhenMatches() {
+        Senha senha = Senha.fromHash("hash123", (raw, hash) -> raw.equals("123456"));
 
-        assertTrue(senha.corresponde("123456"));
+        assertTrue(senha.matches("123456"));
     }
 
     @Test
     @DisplayName("deve retornar false quando senha não corresponde")
-    void deveRetornarFalseQuandoNaoCorresponde() {
-        Senha senha = Senha.fromHash("hash123", (plana, hash) -> plana.equals("123456"));
+    void shouldReturnFalseWhenNotMatches() {
+        Senha senha = Senha.fromHash("hash123", (raw, hash) -> raw.equals("123456"));
 
-        assertFalse(senha.corresponde("senhaErrada"));
+        assertFalse(senha.matches("wrongPassword"));
     }
 
     @Test
     @DisplayName("deve retornar false quando senha plana é nula")
-    void deveRetornarFalseQuandoNula() {
-        Senha senha = Senha.fromHash("hash123", (plana, hash) -> true);
+    void shouldReturnFalseWhenNull() {
+        Senha senha = Senha.fromHash("hash123", (raw, hash) -> true);
 
-        assertFalse(senha.corresponde(null));
+        assertFalse(senha.matches(null));
     }
 
     @Test
     @DisplayName("deve retornar false quando senha plana é vazia")
-    void deveRetornarFalseQuandoVazia() {
-        Senha senha = Senha.fromHash("hash123", (plana, hash) -> true);
+    void shouldReturnFalseWhenEmpty() {
+        Senha senha = Senha.fromHash("hash123", (raw, hash) -> true);
 
-        assertFalse(senha.corresponde(""));
+        assertFalse(senha.matches(""));
     }
 
     @Test
     @DisplayName("deve rejeitar hash nulo")
-    void deveRejeitarHashNulo() {
+    void shouldRejectNullHash() {
         assertThrows(IllegalArgumentException.class,
-                () -> Senha.fromHash(null, (plana, hash) -> true));
+                () -> Senha.fromHash(null, (raw, hash) -> true));
     }
 
     @Test
     @DisplayName("deve rejeitar hash vazio")
-    void deveRejeitarHashVazio() {
+    void shouldRejectEmptyHash() {
         assertThrows(IllegalArgumentException.class,
-                () -> Senha.fromHash("", (plana, hash) -> true));
+                () -> Senha.fromHash("", (raw, hash) -> true));
     }
 
     @Test
     @DisplayName("deve rejeitar verificador nulo")
-    void deveRejeitarVerificadorNulo() {
+    void shouldRejectNullVerifier() {
         assertThrows(NullPointerException.class,
                 () -> Senha.fromHash("hash123", null));
     }
 
     @Test
     @DisplayName("senhas com mesmo hash devem ser equals")
-    void senhasIguaisDevemSerEquals() {
-        Senha senha1 = Senha.fromHash("hash123", (p, h) -> true);
-        Senha senha2 = Senha.fromHash("hash123", (p, h) -> false);
+    void shouldBeEqualWithSameHash() {
+        Senha senha1 = Senha.fromHash("hash123", (r, h) -> true);
+        Senha senha2 = Senha.fromHash("hash123", (r, h) -> false);
 
         assertEquals(senha1, senha2);
         assertEquals(senha1.hashCode(), senha2.hashCode());
@@ -81,8 +81,8 @@ class SenhaTest {
 
     @Test
     @DisplayName("toString não deve expor o hash")
-    void toStringNaoDeveExporHash() {
-        Senha senha = Senha.fromHash("hash_secreto", (p, h) -> true);
+    void shouldNotExposeHashOnToString() {
+        Senha senha = Senha.fromHash("hash_secreto", (r, h) -> true);
 
         assertFalse(senha.toString().contains("hash_secreto"));
         assertTrue(senha.toString().contains("***"));

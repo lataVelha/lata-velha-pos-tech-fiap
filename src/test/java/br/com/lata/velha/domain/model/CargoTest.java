@@ -40,13 +40,13 @@ class CargoTest {
 
     @Test
     @DisplayName("deve rejeitar nome nulo")
-    void shouldRejectNullName() {
+    void shouldRejectNullNome() {
         assertThrows(IllegalArgumentException.class, () -> cargo.setNome(null));
     }
 
     @Test
     @DisplayName("deve rejeitar nome vazio")
-    void shouldRejectEmptyName() {
+    void shouldRejectEmptyNome() {
         assertThrows(IllegalArgumentException.class, () -> cargo.setNome(""));
     }
 
