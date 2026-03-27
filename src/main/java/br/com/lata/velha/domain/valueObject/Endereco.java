@@ -29,7 +29,7 @@ public class Endereco {
     public String getCep() { return cep; }
     public void setCep(String cep) {
         if (cep == null || !cep.matches("\\d{5}-?\\d{3}"))
-            throw new IllegalArgumentException("CEP inválido. Formato esperado: 00000-000");
+            throw new IllegalArgumentException("CEP inválido. Informe 8 dígitos (ex: 12345678 ou 12345-678)");
         this.cep = cep.replace("-", "");
     }
 
