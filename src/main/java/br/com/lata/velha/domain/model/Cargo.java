@@ -21,42 +21,35 @@ public class Cargo {
         this.roles = roles != null ? new HashSet<>(roles) : new HashSet<>();
     }
 
-    public Long getId() {
-        return id;
-    }
+    // --- business rules ---
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        if (nome == null || nome.isBlank()) {
-            throw new IllegalArgumentException("Nome do cargo não pode ser vazio");
-        }
-        this.nome = nome;
-    }
-
-    public Set<Role> getRoles() {
-        return Collections.unmodifiableSet(roles);
-    }
-
-    public void adicionarRole(Role role) {
+    public void addRole(Role role) {
         Objects.requireNonNull(role, "Role não pode ser nula");
         this.roles.add(role);
     }
 
-    public void removerRole(Role role) {
+    public void removeRole(Role role) {
         this.roles.remove(role);
     }
 
-    public boolean possuiRole(String nomeRole) {
+    public boolean hasRole(String roleName) {
         return roles.stream()
-                .anyMatch(r -> r.getNome().equalsIgnoreCase(nomeRole));
+                .anyMatch(r -> r.getNome().equalsIgnoreCase(roleName));
     }
+
+    // --- getters and setters ---
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getNome() { return nome; }
+    public void setNome(String nome) {
+        if (nome == null || nome.isBlank())
+            throw new IllegalArgumentException("Nome do cargo não pode ser vazio");
+        this.nome = nome;
+    }
+
+    public Set<Role> getRoles() { return Collections.unmodifiableSet(roles); }
 
     @Override
     public boolean equals(Object o) {
@@ -67,9 +60,7 @@ public class Cargo {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+    public int hashCode() { return Objects.hash(id); }
 
     @Override
     public String toString() {

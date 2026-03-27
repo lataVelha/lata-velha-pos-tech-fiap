@@ -41,11 +41,11 @@ public class ProprietarioAssembler {
                 : null;
         List<VeiculoResponse> veicResp = p.getVeiculos().stream().map(this::toVeiculoResponse).toList();
         return new ProprietarioResponse(p.getId(), p.getNome(), p.getEmail(),
-                p.getDocumento().getFormatado(), p.getNumeroCelular().getFormatado(), endResp, veicResp);
+                p.getDocumento().getFormatted(), p.getNumeroCelular().getFormatted(), endResp, veicResp);
     }
 
     private VeiculoResponse toVeiculoResponse(Veiculo v) {
-        return new VeiculoResponse(v.getId(), v.getProprietarioId(), v.getPlaca().getFormatado(),
+        return new VeiculoResponse(v.getId(), v.getProprietarioId(), v.getPlaca().getFormatted(),
                 v.getMarca(), v.getModelo(), v.getAno(), v.getCor());
     }
 }

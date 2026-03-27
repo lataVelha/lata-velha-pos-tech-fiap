@@ -1,37 +1,25 @@
 package br.com.lata.velha.application.usecase.proprietario;
 
+import br.com.lata.velha.application.assembler.PaginatedAssembler;
 import br.com.lata.velha.application.assembler.ProprietarioAssembler;
 import br.com.lata.velha.application.dto.response.PaginatedResponse;
 import br.com.lata.velha.application.dto.response.ProprietarioResponse;
-import br.com.lata.velha.domain.model.Proprietario;
-import br.com.lata.velha.domain.common.PaginatedResult;
 import br.com.lata.velha.domain.repository.ProprietarioRepository;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class ListarProprietariosUseCase {
 
     private final ProprietarioRepository repository;
-    private final ProprietarioAssembler assembler;
+    private final ProprietarioAssembler proprietarioAssembler;
+    private final PaginatedAssembler paginatedAssembler;
 
     public PaginatedResponse<ProprietarioResponse> execute(int page, int size) {
-        PaginatedResult<Proprietario> resultado = repository.listarPaginado(page, size);
-
-        List<ProprietarioResponse> content = resultado.content()
-                .stream()
-                .map(assembler::toResponse)
-                .toList();
-
-        return new PaginatedResponse<>(
-                content,
-                resultado.page(),
-                resultado.size(),
-                resultado.totalElements(),
-                resultado.totalPages()
+        return paginatedAssembler.toResponse(
+                repository.findAllPaginated(page, size),
+                proprietarioAssembler::toResponse
         );
     }
 }

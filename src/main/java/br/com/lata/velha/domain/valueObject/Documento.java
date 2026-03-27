@@ -19,33 +19,29 @@ public class Documento {
             throw new IllegalArgumentException("Documento não pode ser vazio");
         }
 
-        String limpo = valor.replaceAll("[^\\dA-Za-z]", "").toUpperCase();
+        String cleanedDocument = valor.replaceAll("[^\\dA-Za-z]", "").toUpperCase();
 
-        // CPF: 11 dígitos numéricos
-        if (limpo.matches("\\d{11}")) {
-            if (!cpfValido(limpo)) {
+        if (cleanedDocument.matches("\\d{11}")) {
+            if (!isValidCpf(cleanedDocument)) {
                 throw new IllegalArgumentException("CPF inválido");
             }
-            return new Documento(limpo, Tipo.CPF);
+            return new Documento(cleanedDocument, Tipo.CPF);
         }
 
-        // CNPJ antigo: 14 dígitos numéricos (ex: 12345678000199)
-        // CNPJ novo: 14 caracteres alfanuméricos (ex: AB1CD234EF5G67)
-        if (limpo.length() == 14 && limpo.matches("[A-Z0-9]{14}")) {
-            if (limpo.matches("\\d{14}") && !cnpjValido(limpo)) {
+        if (cleanedDocument.length() == 14 && cleanedDocument.matches("[A-Z0-9]{14}")) {
+            if (cleanedDocument.matches("\\d{14}") && !isValidCnpj(cleanedDocument)) {
                 throw new IllegalArgumentException("CNPJ inválido");
             }
-            return new Documento(limpo, Tipo.CNPJ);
+            return new Documento(cleanedDocument, Tipo.CNPJ);
         }
 
         throw new IllegalArgumentException(
                 "Documento inválido. CPF: 11 dígitos. CNPJ: 14 caracteres (numérico ou alfanumérico)");
     }
 
-    // -------------------- VALIDAÇÃO CPF --------------------
+    // -------------------- CPF VALIDATION --------------------
 
-    private static boolean cpfValido(String cpf) {
-        // rejeita sequências iguais (111.111.111-11, etc)
+    private static boolean isValidCpf(String cpf) {
         if (cpf.chars().distinct().count() == 1) return false;
 
         int soma = 0;
@@ -65,10 +61,9 @@ public class Documento {
         return segundo == (cpf.charAt(10) - '0');
     }
 
-    // -------------------- VALIDAÇÃO CNPJ --------------------
+    // -------------------- CNPJ VALIDATION --------------------
 
-    private static boolean cnpjValido(String cnpj) {
-        // rejeita sequências iguais
+    private static boolean isValidCnpj(String cnpj) {
         if (cnpj.chars().distinct().count() == 1) return false;
 
         int[] pesos1 = {5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
@@ -93,15 +88,11 @@ public class Documento {
 
     // -------------------- GETTERS --------------------
 
-    public String getValor() {
-        return valor;
-    }
+    public String getValor() { return valor; }
 
-    public Tipo getTipo() {
-        return tipo;
-    }
+    public Tipo getTipo() { return tipo; }
 
-    public String getFormatado() {
+    public String getFormatted() {
         if (tipo == Tipo.CPF) {
             return valor.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})", "$1.$2.$3-$4");
         }
@@ -120,12 +111,8 @@ public class Documento {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(valor);
-    }
+    public int hashCode() { return Objects.hash(valor); }
 
     @Override
-    public String toString() {
-        return getFormatado();
-    }
+    public String toString() { return getFormatted(); }
 }

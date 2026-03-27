@@ -4,21 +4,20 @@ import br.com.lata.velha.domain.common.PaginatedResult;
 import br.com.lata.velha.domain.model.Proprietario;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ProprietarioRepository {
 
-    Proprietario salvar(Proprietario proprietario);
+    Proprietario save(Proprietario proprietario);
 
-    Optional<Proprietario> buscarPorId(Long id);
+    Proprietario findById(Long id);
 
-    Optional<Proprietario> buscarPorDocumento(String documento);
+    Proprietario findByDocumento(String documento);
 
-    List<Proprietario> listarTodos();
+    List<Proprietario> findAll();
 
-    PaginatedResult<Proprietario> listarPaginado(int page, int size);
+    PaginatedResult<Proprietario> findAllPaginated(int page, int size);
 
-    void deletar(Long id);
+    void deleteById(Long id);
 
-    boolean existePorDocumento(String documento);
+    boolean existsByDocumento(String documento);
 }

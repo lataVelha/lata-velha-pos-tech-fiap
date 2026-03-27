@@ -31,11 +31,11 @@ class ProprietarioTest {
 
     @Nested
     @DisplayName("Criação")
-    class Criacao {
+    class Creation {
 
         @Test
         @DisplayName("deve criar proprietário com todos os campos")
-        void deveCriarComTodosCampos() {
+        void shouldCreateWithAllFields() {
             assertEquals(1L, proprietario.getId());
             assertEquals("João da Silva", proprietario.getNome());
             assertEquals("joao@email.com", proprietario.getEmail());
@@ -47,7 +47,7 @@ class ProprietarioTest {
 
         @Test
         @DisplayName("deve criar proprietário vazio com lista de veículos inicializada")
-        void deveCriarVazioComListaInicializada() {
+        void shouldCreateEmptyWithInitializedList() {
             Proprietario vazio = new Proprietario();
 
             assertNotNull(vazio.getVeiculos());
@@ -59,35 +59,35 @@ class ProprietarioTest {
 
     @Nested
     @DisplayName("Validações")
-    class Validacoes {
+    class Validations {
 
         @Test
         @DisplayName("deve rejeitar nome nulo")
-        void deveRejeitarNomeNulo() {
+        void shouldRejectNullName() {
             assertThrows(IllegalArgumentException.class, () -> proprietario.setNome(null));
         }
 
         @Test
         @DisplayName("deve rejeitar nome vazio")
-        void deveRejeitarNomeVazio() {
+        void shouldRejectEmptyName() {
             assertThrows(IllegalArgumentException.class, () -> proprietario.setNome(""));
         }
 
         @Test
         @DisplayName("deve rejeitar email inválido")
-        void deveRejeitarEmailInvalido() {
+        void shouldRejectInvalidEmail() {
             assertThrows(IllegalArgumentException.class, () -> proprietario.setEmail("invalido"));
         }
 
         @Test
         @DisplayName("deve rejeitar email nulo")
-        void deveRejeitarEmailNulo() {
+        void shouldRejectNullEmail() {
             assertThrows(IllegalArgumentException.class, () -> proprietario.setEmail(null));
         }
 
         @Test
         @DisplayName("deve aceitar email válido")
-        void deveAceitarEmailValido() {
+        void shouldAcceptValidEmail() {
             proprietario.setEmail("novo@email.com");
 
             assertEquals("novo@email.com", proprietario.getEmail());
@@ -98,38 +98,38 @@ class ProprietarioTest {
 
     @Nested
     @DisplayName("Gestão de veículos")
-    class GestaoVeiculos {
+    class VeiculoManagement {
 
         @Test
         @DisplayName("deve adicionar veículo")
-        void deveAdicionarVeiculo() {
+        void shouldAddVeiculo() {
             Veiculo veiculo = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
 
-            proprietario.adicionarVeiculo(veiculo);
+            proprietario.addVeiculo(veiculo);
 
             assertEquals(1, proprietario.getVeiculos().size());
         }
 
         @Test
         @DisplayName("deve remover veículo")
-        void deveRemoverVeiculo() {
+        void shouldRemoveVeiculo() {
             Veiculo veiculo = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
-            proprietario.adicionarVeiculo(veiculo);
+            proprietario.addVeiculo(veiculo);
 
-            proprietario.removerVeiculo(veiculo);
+            proprietario.removeVeiculo(veiculo);
 
             assertTrue(proprietario.getVeiculos().isEmpty());
         }
 
         @Test
         @DisplayName("deve rejeitar veículo nulo")
-        void deveRejeitarVeiculoNulo() {
-            assertThrows(NullPointerException.class, () -> proprietario.adicionarVeiculo(null));
+        void shouldRejectNullVeiculo() {
+            assertThrows(NullPointerException.class, () -> proprietario.addVeiculo(null));
         }
 
         @Test
         @DisplayName("lista de veículos deve ser imutável")
-        void listaDeveSerImutavel() {
+        void shouldBeImmutableList() {
             assertThrows(UnsupportedOperationException.class,
                     () -> proprietario.getVeiculos().add(
                             new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata")));
@@ -140,11 +140,11 @@ class ProprietarioTest {
 
     @Nested
     @DisplayName("Equals e HashCode")
-    class EqualsHashCode {
+    class EqualsAndHashCode {
 
         @Test
         @DisplayName("proprietários com mesmo id devem ser equals")
-        void mesmoIdDevemSerEquals() {
+        void shouldBeEqualWithSameId() {
             Proprietario outro = new Proprietario();
             outro.setId(1L);
 
@@ -154,7 +154,7 @@ class ProprietarioTest {
 
         @Test
         @DisplayName("proprietários com ids diferentes não devem ser equals")
-        void idsDiferentesNaoDevemSerEquals() {
+        void shouldNotBeEqualWithDifferentId() {
             Proprietario outro = new Proprietario();
             outro.setId(2L);
 

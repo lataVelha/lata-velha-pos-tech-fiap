@@ -1,8 +1,8 @@
 package br.com.lata.velha.domain.model;
 
-
 import java.util.Objects;
 
+import br.com.lata.velha.domain.exception.InvalidLoginException;
 import br.com.lata.velha.domain.valueObject.Senha;
 
 public class Funcionario {
@@ -24,66 +24,45 @@ public class Funcionario {
         this.cargo = cargo;
     }
 
+    // --- business rules ---
 
-    public boolean autenticar(String senhaPlana) {
-        if (senhaPlana == null || senha == null) {
-            return false;
+    public void authenticateOrFail(String rawPassword) {
+        if (rawPassword == null || senha == null || !senha.matches(rawPassword)) {
+            throw new InvalidLoginException();
         }
-        return senha.corresponde(senhaPlana);
     }
 
-    public boolean possuiRole(String nomeRole) {
+    public boolean hasRole(String roleName) {
         if (cargo == null) {
             return false;
         }
-        return cargo.possuiRole(nomeRole);
+        return cargo.hasRole(roleName);
     }
 
-    public Long getId() {
-        return id;
-    }
+    // --- getters and setters ---
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getNome() {
-        return nome;
-    }
-
+    public String getNome() { return nome; }
     public void setNome(String nome) {
-        if (nome == null || nome.isBlank()) {
+        if (nome == null || nome.isBlank())
             throw new IllegalArgumentException("Nome do funcionário não pode ser vazio");
-        }
         this.nome = nome;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
+    public String getUsername() { return username; }
     public void setUsername(String username) {
-        if (username == null || username.isBlank()) {
+        if (username == null || username.isBlank())
             throw new IllegalArgumentException("Username não pode ser vazio");
-        }
         this.username = username;
     }
 
-    public Senha getSenha() {
-        return senha;
-    }
+    public Senha getSenha() { return senha; }
+    public void setSenha(Senha senha) { this.senha = senha; }
 
-    public void setSenha(Senha senha) {
-        this.senha = senha;
-    }
-
-    public Cargo getCargo() {
-        return cargo;
-    }
-
-    public void setCargo(Cargo cargo) {
-        this.cargo = cargo;
-    }
+    public Cargo getCargo() { return cargo; }
+    public void setCargo(Cargo cargo) { this.cargo = cargo; }
 
     @Override
     public boolean equals(Object o) {
@@ -94,9 +73,7 @@ public class Funcionario {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+    public int hashCode() { return Objects.hash(id); }
 
     @Override
     public String toString() {

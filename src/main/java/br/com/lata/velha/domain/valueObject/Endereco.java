@@ -17,36 +17,26 @@ public class Endereco {
         setNumeroCasa(numeroCasa);
     }
 
-    public String getRua() {
-        return rua;
-    }
+    // --- getters and setters ---
 
+    public String getRua() { return rua; }
     public void setRua(String rua) {
-        if (rua == null || rua.isBlank()) {
+        if (rua == null || rua.isBlank())
             throw new IllegalArgumentException("Rua não pode ser vazia");
-        }
         this.rua = rua;
     }
 
-    public String getCep() {
-        return cep;
-    }
-
+    public String getCep() { return cep; }
     public void setCep(String cep) {
-        if (cep == null || !cep.matches("\\d{5}-?\\d{3}")) {
+        if (cep == null || !cep.matches("\\d{5}-?\\d{3}"))
             throw new IllegalArgumentException("CEP inválido. Formato esperado: 00000-000");
-        }
         this.cep = cep.replace("-", "");
     }
 
-    public String getNumeroCasa() {
-        return numeroCasa;
-    }
-
+    public String getNumeroCasa() { return numeroCasa; }
     public void setNumeroCasa(String numeroCasa) {
-        if (numeroCasa == null || numeroCasa.isBlank()) {
+        if (numeroCasa == null || numeroCasa.isBlank())
             throw new IllegalArgumentException("Número da casa não pode ser vazio");
-        }
         this.numeroCasa = numeroCasa;
     }
 
@@ -61,12 +51,8 @@ public class Endereco {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(rua, cep, numeroCasa);
-    }
+    public int hashCode() { return Objects.hash(rua, cep, numeroCasa); }
 
     @Override
-    public String toString() {
-        return rua + ", " + numeroCasa + " - CEP: " + cep;
-    }
+    public String toString() { return rua + ", " + numeroCasa + " - CEP: " + cep; }
 }
