@@ -56,11 +56,6 @@ public class SecurityConfig {
                 .requestMatchers("/proprietarios/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/veiculos/**").hasAnyRole("USER", "ADMIN")
 
-                // teste de roles
-                .requestMatchers("/teste/admin/**").hasRole("ADMIN")
-                .requestMatchers("/teste/user/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/teste/mecanico/**").hasAnyRole("MECANICO", "ADMIN")
-
                 // qualquer outra rota exige autenticação
                 .anyRequest().authenticated()
             )

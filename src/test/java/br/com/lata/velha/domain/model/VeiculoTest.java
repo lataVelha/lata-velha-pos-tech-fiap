@@ -21,11 +21,11 @@ class VeiculoTest {
 
     @Nested
     @DisplayName("Criação")
-    class Criacao {
+    class Creation {
 
         @Test
         @DisplayName("deve criar veículo com todos os campos")
-        void deveCriarComTodosCampos() {
+        void shouldCreateWithAllFields() {
             assertEquals(1L, veiculo.getId());
             assertEquals(1L, veiculo.getProprietarioId());
             assertEquals("ABC1D23", veiculo.getPlaca().getValor());
@@ -37,7 +37,7 @@ class VeiculoTest {
 
         @Test
         @DisplayName("deve criar veículo vazio")
-        void deveCriarVazio() {
+        void shouldCreateEmpty() {
             Veiculo vazio = new Veiculo();
 
             assertNull(vazio.getId());
@@ -49,75 +49,75 @@ class VeiculoTest {
 
     @Nested
     @DisplayName("Validações")
-    class Validacoes {
+    class Validations {
 
         @Test
         @DisplayName("deve rejeitar marca nula")
-        void deveRejeitarMarcaNula() {
+        void shouldRejectNullMarca() {
             assertThrows(IllegalArgumentException.class, () -> veiculo.setMarca(null));
         }
 
         @Test
         @DisplayName("deve rejeitar marca vazia")
-        void deveRejeitarMarcaVazia() {
+        void shouldRejectEmptyMarca() {
             assertThrows(IllegalArgumentException.class, () -> veiculo.setMarca(""));
         }
 
         @Test
         @DisplayName("deve rejeitar modelo nulo")
-        void deveRejeitarModeloNulo() {
+        void shouldRejectNullModelo() {
             assertThrows(IllegalArgumentException.class, () -> veiculo.setModelo(null));
         }
 
         @Test
         @DisplayName("deve rejeitar modelo vazio")
-        void deveRejeitarModeloVazio() {
+        void shouldRejectEmptyModelo() {
             assertThrows(IllegalArgumentException.class, () -> veiculo.setModelo(""));
         }
 
         @Test
         @DisplayName("deve rejeitar cor nula")
-        void deveRejeitarCorNula() {
+        void shouldRejectNullCor() {
             assertThrows(IllegalArgumentException.class, () -> veiculo.setCor(null));
         }
 
         @Test
         @DisplayName("deve rejeitar cor vazia")
-        void deveRejeitarCorVazia() {
+        void shouldRejectEmptyCor() {
             assertThrows(IllegalArgumentException.class, () -> veiculo.setCor(""));
         }
 
         @Test
         @DisplayName("deve rejeitar ano nulo")
-        void deveRejeitarAnoNulo() {
+        void shouldRejectNullAno() {
             assertThrows(IllegalArgumentException.class, () -> veiculo.setAno(null));
         }
 
         @Test
         @DisplayName("deve rejeitar ano anterior a 1886")
-        void deveRejeitarAnoMuitoAntigo() {
+        void shouldRejectAnoBefore1886() {
             assertThrows(IllegalArgumentException.class, () -> veiculo.setAno(1885));
         }
 
         @Test
         @DisplayName("deve rejeitar ano futuro além do próximo")
-        void deveRejeitarAnoFuturo() {
-            int anoFuturo = java.time.Year.now().getValue() + 2;
-            assertThrows(IllegalArgumentException.class, () -> veiculo.setAno(anoFuturo));
+        void shouldRejectFutureAno() {
+            int futureYear = java.time.Year.now().getValue() + 2;
+            assertThrows(IllegalArgumentException.class, () -> veiculo.setAno(futureYear));
         }
 
         @Test
         @DisplayName("deve aceitar ano atual + 1")
-        void deveAceitarAnoProximo() {
-            int proximoAno = java.time.Year.now().getValue() + 1;
-            veiculo.setAno(proximoAno);
+        void shouldAcceptNextYearAno() {
+            int nextYear = java.time.Year.now().getValue() + 1;
+            veiculo.setAno(nextYear);
 
-            assertEquals(proximoAno, veiculo.getAno());
+            assertEquals(nextYear, veiculo.getAno());
         }
 
         @Test
         @DisplayName("deve aceitar ano 1886 (primeiro carro)")
-        void deveAceitarAnoMinimo() {
+        void shouldAcceptMinimumAno() {
             veiculo.setAno(1886);
 
             assertEquals(1886, veiculo.getAno());
@@ -128,11 +128,11 @@ class VeiculoTest {
 
     @Nested
     @DisplayName("Equals e HashCode")
-    class EqualsHashCode {
+    class EqualsAndHashCode {
 
         @Test
         @DisplayName("veículos com mesmo id devem ser equals")
-        void mesmoIdDevemSerEquals() {
+        void shouldBeEqualWithSameId() {
             Veiculo outro = new Veiculo();
             outro.setId(1L);
 
@@ -142,7 +142,7 @@ class VeiculoTest {
 
         @Test
         @DisplayName("veículos com ids diferentes não devem ser equals")
-        void idsDiferentesNaoDevemSerEquals() {
+        void shouldNotBeEqualWithDifferentId() {
             Veiculo outro = new Veiculo();
             outro.setId(2L);
 

@@ -12,28 +12,28 @@ import java.util.function.BiFunction;
 public class Senha {
 
     private final String hash;
-    private final BiFunction<String, String, Boolean> verificador;
+    private final BiFunction<String, String, Boolean> verifier;
 
-    private Senha(String hash, BiFunction<String, String, Boolean> verificador) {
+    private Senha(String hash, BiFunction<String, String, Boolean> verifier) {
         if (hash == null || hash.isBlank()) {
             throw new IllegalArgumentException("Hash da senha não pode ser vazio");
         }
-        Objects.requireNonNull(verificador, "Verificador de senha é obrigatório");
+        Objects.requireNonNull(verifier, "Verificador de senha é obrigatório");
         this.hash = hash;
-        this.verificador = verificador;
+        this.verifier = verifier;
     }
 
-    public static Senha fromHash(String hash, BiFunction<String, String, Boolean> verificador) {
-        return new Senha(hash, verificador);
+    public static Senha fromHash(String hash, BiFunction<String, String, Boolean> verifier) {
+        return new Senha(hash, verifier);
     }
 
     // --- business method ---
 
-    public boolean matches(String senhaPlana) {
-        if (senhaPlana == null || senhaPlana.isBlank()) {
+    public boolean matches(String rawPassword) {
+        if (rawPassword == null || rawPassword.isBlank()) {
             return false;
         }
-        return verificador.apply(senhaPlana, this.hash);
+        return verifier.apply(rawPassword, this.hash);
     }
 
     // --- getter ---

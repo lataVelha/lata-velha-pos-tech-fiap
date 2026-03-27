@@ -9,7 +9,7 @@ class EnderecoTest {
 
     @Test
     @DisplayName("deve criar endereço válido")
-    void deveCriarEnderecoValido() {
+    void shouldCreateValidEndereco() {
         Endereco end = new Endereco("Rua das Flores", "01234567", "100");
 
         assertEquals("Rua das Flores", end.getRua());
@@ -19,7 +19,7 @@ class EnderecoTest {
 
     @Test
     @DisplayName("deve limpar formatação do CEP")
-    void deveLimparCep() {
+    void shouldCleanCepFormatting() {
         Endereco end = new Endereco("Rua A", "01234-567", "10");
 
         assertEquals("01234567", end.getCep());
@@ -27,43 +27,43 @@ class EnderecoTest {
 
     @Test
     @DisplayName("deve rejeitar rua nula")
-    void deveRejeitarRuaNula() {
+    void shouldRejectNullRua() {
         assertThrows(IllegalArgumentException.class, () -> new Endereco(null, "01234567", "100"));
     }
 
     @Test
     @DisplayName("deve rejeitar rua vazia")
-    void deveRejeitarRuaVazia() {
+    void shouldRejectEmptyRua() {
         assertThrows(IllegalArgumentException.class, () -> new Endereco("", "01234567", "100"));
     }
 
     @Test
     @DisplayName("deve rejeitar CEP inválido")
-    void deveRejeitarCepInvalido() {
+    void shouldRejectInvalidCep() {
         assertThrows(IllegalArgumentException.class, () -> new Endereco("Rua A", "123", "100"));
     }
 
     @Test
     @DisplayName("deve rejeitar CEP nulo")
-    void deveRejeitarCepNulo() {
+    void shouldRejectNullCep() {
         assertThrows(IllegalArgumentException.class, () -> new Endereco("Rua A", null, "100"));
     }
 
     @Test
     @DisplayName("deve rejeitar número nulo")
-    void deveRejeitarNumeroNulo() {
+    void shouldRejectNullNumeroCasa() {
         assertThrows(IllegalArgumentException.class, () -> new Endereco("Rua A", "01234567", null));
     }
 
     @Test
     @DisplayName("deve rejeitar número vazio")
-    void deveRejeitarNumeroVazio() {
+    void shouldRejectEmptyNumeroCasa() {
         assertThrows(IllegalArgumentException.class, () -> new Endereco("Rua A", "01234567", ""));
     }
 
     @Test
     @DisplayName("endereços iguais devem ser equals")
-    void enderecosIguaisDevemSerEquals() {
+    void shouldBeEqualWithSameValues() {
         Endereco end1 = new Endereco("Rua A", "01234567", "100");
         Endereco end2 = new Endereco("Rua A", "01234-567", "100");
 
@@ -73,7 +73,7 @@ class EnderecoTest {
 
     @Test
     @DisplayName("endereços diferentes não devem ser equals")
-    void enderecosDiferentesNaoDevemSerEquals() {
+    void shouldNotBeEqualWithDifferentValues() {
         Endereco end1 = new Endereco("Rua A", "01234567", "100");
         Endereco end2 = new Endereco("Rua B", "01234567", "200");
 
@@ -82,7 +82,7 @@ class EnderecoTest {
 
     @Test
     @DisplayName("toString deve conter rua, número e CEP")
-    void toStringDeveConterDados() {
+    void shouldContainDataOnToString() {
         Endereco end = new Endereco("Rua das Flores", "01234567", "100");
 
         assertTrue(end.toString().contains("Rua das Flores"));

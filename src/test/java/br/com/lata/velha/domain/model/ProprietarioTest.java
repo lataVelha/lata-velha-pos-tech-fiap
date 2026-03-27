@@ -63,13 +63,13 @@ class ProprietarioTest {
 
         @Test
         @DisplayName("deve rejeitar nome nulo")
-        void shouldRejectNullName() {
+        void shouldRejectNullNome() {
             assertThrows(IllegalArgumentException.class, () -> proprietario.setNome(null));
         }
 
         @Test
         @DisplayName("deve rejeitar nome vazio")
-        void shouldRejectEmptyName() {
+        void shouldRejectEmptyNome() {
             assertThrows(IllegalArgumentException.class, () -> proprietario.setNome(""));
         }
 
