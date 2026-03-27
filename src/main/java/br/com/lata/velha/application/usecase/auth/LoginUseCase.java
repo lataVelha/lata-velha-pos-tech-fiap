@@ -3,19 +3,16 @@ package br.com.lata.velha.application.usecase.auth;
 import br.com.lata.velha.application.dto.request.LoginRequest;
 import br.com.lata.velha.application.dto.response.LoginResponse;
 import br.com.lata.velha.application.port.TokenProvider;
-import br.com.lata.velha.domain.exception.InvalidLoginException;
 import br.com.lata.velha.domain.model.Funcionario;
 import br.com.lata.velha.domain.model.Role;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
-@Service
 public class LoginUseCase {
 
     private final FuncionarioRepository funcionarioRepository;
@@ -23,12 +20,9 @@ public class LoginUseCase {
 
     public LoginResponse execute(LoginRequest request) {
 
-        Funcionario funcionario = funcionarioRepository.buscarPorNome(request.username())
-                .orElseThrow(() -> new InvalidLoginException());
+        Funcionario funcionario = funcionarioRepository.findByUsername(request.username());
 
-        if (!funcionario.autenticar(request.password())) {
-            throw new InvalidLoginException();
-        }
+        funcionario.authenticateOrFail(request.password());
 
         String scopes = funcionario.getCargo().getRoles()
                 .stream()

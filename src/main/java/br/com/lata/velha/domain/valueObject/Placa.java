@@ -15,21 +15,22 @@ public class Placa {
             throw new IllegalArgumentException("Placa não pode ser vazia");
         }
 
-        String limpa = valor.toUpperCase().replaceAll("[^A-Z0-9]", "");
+        String cleanedValue = valor.toUpperCase().replaceAll("[^A-Z0-9]", "");
 
-        // Formato antigo: ABC1234 | Mercosul: ABC1D23
-        if (!limpa.matches("[A-Z]{3}\\d[A-Z0-9]\\d{2}")) {
+        if (!cleanedValue.matches("[A-Z]{3}\\d[A-Z0-9]\\d{2}")) {
             throw new IllegalArgumentException("Placa inválida. Formatos aceitos: ABC1234 ou ABC1D23");
         }
 
-        return new Placa(limpa);
+        return new Placa(cleanedValue);
     }
 
-    public String getValor() {
-        return valor;
-    }
+    // --- getter ---
 
-    public String getFormatado() {
+    public String getValor() { return valor; }
+
+    // --- business method ---
+
+    public String getFormatted() {
         return valor.substring(0, 3) + "-" + valor.substring(3);
     }
 
@@ -37,17 +38,12 @@ public class Placa {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Placa placa = (Placa) o;
-        return Objects.equals(valor, placa.valor);
+        return Objects.equals(valor, ((Placa) o).valor);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(valor);
-    }
+    public int hashCode() { return Objects.hash(valor); }
 
     @Override
-    public String toString() {
-        return getFormatado();
-    }
+    public String toString() { return getFormatted(); }
 }

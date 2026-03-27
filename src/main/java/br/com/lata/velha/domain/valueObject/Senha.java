@@ -23,42 +23,33 @@ public class Senha {
         this.verificador = verificador;
     }
 
-    /**
-     * Cria uma Senha a partir de um hash já existente (vindo do banco).
-     */
     public static Senha fromHash(String hash, BiFunction<String, String, Boolean> verificador) {
         return new Senha(hash, verificador);
     }
 
-    /**
-     * Verifica se a senha em texto plano corresponde ao hash armazenado.
-     */
-    public boolean corresponde(String senhaPlana) {
+    // --- business method ---
+
+    public boolean matches(String senhaPlana) {
         if (senhaPlana == null || senhaPlana.isBlank()) {
             return false;
         }
         return verificador.apply(senhaPlana, this.hash);
     }
 
-    public String getHash() {
-        return hash;
-    }
+    // --- getter ---
+
+    public String getHash() { return hash; }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Senha senha = (Senha) o;
-        return Objects.equals(hash, senha.hash);
+        return Objects.equals(hash, ((Senha) o).hash);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(hash);
-    }
+    public int hashCode() { return Objects.hash(hash); }
 
     @Override
-    public String toString() {
-        return "Senha{***}";
-    }
+    public String toString() { return "Senha{***}"; }
 }

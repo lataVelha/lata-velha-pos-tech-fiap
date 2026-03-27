@@ -24,7 +24,7 @@ public class VeiculoAssembler {
     }
 
     public VeiculoResponse toResponse(Veiculo v) {
-        return new VeiculoResponse(v.getId(), v.getProprietarioId(), v.getPlaca().getFormatado(),
+        return new VeiculoResponse(v.getId(), v.getProprietarioId(), v.getPlaca().getFormatted(),
                 v.getMarca(), v.getModelo(), v.getAno(), v.getCor());
     }
 }

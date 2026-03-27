@@ -4,23 +4,22 @@ import br.com.lata.velha.domain.common.PaginatedResult;
 import br.com.lata.velha.domain.model.Veiculo;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface VeiculoRepository {
 
-    Veiculo salvar(Veiculo veiculo);
+    Veiculo save(Veiculo veiculo);
 
-    Optional<Veiculo> buscarPorId(Long id);
+    Veiculo findById(Long id);
 
-    Optional<Veiculo> buscarPorPlaca(String placa);
+    Veiculo findByPlaca(String placa);
 
-    List<Veiculo> listarPorProprietario(Long proprietarioId);
+    List<Veiculo> findByProprietarioId(Long proprietarioId);
 
-    List<Veiculo> listarTodos();
+    List<Veiculo> findAll();
 
-    PaginatedResult<Veiculo> listarPaginado(int page, int size);
+    PaginatedResult<Veiculo> findAllPaginated(int page, int size);
 
-    void deletar(Long id);
+    void deleteById(Long id);
 
-    boolean existePorPlaca(String placa);
+    boolean existsByPlaca(String placa);
 }
