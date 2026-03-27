@@ -14,64 +14,67 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/veiculos")
 @RequiredArgsConstructor
 @Tag(name = "Veículos", description = "CRUD de veículos")
 public class VeiculoController {
 
-    private final CriarVeiculoUseCase criarUseCase;
-    private final BuscarVeiculoUseCase buscarUseCase;
-    private final ListarVeiculosUseCase listarUseCase;
-    private final AtualizarVeiculoUseCase atualizarUseCase;
-    private final DeletarVeiculoUseCase deletarUseCase;
+    private final CriarVeiculoUseCase createUseCase;
+    private final BuscarVeiculoPorIdUseCase findByIdUseCase;
+    private final ListarVeiculosPorProprietarioUseCase listByProprietarioUseCase;
+    private final ListarVeiculosUseCase listUseCase;
+    private final AtualizarVeiculoUseCase updateUseCase;
+    private final DeletarVeiculoUseCase deleteUseCase;
 
     @PostMapping
     @Operation(summary = "Cadastrar veículo")
     @ApiResponse(responseCode = "201", description = "Veículo criado")
     @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
     @ApiResponse(responseCode = "409", description = "Placa já cadastrada")
-    public ResponseEntity<VeiculoResponse> criar(@Valid @RequestBody VeiculoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(criarUseCase.execute(request));
+    public ResponseEntity<VeiculoResponse> create(@Valid @RequestBody VeiculoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(createUseCase.execute(request));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar veículo por ID")
     @ApiResponse(responseCode = "200", description = "Veículo encontrado")
     @ApiResponse(responseCode = "404", description = "Veículo não encontrado")
-    public ResponseEntity<VeiculoResponse> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(buscarUseCase.porId(id));
+    public ResponseEntity<VeiculoResponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(findByIdUseCase.execute(id));
     }
 
     @GetMapping("/proprietario/{proprietarioId}")
     @Operation(summary = "Listar veículos de um proprietário")
-    public ResponseEntity<java.util.List<VeiculoResponse>> listarPorProprietario(@PathVariable Long proprietarioId) {
-        return ResponseEntity.ok(buscarUseCase.porProprietario(proprietarioId));
+    public ResponseEntity<List<VeiculoResponse>> listByProprietario(@PathVariable Long proprietarioId) {
+        return ResponseEntity.ok(listByProprietarioUseCase.execute(proprietarioId));
     }
 
     @GetMapping
     @Operation(summary = "Listar veículos paginado")
-    public ResponseEntity<PaginatedResponse<VeiculoResponse>> listarTodos(
+    public ResponseEntity<PaginatedResponse<VeiculoResponse>> listAll(
             @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(listarUseCase.execute(page, size));
+        return ResponseEntity.ok(listUseCase.execute(page, size));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar veículo")
     @ApiResponse(responseCode = "200", description = "Veículo atualizado")
     @ApiResponse(responseCode = "404", description = "Veículo ou proprietário não encontrado")
-    public ResponseEntity<VeiculoResponse> atualizar(@PathVariable Long id,
-                                                     @Valid @RequestBody VeiculoRequest request) {
-        return ResponseEntity.ok(atualizarUseCase.execute(id, request));
+    public ResponseEntity<VeiculoResponse> update(@PathVariable Long id,
+                                                   @Valid @RequestBody VeiculoRequest request) {
+        return ResponseEntity.ok(updateUseCase.execute(id, request));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar veículo")
     @ApiResponse(responseCode = "204", description = "Veículo deletado")
     @ApiResponse(responseCode = "404", description = "Veículo não encontrado")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        deletarUseCase.execute(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        deleteUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }
 }

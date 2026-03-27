@@ -19,89 +19,80 @@ public class Documento {
             throw new IllegalArgumentException("Documento não pode ser vazio");
         }
 
-        String limpo = valor.replaceAll("[^\\dA-Za-z]", "").toUpperCase();
+        String cleaned = valor.replaceAll("[^\\dA-Za-z]", "").toUpperCase();
 
-        // CPF: 11 dígitos numéricos
-        if (limpo.matches("\\d{11}")) {
-            if (!cpfValido(limpo)) {
+        if (cleaned.matches("\\d{11}")) {
+            if (!isValidCpf(cleaned)) {
                 throw new IllegalArgumentException("CPF inválido");
             }
-            return new Documento(limpo, Tipo.CPF);
+            return new Documento(cleaned, Tipo.CPF);
         }
 
-        // CNPJ antigo: 14 dígitos numéricos (ex: 12345678000199)
-        // CNPJ novo: 14 caracteres alfanuméricos (ex: AB1CD234EF5G67)
-        if (limpo.length() == 14 && limpo.matches("[A-Z0-9]{14}")) {
-            if (limpo.matches("\\d{14}") && !cnpjValido(limpo)) {
+        if (cleaned.length() == 14 && cleaned.matches("[A-Z0-9]{14}")) {
+            if (cleaned.matches("\\d{14}") && !isValidCnpj(cleaned)) {
                 throw new IllegalArgumentException("CNPJ inválido");
             }
-            return new Documento(limpo, Tipo.CNPJ);
+            return new Documento(cleaned, Tipo.CNPJ);
         }
 
         throw new IllegalArgumentException(
                 "Documento inválido. CPF: 11 dígitos. CNPJ: 14 caracteres (numérico ou alfanumérico)");
     }
 
-    // -------------------- VALIDAÇÃO CPF --------------------
+    // -------------------- CPF VALIDATION --------------------
 
-    private static boolean cpfValido(String cpf) {
-        // rejeita sequências iguais (111.111.111-11, etc)
+    private static boolean isValidCpf(String cpf) {
         if (cpf.chars().distinct().count() == 1) return false;
 
-        int soma = 0;
+        int sum = 0;
         for (int i = 0; i < 9; i++) {
-            soma += (cpf.charAt(i) - '0') * (10 - i);
+            sum += (cpf.charAt(i) - '0') * (10 - i);
         }
-        int primeiro = 11 - (soma % 11);
-        if (primeiro > 9) primeiro = 0;
-        if (primeiro != (cpf.charAt(9) - '0')) return false;
+        int firstDigit = 11 - (sum % 11);
+        if (firstDigit > 9) firstDigit = 0;
+        if (firstDigit != (cpf.charAt(9) - '0')) return false;
 
-        soma = 0;
+        sum = 0;
         for (int i = 0; i < 10; i++) {
-            soma += (cpf.charAt(i) - '0') * (11 - i);
+            sum += (cpf.charAt(i) - '0') * (11 - i);
         }
-        int segundo = 11 - (soma % 11);
-        if (segundo > 9) segundo = 0;
-        return segundo == (cpf.charAt(10) - '0');
+        int secondDigit = 11 - (sum % 11);
+        if (secondDigit > 9) secondDigit = 0;
+        return secondDigit == (cpf.charAt(10) - '0');
     }
 
-    // -------------------- VALIDAÇÃO CNPJ --------------------
+    // -------------------- CNPJ VALIDATION --------------------
 
-    private static boolean cnpjValido(String cnpj) {
-        // rejeita sequências iguais
+    private static boolean isValidCnpj(String cnpj) {
         if (cnpj.chars().distinct().count() == 1) return false;
 
-        int[] pesos1 = {5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
-        int[] pesos2 = {6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
+        int[] weights1 = {5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
+        int[] weights2 = {6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
 
-        int soma = 0;
+        int sum = 0;
         for (int i = 0; i < 12; i++) {
-            soma += (cnpj.charAt(i) - '0') * pesos1[i];
+            sum += (cnpj.charAt(i) - '0') * weights1[i];
         }
-        int primeiro = soma % 11;
-        primeiro = primeiro < 2 ? 0 : 11 - primeiro;
-        if (primeiro != (cnpj.charAt(12) - '0')) return false;
+        int firstDigit = sum % 11;
+        firstDigit = firstDigit < 2 ? 0 : 11 - firstDigit;
+        if (firstDigit != (cnpj.charAt(12) - '0')) return false;
 
-        soma = 0;
+        sum = 0;
         for (int i = 0; i < 13; i++) {
-            soma += (cnpj.charAt(i) - '0') * pesos2[i];
+            sum += (cnpj.charAt(i) - '0') * weights2[i];
         }
-        int segundo = soma % 11;
-        segundo = segundo < 2 ? 0 : 11 - segundo;
-        return segundo == (cnpj.charAt(13) - '0');
+        int secondDigit = sum % 11;
+        secondDigit = secondDigit < 2 ? 0 : 11 - secondDigit;
+        return secondDigit == (cnpj.charAt(13) - '0');
     }
 
     // -------------------- GETTERS --------------------
 
-    public String getValor() {
-        return valor;
-    }
+    public String getValor() { return valor; }
 
-    public Tipo getTipo() {
-        return tipo;
-    }
+    public Tipo getTipo() { return tipo; }
 
-    public String getFormatado() {
+    public String getFormatted() {
         if (tipo == Tipo.CPF) {
             return valor.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})", "$1.$2.$3-$4");
         }
@@ -120,12 +111,8 @@ public class Documento {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(valor);
-    }
+    public int hashCode() { return Objects.hash(valor); }
 
     @Override
-    public String toString() {
-        return getFormatado();
-    }
+    public String toString() { return getFormatted(); }
 }
