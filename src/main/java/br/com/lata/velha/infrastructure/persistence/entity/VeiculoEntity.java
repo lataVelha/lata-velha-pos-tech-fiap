@@ -31,4 +31,7 @@ public class VeiculoEntity {
 
     @Column(name = "COR", nullable = false)
     private String cor;
+
+    @Column(name = "ATIVO", nullable = false)
+    private boolean ativo = true;   
 }

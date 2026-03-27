@@ -31,6 +31,9 @@ public class ProprietarioEntity {
     @Embedded
     private EnderecoEmbeddable endereco;
 
+    @Column(name = "ATIVO", nullable = false)
+    private boolean ativo = true;
+
     @OneToMany(mappedBy = "proprietario", fetch = FetchType.LAZY)
     private List<VeiculoEntity> veiculos = new ArrayList<>();
 }

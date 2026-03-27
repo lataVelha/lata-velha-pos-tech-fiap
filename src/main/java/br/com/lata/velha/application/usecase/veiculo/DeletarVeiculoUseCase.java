@@ -1,5 +1,6 @@
 package br.com.lata.velha.application.usecase.veiculo;
 
+import br.com.lata.velha.domain.model.Veiculo;
 import br.com.lata.velha.domain.repository.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,8 @@ public class DeletarVeiculoUseCase {
     private final VeiculoRepository repository;
 
     public void execute(Long id) {
-        repository.deleteById(id);
+        Veiculo veiculo = repository.findActiveById(id);
+        veiculo.deactivate();
+        repository.save(veiculo);
     }
 }

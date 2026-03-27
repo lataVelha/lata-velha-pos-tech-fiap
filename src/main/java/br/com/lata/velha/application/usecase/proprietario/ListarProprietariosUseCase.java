@@ -18,7 +18,7 @@ public class ListarProprietariosUseCase {
 
     public PaginatedResponse<ProprietarioResponse> execute(int page, int size) {
         return paginatedAssembler.toResponse(
-                repository.findAllPaginated(page, size),
+                repository.findAllActivePaginated(page, size),
                 proprietarioAssembler::toResponse
         );
     }

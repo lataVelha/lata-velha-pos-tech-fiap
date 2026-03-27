@@ -38,6 +38,7 @@ public class ProprietarioPersistenceMapper {
                 NumeroCelular.of(entity.getNumeroCelular()),
                 endereco
         );
+        proprietario.setAtivo(entity.isAtivo());
 
         if (entity.getVeiculos() != null) {
             List<Veiculo> veiculos = entity.getVeiculos().stream()
@@ -50,7 +51,7 @@ public class ProprietarioPersistenceMapper {
     }
 
     private Veiculo veiculoToDomain(VeiculoEntity entity) {
-        return new Veiculo(
+        Veiculo veiculo = new Veiculo(
                 entity.getId(),
                 entity.getProprietario().getId(),
                 Placa.of(entity.getPlaca()),
@@ -59,6 +60,8 @@ public class ProprietarioPersistenceMapper {
                 entity.getAno(),
                 entity.getCor()
         );
+        veiculo.setAtivo(entity.isAtivo());
+        return veiculo;
     }
 
     // --- Domain → Entity ---
@@ -72,6 +75,7 @@ public class ProprietarioPersistenceMapper {
         entity.setEmail(domain.getEmail());
         entity.setDocumento(domain.getDocumento().getValor());
         entity.setNumeroCelular(domain.getNumeroCelular().getValor());
+        entity.setAtivo(domain.isAtivo());
 
         if (domain.getEndereco() != null) {
             EnderecoEmbeddable end = new EnderecoEmbeddable();

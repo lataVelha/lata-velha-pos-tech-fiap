@@ -26,6 +26,7 @@ public class ProprietarioController {
     private final ListarProprietariosUseCase listUseCase;
     private final AtualizarProprietarioUseCase updateUseCase;
     private final DeletarProprietarioUseCase deleteUseCase;
+    private final ReativarProprietarioUseCase reactivateUseCase;
 
     @PostMapping
     @Operation(summary = "Cadastrar proprietário")
@@ -69,11 +70,19 @@ public class ProprietarioController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar proprietário")
-    @ApiResponse(responseCode = "204", description = "Proprietário deletado")
+    @Operation(summary = "Desativar proprietário")
+    @ApiResponse(responseCode = "204", description = "Proprietário desativado")
     @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deleteUseCase.execute(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/reactivate")
+    @Operation(summary = "Reativar proprietário")
+    @ApiResponse(responseCode = "200", description = "Proprietário reativado")
+    @ApiResponse(responseCode = "404", description = "Proprietário inativo não encontrado")
+    public ResponseEntity<ProprietarioResponse> reactivate(@PathVariable Long id) {
+        return ResponseEntity.ok(reactivateUseCase.execute(id));
     }
 }

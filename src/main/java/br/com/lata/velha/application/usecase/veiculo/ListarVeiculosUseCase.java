@@ -18,7 +18,7 @@ public class ListarVeiculosUseCase {
 
     public PaginatedResponse<VeiculoResponse> execute(int page, int size) {
         return paginatedAssembler.toResponse(
-                repository.findAllPaginated(page, size),
+                repository.findAllActivePaginated(page, size),
                 veiculoAssembler::toResponse
         );
     }
