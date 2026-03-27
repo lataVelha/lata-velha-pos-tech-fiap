@@ -9,7 +9,7 @@ class PlacaTest {
 
     @Test
     @DisplayName("deve criar placa formato antigo (ABC1234)")
-    void deveCriarPlacaFormatoAntigo() {
+    void shouldCreateOldFormatPlaca() {
         Placa placa = Placa.of("ABC1234");
 
         assertEquals("ABC1234", placa.getValor());
@@ -17,7 +17,7 @@ class PlacaTest {
 
     @Test
     @DisplayName("deve criar placa formato Mercosul (ABC1D23)")
-    void deveCriarPlacaMercosul() {
+    void shouldCreateMercosulPlaca() {
         Placa placa = Placa.of("ABC1D23");
 
         assertEquals("ABC1D23", placa.getValor());
@@ -25,7 +25,7 @@ class PlacaTest {
 
     @Test
     @DisplayName("deve aceitar placa com hífen")
-    void deveAceitarPlacaComHifen() {
+    void shouldAcceptPlacaWithHyphen() {
         Placa placa = Placa.of("ABC-1D23");
 
         assertEquals("ABC1D23", placa.getValor());
@@ -33,7 +33,7 @@ class PlacaTest {
 
     @Test
     @DisplayName("deve converter para maiúsculas")
-    void deveConverterParaMaiusculas() {
+    void shouldConvertToUpperCase() {
         Placa placa = Placa.of("abc1d23");
 
         assertEquals("ABC1D23", placa.getValor());
@@ -41,27 +41,27 @@ class PlacaTest {
 
     @Test
     @DisplayName("deve formatar com hífen")
-    void deveFormatarComHifen() {
+    void shouldFormatWithHyphen() {
         Placa placa = Placa.of("ABC1D23");
 
-        assertEquals("ABC-1D23", placa.getFormatado());
+        assertEquals("ABC-1D23", placa.getFormatted());
     }
 
     @Test
     @DisplayName("deve rejeitar placa nula")
-    void deveRejeitarNula() {
+    void shouldRejectNullPlaca() {
         assertThrows(IllegalArgumentException.class, () -> Placa.of(null));
     }
 
     @Test
     @DisplayName("deve rejeitar placa vazia")
-    void deveRejeitarVazia() {
+    void shouldRejectEmptyPlaca() {
         assertThrows(IllegalArgumentException.class, () -> Placa.of(""));
     }
 
     @Test
     @DisplayName("deve rejeitar placa com formato inválido")
-    void deveRejeitarFormatoInvalido() {
+    void shouldRejectInvalidFormat() {
         assertThrows(IllegalArgumentException.class, () -> Placa.of("12345"));
         assertThrows(IllegalArgumentException.class, () -> Placa.of("ABCDEFG"));
         assertThrows(IllegalArgumentException.class, () -> Placa.of("1234567"));
@@ -69,7 +69,7 @@ class PlacaTest {
 
     @Test
     @DisplayName("placas iguais devem ser equals")
-    void placasIguaisDevemSerEquals() {
+    void shouldBeEqualWithSameValor() {
         Placa placa1 = Placa.of("ABC1D23");
         Placa placa2 = Placa.of("abc-1d23");
 
@@ -79,7 +79,7 @@ class PlacaTest {
 
     @Test
     @DisplayName("placas diferentes não devem ser equals")
-    void placasDiferentesNaoDevemSerEquals() {
+    void shouldNotBeEqualWithDifferentValor() {
         Placa placa1 = Placa.of("ABC1234");
         Placa placa2 = Placa.of("XYZ9876");
 
@@ -88,7 +88,7 @@ class PlacaTest {
 
     @Test
     @DisplayName("toString deve retornar formatado")
-    void toStringDeveRetornarFormatado() {
+    void shouldReturnFormattedOnToString() {
         Placa placa = Placa.of("ABC1D23");
 
         assertEquals("ABC-1D23", placa.toString());

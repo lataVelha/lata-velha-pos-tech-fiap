@@ -1,5 +1,6 @@
 package br.com.lata.velha.domain.model;
 
+import br.com.lata.velha.domain.exception.InvalidLoginException;
 import br.com.lata.velha.domain.valueObject.Senha;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,32 +28,35 @@ class FuncionarioTest {
 
     @Nested
     @DisplayName("Autenticação")
-    class Autenticacao {
+    class Authentication {
 
         @Test
         @DisplayName("deve autenticar com senha correta")
-        void deveAutenticarComSenhaCorreta() {
-            assertTrue(funcionario.autenticar("123456"));
+        void shouldAuthenticateWithCorrectPassword() {
+            assertDoesNotThrow(() -> funcionario.authenticateOrFail("123456"));
         }
 
         @Test
         @DisplayName("não deve autenticar com senha errada")
-        void naoDeveAutenticarComSenhaErrada() {
-            assertFalse(funcionario.autenticar("senhaErrada"));
+        void shouldFailWithWrongPassword() {
+            assertThrows(InvalidLoginException.class,
+                    () -> funcionario.authenticateOrFail("senhaErrada"));
         }
 
         @Test
         @DisplayName("não deve autenticar com senha nula")
-        void naoDeveAutenticarComSenhaNula() {
-            assertFalse(funcionario.autenticar(null));
+        void shouldFailWithNullPassword() {
+            assertThrows(InvalidLoginException.class,
+                    () -> funcionario.authenticateOrFail(null));
         }
 
         @Test
         @DisplayName("não deve autenticar quando senha do funcionário é nula")
-        void naoDeveAutenticarSemSenha() {
+        void shouldFailWhenSenhaIsNull() {
             funcionario.setSenha(null);
 
-            assertFalse(funcionario.autenticar("123456"));
+            assertThrows(InvalidLoginException.class,
+                    () -> funcionario.authenticateOrFail("123456"));
         }
     }
 
@@ -60,27 +64,27 @@ class FuncionarioTest {
 
     @Nested
     @DisplayName("Verificação de roles")
-    class Roles {
+    class RolesCheck {
 
         @Test
         @DisplayName("deve verificar role existente")
-        void deveVerificarRoleExistente() {
-            assertTrue(funcionario.possuiRole("ADMIN"));
-            assertTrue(funcionario.possuiRole("USER"));
+        void shouldReturnTrueForExistingRole() {
+            assertTrue(funcionario.hasRole("ADMIN"));
+            assertTrue(funcionario.hasRole("USER"));
         }
 
         @Test
         @DisplayName("deve retornar false para role inexistente")
-        void deveRetornarFalseParaRoleInexistente() {
-            assertFalse(funcionario.possuiRole("MECANICO"));
+        void shouldReturnFalseForNonExistingRole() {
+            assertFalse(funcionario.hasRole("MECANICO"));
         }
 
         @Test
         @DisplayName("deve retornar false quando cargo é nulo")
-        void deveRetornarFalseQuandoCargoNulo() {
+        void shouldReturnFalseWhenCargoIsNull() {
             funcionario.setCargo(null);
 
-            assertFalse(funcionario.possuiRole("ADMIN"));
+            assertFalse(funcionario.hasRole("ADMIN"));
         }
     }
 
@@ -88,29 +92,29 @@ class FuncionarioTest {
 
     @Nested
     @DisplayName("Validações")
-    class Validacoes {
+    class Validations {
 
         @Test
         @DisplayName("deve rejeitar nome nulo")
-        void deveRejeitarNomeNulo() {
+        void shouldRejectNullNome() {
             assertThrows(IllegalArgumentException.class, () -> funcionario.setNome(null));
         }
 
         @Test
         @DisplayName("deve rejeitar nome vazio")
-        void deveRejeitarNomeVazio() {
+        void shouldRejectEmptyNome() {
             assertThrows(IllegalArgumentException.class, () -> funcionario.setNome(""));
         }
 
         @Test
         @DisplayName("deve rejeitar username nulo")
-        void deveRejeitarUsernameNulo() {
+        void shouldRejectNullUsername() {
             assertThrows(IllegalArgumentException.class, () -> funcionario.setUsername(null));
         }
 
         @Test
         @DisplayName("deve rejeitar username vazio")
-        void deveRejeitarUsernameVazio() {
+        void shouldRejectEmptyUsername() {
             assertThrows(IllegalArgumentException.class, () -> funcionario.setUsername(""));
         }
     }
@@ -119,11 +123,11 @@ class FuncionarioTest {
 
     @Nested
     @DisplayName("Equals e HashCode")
-    class EqualsHashCode {
+    class EqualsAndHashCode {
 
         @Test
         @DisplayName("funcionários com mesmo id devem ser equals")
-        void mesmoIdDevemSerEquals() {
+        void shouldBeEqualWithSameId() {
             Funcionario outro = new Funcionario();
             outro.setId(1L);
 
@@ -133,7 +137,7 @@ class FuncionarioTest {
 
         @Test
         @DisplayName("funcionários com ids diferentes não devem ser equals")
-        void idsDiferentesNaoDevemSerEquals() {
+        void shouldNotBeEqualWithDifferentId() {
             Funcionario outro = new Funcionario();
             outro.setId(2L);
 

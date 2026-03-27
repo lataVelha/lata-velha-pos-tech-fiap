@@ -15,21 +15,23 @@ public class NumeroCelular {
             throw new IllegalArgumentException("Número de celular não pode ser vazio");
         }
 
-        String limpo = valor.replaceAll("[^\\d]", "");
+        String cleanedValue = valor.replaceAll("[^\\d]", "");
 
-        if (limpo.length() < 10 || limpo.length() > 11) {
+        if (cleanedValue.length() < 10 || cleanedValue.length() > 11) {
             throw new IllegalArgumentException(
                     "Número de celular inválido. Informe DDD + número (10 ou 11 dígitos)");
         }
 
-        return new NumeroCelular(limpo);
+        return new NumeroCelular(cleanedValue);
     }
 
-    public String getValor() {
-        return valor;
-    }
+    // --- getter ---
 
-    public String getFormatado() {
+    public String getValor() { return valor; }
+
+    // --- business method ---
+
+    public String getFormatted() {
         if (valor.length() == 11) {
             return valor.replaceAll("(\\d{2})(\\d{5})(\\d{4})", "($1) $2-$3");
         }
@@ -40,17 +42,12 @@ public class NumeroCelular {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        NumeroCelular that = (NumeroCelular) o;
-        return Objects.equals(valor, that.valor);
+        return Objects.equals(valor, ((NumeroCelular) o).valor);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(valor);
-    }
+    public int hashCode() { return Objects.hash(valor); }
 
     @Override
-    public String toString() {
-        return getFormatado();
-    }
+    public String toString() { return getFormatted(); }
 }

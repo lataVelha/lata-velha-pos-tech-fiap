@@ -12,53 +12,44 @@ import java.util.function.BiFunction;
 public class Senha {
 
     private final String hash;
-    private final BiFunction<String, String, Boolean> verificador;
+    private final BiFunction<String, String, Boolean> verifier;
 
-    private Senha(String hash, BiFunction<String, String, Boolean> verificador) {
+    private Senha(String hash, BiFunction<String, String, Boolean> verifier) {
         if (hash == null || hash.isBlank()) {
             throw new IllegalArgumentException("Hash da senha não pode ser vazio");
         }
-        Objects.requireNonNull(verificador, "Verificador de senha é obrigatório");
+        Objects.requireNonNull(verifier, "Verificador de senha é obrigatório");
         this.hash = hash;
-        this.verificador = verificador;
+        this.verifier = verifier;
     }
 
-    /**
-     * Cria uma Senha a partir de um hash já existente (vindo do banco).
-     */
-    public static Senha fromHash(String hash, BiFunction<String, String, Boolean> verificador) {
-        return new Senha(hash, verificador);
+    public static Senha fromHash(String hash, BiFunction<String, String, Boolean> verifier) {
+        return new Senha(hash, verifier);
     }
 
-    /**
-     * Verifica se a senha em texto plano corresponde ao hash armazenado.
-     */
-    public boolean corresponde(String senhaPlana) {
-        if (senhaPlana == null || senhaPlana.isBlank()) {
+    // --- business method ---
+
+    public boolean matches(String rawPassword) {
+        if (rawPassword == null || rawPassword.isBlank()) {
             return false;
         }
-        return verificador.apply(senhaPlana, this.hash);
+        return verifier.apply(rawPassword, this.hash);
     }
 
-    public String getHash() {
-        return hash;
-    }
+    // --- getter ---
+
+    public String getHash() { return hash; }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Senha senha = (Senha) o;
-        return Objects.equals(hash, senha.hash);
+        return Objects.equals(hash, ((Senha) o).hash);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(hash);
-    }
+    public int hashCode() { return Objects.hash(hash); }
 
     @Override
-    public String toString() {
-        return "Senha{***}";
-    }
+    public String toString() { return "Senha{***}"; }
 }
