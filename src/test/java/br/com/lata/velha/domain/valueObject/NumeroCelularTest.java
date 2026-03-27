@@ -5,92 +5,87 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PlacaTest {
+class NumeroCelularTest {
 
     @Test
-    @DisplayName("deve criar placa formato antigo (ABC1234)")
-    void shouldCreateOldFormatPlaca() {
-        Placa placa = Placa.of("ABC1234");
+    @DisplayName("deve criar celular com 11 dígitos")
+    void shouldCreateWith11Digits() {
+        NumeroCelular cel = NumeroCelular.of("11999990001");
 
-        assertEquals("ABC1234", placa.getValor());
+        assertEquals("11999990001", cel.getValor());
     }
 
     @Test
-    @DisplayName("deve criar placa formato Mercosul (ABC1D23)")
-    void shouldCreateMercosulPlaca() {
-        Placa placa = Placa.of("ABC1D23");
+    @DisplayName("deve criar celular com 10 dígitos (fixo)")
+    void shouldCreateWith10Digits() {
+        NumeroCelular cel = NumeroCelular.of("1133334444");
 
-        assertEquals("ABC1D23", placa.getValor());
+        assertEquals("1133334444", cel.getValor());
     }
 
     @Test
-    @DisplayName("deve aceitar placa com hífen")
-    void shouldAcceptPlacaWithHyphen() {
-        Placa placa = Placa.of("ABC-1D23");
+    @DisplayName("deve limpar formatação")
+    void shouldCleanFormatting() {
+        NumeroCelular cel = NumeroCelular.of("(11) 99999-0001");
 
-        assertEquals("ABC1D23", placa.getValor());
+        assertEquals("11999990001", cel.getValor());
     }
 
     @Test
-    @DisplayName("deve converter para maiúsculas")
-    void shouldConvertToUpperCase() {
-        Placa placa = Placa.of("abc1d23");
+    @DisplayName("deve formatar celular 11 dígitos")
+    void shouldFormat11Digits() {
+        NumeroCelular cel = NumeroCelular.of("11999990001");
 
-        assertEquals("ABC1D23", placa.getValor());
+        assertEquals("(11) 99999-0001", cel.getFormatted());
     }
 
     @Test
-    @DisplayName("deve formatar com hífen")
-    void shouldFormatWithHyphen() {
-        Placa placa = Placa.of("ABC1D23");
+    @DisplayName("deve formatar celular 10 dígitos")
+    void shouldFormat10Digits() {
+        NumeroCelular cel = NumeroCelular.of("1133334444");
 
-        assertEquals("ABC-1D23", placa.getFormatted());
+        assertEquals("(11) 3333-4444", cel.getFormatted());
     }
 
     @Test
-    @DisplayName("deve rejeitar placa nula")
-    void shouldRejectNullPlaca() {
-        assertThrows(IllegalArgumentException.class, () -> Placa.of(null));
+    @DisplayName("deve rejeitar nulo")
+    void shouldRejectNull() {
+        assertThrows(IllegalArgumentException.class, () -> NumeroCelular.of(null));
     }
 
     @Test
-    @DisplayName("deve rejeitar placa vazia")
-    void shouldRejectEmptyPlaca() {
-        assertThrows(IllegalArgumentException.class, () -> Placa.of(""));
+    @DisplayName("deve rejeitar vazio")
+    void shouldRejectEmpty() {
+        assertThrows(IllegalArgumentException.class, () -> NumeroCelular.of(""));
     }
 
     @Test
-    @DisplayName("deve rejeitar placa com formato inválido")
-    void shouldRejectInvalidFormat() {
-        assertThrows(IllegalArgumentException.class, () -> Placa.of("12345"));
-        assertThrows(IllegalArgumentException.class, () -> Placa.of("ABCDEFG"));
-        assertThrows(IllegalArgumentException.class, () -> Placa.of("1234567"));
+    @DisplayName("deve rejeitar menos de 10 dígitos")
+    void shouldRejectTooShort() {
+        assertThrows(IllegalArgumentException.class, () -> NumeroCelular.of("123456789"));
     }
 
     @Test
-    @DisplayName("placas iguais devem ser equals")
+    @DisplayName("deve rejeitar mais de 11 dígitos")
+    void shouldRejectTooLong() {
+        assertThrows(IllegalArgumentException.class, () -> NumeroCelular.of("123456789012"));
+    }
+
+    @Test
+    @DisplayName("celulares iguais devem ser equals")
     void shouldBeEqualWithSameValor() {
-        Placa placa1 = Placa.of("ABC1D23");
-        Placa placa2 = Placa.of("abc-1d23");
+        NumeroCelular cel1 = NumeroCelular.of("11999990001");
+        NumeroCelular cel2 = NumeroCelular.of("(11) 99999-0001");
 
-        assertEquals(placa1, placa2);
-        assertEquals(placa1.hashCode(), placa2.hashCode());
-    }
-
-    @Test
-    @DisplayName("placas diferentes não devem ser equals")
-    void shouldNotBeEqualWithDifferentValor() {
-        Placa placa1 = Placa.of("ABC1234");
-        Placa placa2 = Placa.of("XYZ9876");
-
-        assertNotEquals(placa1, placa2);
+        assertEquals(cel1, cel2);
+        assertEquals(cel1.hashCode(), cel2.hashCode());
     }
 
     @Test
     @DisplayName("toString deve retornar formatado")
     void shouldReturnFormattedOnToString() {
-        Placa placa = Placa.of("ABC1D23");
+        NumeroCelular cel = NumeroCelular.of("11999990001");
 
-        assertEquals("ABC-1D23", placa.toString());
+        assertEquals("(11) 99999-0001", cel.toString());
     }
 }

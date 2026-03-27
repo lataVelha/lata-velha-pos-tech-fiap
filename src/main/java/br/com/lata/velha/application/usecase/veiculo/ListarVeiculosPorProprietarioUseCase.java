@@ -16,7 +16,7 @@ public class ListarVeiculosPorProprietarioUseCase {
     private final VeiculoAssembler assembler;
 
     public List<VeiculoResponse> execute(Long proprietarioId) {
-        return repository.findByProprietarioId(proprietarioId)
+        return repository.findActiveByProprietarioId(proprietarioId)
                 .stream()
                 .map(assembler::toResponse)
                 .toList();
