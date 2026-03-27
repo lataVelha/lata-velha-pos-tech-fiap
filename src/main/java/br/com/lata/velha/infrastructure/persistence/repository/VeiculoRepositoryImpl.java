@@ -6,6 +6,7 @@ import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
 import br.com.lata.velha.domain.exception.VeiculoNotFoundException;
 import br.com.lata.velha.domain.model.Veiculo;
 import br.com.lata.velha.domain.repository.VeiculoRepository;
+import br.com.lata.velha.domain.valueObject.Placa;
 import br.com.lata.velha.infrastructure.persistence.entity.ProprietarioEntity;
 import br.com.lata.velha.infrastructure.persistence.mapper.VeiculoPersistenceMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +22,11 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     private final VeiculoJpaRepository jpaRepository;
     private final ProprietarioJpaRepository proprietarioJpaRepository;
     private final VeiculoPersistenceMapper mapper;
-    
+
     @Override
     public Veiculo save(Veiculo veiculo) {
-        if (veiculo.getId() == null && jpaRepository.existsByPlaca(veiculo.getPlaca().getValor())) {
-            throw new ResourceAlreadyExistsException(
-                    "Já existe um veículo com a placa: " + veiculo.getPlaca().getFormatted());
+        if (veiculo.getId() == null) {
+            validatePlacaAvailability(veiculo.getPlaca());
         }
 
         ProprietarioEntity proprietarioEntity = proprietarioJpaRepository
@@ -39,51 +39,47 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     }
 
     @Override
-    public Veiculo findById(Long id) {
-        return jpaRepository.findById(id)
+    public Veiculo findActiveById(Long id) {
+        return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> new VeiculoNotFoundException(id));
     }
 
     @Override
-    public Veiculo findByPlaca(String placa) {
-        return jpaRepository.findByPlaca(placa)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new VeiculoNotFoundException(
-                        "Veículo não encontrado com placa: " + placa));
-    }
-
-    @Override
-    public List<Veiculo> findByProprietarioId(Long proprietarioId) {
-        return jpaRepository.findByProprietarioId(proprietarioId)
+    public List<Veiculo> findActiveByProprietarioId(Long proprietarioId) {
+        return jpaRepository.findByProprietarioIdAndAtivoTrue(proprietarioId)
                 .stream()
                 .map(mapper::toDomain)
                 .toList();
     }
 
     @Override
-    public List<Veiculo> findAll() {
-        return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    public List<Veiculo> findAllActive() {
+        return jpaRepository.findByAtivoTrue()
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override
-    public PaginatedResult<Veiculo> findAllPaginated(int page, int size) {
-        var result = jpaRepository.findAll(PageRequest.of(page, size));
+    public PaginatedResult<Veiculo> findAllActivePaginated(int page, int size) {
+        var result = jpaRepository.findByAtivoTrue(PageRequest.of(page, size));
         var content = result.getContent().stream().map(mapper::toDomain).toList();
         return new PaginatedResult<>(content, page, size,
                 result.getTotalElements(), result.getTotalPages());
     }
 
     @Override
-    public void deleteById(Long id) {
-        if (!jpaRepository.existsById(id)) {
-            throw new VeiculoNotFoundException(id);
-        }
-        jpaRepository.deleteById(id);
+    public Veiculo findInactiveById(Long id) {
+        return jpaRepository.findByIdAndAtivoFalse(id)
+                .map(mapper::toDomain)
+                .orElseThrow(() -> new VeiculoNotFoundException(id));
     }
 
-    @Override
-    public boolean existsByPlaca(String placa) {
-        return jpaRepository.existsByPlaca(placa);
+    private void validatePlacaAvailability(Placa placa) {
+        if (jpaRepository.existsByPlaca(placa.getValor())) {
+            throw new ResourceAlreadyExistsException(
+                    "Já existe um veículo cadastrado com a placa: " + placa.getFormatted());
+        }
     }
 }

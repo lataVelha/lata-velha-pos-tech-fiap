@@ -18,9 +18,11 @@ public class Proprietario {
     private NumeroCelular numeroCelular;
     private Endereco endereco;
     private List<Veiculo> veiculos;
+    private boolean ativo;
 
     public Proprietario() {
         this.veiculos = new ArrayList<>();
+        this.ativo = true;
     }
 
     public Proprietario(Long id, String nome, String email, Documento documento,
@@ -32,9 +34,18 @@ public class Proprietario {
         this.numeroCelular = numeroCelular;
         this.endereco = endereco;
         this.veiculos = new ArrayList<>();
+        this.ativo = true;
     }
 
     // --- business rules ---
+
+    public void deactivate() {
+        this.ativo = false;
+    }
+
+    public void activate() {
+        this.ativo = true;
+    }
 
     public void addVeiculo(Veiculo veiculo) {
         Objects.requireNonNull(veiculo, "Veículo não pode ser nulo");
@@ -77,6 +88,9 @@ public class Proprietario {
         this.veiculos = veiculos != null ? new ArrayList<>(veiculos) : new ArrayList<>();
     }
 
+    public boolean isAtivo() { return ativo; }
+    public void setAtivo(boolean ativo) { this.ativo = ativo; }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -88,5 +102,5 @@ public class Proprietario {
     public int hashCode() { return Objects.hash(id); }
 
     @Override
-    public String toString() { return "Proprietario{id=" + id + ", nome='" + nome + "', documento=" + documento + "}"; }
+    public String toString() { return "Proprietario{id=" + id + ", nome='" + nome + "', documento=" + documento + ", ativo=" + ativo + "}"; }
 }

@@ -9,17 +9,14 @@ public interface VeiculoRepository {
 
     Veiculo save(Veiculo veiculo);
 
-    Veiculo findById(Long id);
+    Veiculo findActiveById(Long id);
 
-    Veiculo findByPlaca(String placa);
+    List<Veiculo> findActiveByProprietarioId(Long proprietarioId);
 
-    List<Veiculo> findByProprietarioId(Long proprietarioId);
+    List<Veiculo> findAllActive();
 
-    List<Veiculo> findAll();
+    PaginatedResult<Veiculo> findAllActivePaginated(int page, int size);
+    
+    Veiculo findInactiveById(Long id);
 
-    PaginatedResult<Veiculo> findAllPaginated(int page, int size);
-
-    void deleteById(Long id);
-
-    boolean existsByPlaca(String placa);
 }

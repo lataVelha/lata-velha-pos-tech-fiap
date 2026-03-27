@@ -18,7 +18,7 @@ public class CriarVeiculoUseCase {
     private final VeiculoAssembler assembler;
 
     public VeiculoResponse execute(VeiculoRequest request) {
-        proprietarioRepository.findById(request.proprietarioId());
+        proprietarioRepository.findActiveById(request.proprietarioId());
 
         Veiculo saved = veiculoRepository.save(assembler.toDomain(request));
         return assembler.toResponse(saved);

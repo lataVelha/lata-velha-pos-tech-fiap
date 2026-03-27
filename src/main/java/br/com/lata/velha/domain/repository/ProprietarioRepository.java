@@ -9,15 +9,15 @@ public interface ProprietarioRepository {
 
     Proprietario save(Proprietario proprietario);
 
-    Proprietario findById(Long id);
+    Proprietario findActiveById(Long id);
 
-    Proprietario findByDocumento(String documento);
+    Proprietario findActiveByDocumento(String documento);
 
-    List<Proprietario> findAll();
+    Proprietario findInactiveById(Long id);
 
-    PaginatedResult<Proprietario> findAllPaginated(int page, int size);
+    List<Proprietario> findAllActive();
 
-    void deleteById(Long id);
+    PaginatedResult<Proprietario> findAllActivePaginated(int page, int size);
 
     boolean existsByDocumento(String documento);
 }
