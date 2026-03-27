@@ -14,7 +14,7 @@ public class BuscarProprietarioPorDocumentoUseCase {
     private final ProprietarioAssembler assembler;
 
     public ProprietarioResponse execute(String documento) {
-        String cleanedValue = documento.replaceAll("[^\\dA-Za-z]", "").toUpperCase();
-        return assembler.toResponse(repository.findByDocumento(cleanedValue));
+        String cleaned = documento.replaceAll("[^\\dA-Za-z]", "").toUpperCase();
+        return assembler.toResponse(repository.findActiveByDocumento(cleaned));
     }
 }

@@ -12,8 +12,11 @@ public class Veiculo {
     private String modelo;
     private Integer ano;
     private String cor;
+    private boolean ativo;
 
-    public Veiculo() {}
+    public Veiculo() {
+        this.ativo = true;
+    }
 
     public Veiculo(Long id, Long proprietarioId, Placa placa, String marca,
                    String modelo, Integer ano, String cor) {
@@ -24,6 +27,17 @@ public class Veiculo {
         setModelo(modelo);
         setAno(ano);
         setCor(cor);
+        this.ativo = true;
+    }
+
+    // --- business rules ---
+
+    public void deactivate() {
+        this.ativo = false;
+    }
+
+    public void activate() {
+        this.ativo = true;
     }
 
     // --- getters e setters ---
@@ -62,6 +76,9 @@ public class Veiculo {
         this.cor = cor;
     }
 
+    public boolean isAtivo() { return ativo; }
+    public void setAtivo(boolean ativo) { this.ativo = ativo; }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -73,5 +90,5 @@ public class Veiculo {
     public int hashCode() { return Objects.hash(id); }
 
     @Override
-    public String toString() { return "Veiculo{id=" + id + ", placa=" + placa + ", marca='" + marca + "'}"; }
+    public String toString() { return "Veiculo{id=" + id + ", placa=" + placa + ", marca='" + marca + "', ativo=" + ativo + "}"; }
 }

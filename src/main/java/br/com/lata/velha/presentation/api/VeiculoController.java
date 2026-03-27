@@ -28,6 +28,8 @@ public class VeiculoController {
     private final ListarVeiculosUseCase listUseCase;
     private final AtualizarVeiculoUseCase updateUseCase;
     private final DeletarVeiculoUseCase deleteUseCase;
+    private final ReativarVeiculoUseCase reactivateUseCase;
+
 
     @PostMapping
     @Operation(summary = "Cadastrar veículo")
@@ -76,5 +78,13 @@ public class VeiculoController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deleteUseCase.execute(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/reactivate")
+    @Operation(summary = "Reativar veículo")
+    @ApiResponse(responseCode = "200", description = "Veículo reativado")
+    @ApiResponse(responseCode = "404", description = "Veículo inativo não encontrado")
+    public ResponseEntity<VeiculoResponse> reactivate(@PathVariable Long id) {
+        return ResponseEntity.ok(reactivateUseCase.execute(id));
     }
 }

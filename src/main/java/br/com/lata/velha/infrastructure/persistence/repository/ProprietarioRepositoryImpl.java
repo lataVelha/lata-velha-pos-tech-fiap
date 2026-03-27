@@ -21,10 +21,8 @@ public class ProprietarioRepositoryImpl implements ProprietarioRepository {
 
     @Override
     public Proprietario save(Proprietario proprietario) {
-        if (proprietario.getId() == null
-                && jpaRepository.existsByDocumento(proprietario.getDocumento().getValor())) {
-            throw new ResourceAlreadyExistsException(
-                    "Já existe um proprietário com este documento: " + proprietario.getDocumento().getFormatted());
+        if (proprietario.getId() == null) {
+            validateDocumentoAvailability(proprietario.getDocumento().getValor());
         }
         var entity = mapper.toEntity(proprietario);
         var saved = jpaRepository.save(entity);
@@ -32,42 +30,53 @@ public class ProprietarioRepositoryImpl implements ProprietarioRepository {
     }
 
     @Override
-    public Proprietario findById(Long id) {
-        return jpaRepository.findById(id)
+    public Proprietario findActiveById(Long id) {
+        return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> new ProprietarioNotFoundException(id));
     }
 
     @Override
-    public Proprietario findByDocumento(String documento) {
-        return jpaRepository.findByDocumento(documento)
+    public Proprietario findActiveByDocumento(String documento) {
+        return jpaRepository.findByDocumentoAndAtivoTrue(documento)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> new ProprietarioNotFoundException(documento));
     }
 
     @Override
-    public List<Proprietario> findAll() {
-        return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    public Proprietario findInactiveById(Long id) {
+        return jpaRepository.findByIdAndAtivoFalse(id)
+                .map(mapper::toDomain)
+                .orElseThrow(() -> new ProprietarioNotFoundException(id));
     }
 
     @Override
-    public PaginatedResult<Proprietario> findAllPaginated(int page, int size) {
-        var result = jpaRepository.findAll(PageRequest.of(page, size));
+    public List<Proprietario> findAllActive() {
+        return jpaRepository.findByAtivoTrue()
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public PaginatedResult<Proprietario> findAllActivePaginated(int page, int size) {
+        var result = jpaRepository.findByAtivoTrue(PageRequest.of(page, size));
         var content = result.getContent().stream().map(mapper::toDomain).toList();
         return new PaginatedResult<>(content, page, size,
                 result.getTotalElements(), result.getTotalPages());
     }
 
     @Override
-    public void deleteById(Long id) {
-        if (!jpaRepository.existsById(id)) {
-            throw new ProprietarioNotFoundException(id);
-        }
-        jpaRepository.deleteById(id);
-    }
-
-    @Override
     public boolean existsByDocumento(String documento) {
         return jpaRepository.existsByDocumento(documento);
+    }
+
+    // --- private ---
+
+    private void validateDocumentoAvailability(String documento) {
+        if (jpaRepository.existsByDocumento(documento)) {
+            throw new ResourceAlreadyExistsException(
+                    "Já existe um proprietário cadastrado com este documento");
+        }
     }
 }

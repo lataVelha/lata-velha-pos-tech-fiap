@@ -14,7 +14,7 @@ public class VeiculoPersistenceMapper {
     public Veiculo toDomain(VeiculoEntity entity) {
         if (entity == null) return null;
 
-        return new Veiculo(
+        Veiculo veiculo = new Veiculo(
                 entity.getId(),
                 entity.getProprietario().getId(),
                 Placa.of(entity.getPlaca()),
@@ -23,6 +23,8 @@ public class VeiculoPersistenceMapper {
                 entity.getAno(),
                 entity.getCor()
         );
+        veiculo.setAtivo(entity.isAtivo());
+        return veiculo;
     }
 
     // --- Domain → Entity ---
@@ -38,7 +40,7 @@ public class VeiculoPersistenceMapper {
         entity.setModelo(domain.getModelo());
         entity.setAno(domain.getAno());
         entity.setCor(domain.getCor());
-
+        entity.setAtivo(domain.isAtivo());
         return entity;
     }
 }
