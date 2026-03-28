@@ -3,7 +3,7 @@
 <h3 align="center">Pós-Tech FIAP — Arquitetura de Software</h3>
 
 <p align="center">
-  Sistema de gestão automotiva com DDD e Clean Architecture
+  Sistema de gestão automotiva com DDD
 </p>
 
 <p align="center">
