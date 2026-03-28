@@ -48,10 +48,10 @@ class ProprietarioTest {
         @Test
         @DisplayName("deve criar proprietário vazio com lista de veículos inicializada")
         void shouldCreateEmptyWithInitializedList() {
-            Proprietario vazio = new Proprietario();
+            Proprietario empty = new Proprietario();
 
-            assertNotNull(vazio.getVeiculos());
-            assertTrue(vazio.getVeiculos().isEmpty());
+            assertNotNull(empty.getVeiculos());
+            assertTrue(empty.getVeiculos().isEmpty());
         }
     }
 
@@ -76,7 +76,7 @@ class ProprietarioTest {
         @Test
         @DisplayName("deve rejeitar email inválido")
         void shouldRejectInvalidEmail() {
-            assertThrows(IllegalArgumentException.class, () -> proprietario.setEmail("invalido"));
+            assertThrows(IllegalArgumentException.class, () -> proprietario.setEmail("invalid"));
         }
 
         @Test
@@ -88,9 +88,9 @@ class ProprietarioTest {
         @Test
         @DisplayName("deve aceitar email válido")
         void shouldAcceptValidEmail() {
-            proprietario.setEmail("novo@email.com");
+            proprietario.setEmail("new@email.com");
 
-            assertEquals("novo@email.com", proprietario.getEmail());
+            assertEquals("new@email.com", proprietario.getEmail());
         }
     }
 
@@ -145,20 +145,20 @@ class ProprietarioTest {
         @Test
         @DisplayName("proprietários com mesmo id devem ser equals")
         void shouldBeEqualWithSameId() {
-            Proprietario outro = new Proprietario();
-            outro.setId(1L);
+            Proprietario other = new Proprietario();
+            other.setId(1L);
 
-            assertEquals(proprietario, outro);
-            assertEquals(proprietario.hashCode(), outro.hashCode());
+            assertEquals(proprietario, other);
+            assertEquals(proprietario.hashCode(), other.hashCode());
         }
 
         @Test
         @DisplayName("proprietários com ids diferentes não devem ser equals")
         void shouldNotBeEqualWithDifferentId() {
-            Proprietario outro = new Proprietario();
-            outro.setId(2L);
+            Proprietario other = new Proprietario();
+            other.setId(2L);
 
-            assertNotEquals(proprietario, outro);
+            assertNotEquals(proprietario, other);
         }
     }
 }

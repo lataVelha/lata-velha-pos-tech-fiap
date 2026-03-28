@@ -38,10 +38,10 @@ class VeiculoTest {
         @Test
         @DisplayName("deve criar veículo vazio")
         void shouldCreateEmpty() {
-            Veiculo vazio = new Veiculo();
+            Veiculo empty = new Veiculo();
 
-            assertNull(vazio.getId());
-            assertNull(vazio.getPlaca());
+            assertNull(empty.getId());
+            assertNull(empty.getPlaca());
         }
     }
 
@@ -133,20 +133,20 @@ class VeiculoTest {
         @Test
         @DisplayName("veículos com mesmo id devem ser equals")
         void shouldBeEqualWithSameId() {
-            Veiculo outro = new Veiculo();
-            outro.setId(1L);
+            Veiculo other = new Veiculo();
+            other.setId(1L);
 
-            assertEquals(veiculo, outro);
-            assertEquals(veiculo.hashCode(), outro.hashCode());
+            assertEquals(veiculo, other);
+            assertEquals(veiculo.hashCode(), other.hashCode());
         }
 
         @Test
         @DisplayName("veículos com ids diferentes não devem ser equals")
         void shouldNotBeEqualWithDifferentId() {
-            Veiculo outro = new Veiculo();
-            outro.setId(2L);
+            Veiculo other = new Veiculo();
+            other.setId(2L);
 
-            assertNotEquals(veiculo, outro);
+            assertNotEquals(veiculo, other);
         }
     }
 }

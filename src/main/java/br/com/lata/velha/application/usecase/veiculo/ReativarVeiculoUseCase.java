@@ -17,7 +17,7 @@ public class ReativarVeiculoUseCase {
     public VeiculoResponse execute(Long id) {
         Veiculo veiculo = repository.findInactiveById(id);
         veiculo.activate();
-        Veiculo salvo = repository.save(veiculo);
-        return assembler.toResponse(salvo);
+        Veiculo saved = repository.save(veiculo);
+        return assembler.toResponse(saved);
     }
 }
