@@ -19,7 +19,7 @@ class FuncionarioTest {
 
     @BeforeEach
     void setUp() {
-        senha = Senha.fromHash("hash123", (plana, hash) -> plana.equals("123456"));
+        senha = Senha.fromHash("hash123", (raw, hash) -> raw.equals("123456"));
         cargo = new Cargo(1L, "ADMIN", Set.of(new Role(1L, "ADMIN"), new Role(2L, "USER")));
         funcionario = new Funcionario(1L, "João", "admin", senha, cargo);
     }
@@ -40,7 +40,7 @@ class FuncionarioTest {
         @DisplayName("não deve autenticar com senha errada")
         void shouldFailWithWrongPassword() {
             assertThrows(InvalidLoginException.class,
-                    () -> funcionario.authenticateOrFail("senhaErrada"));
+                    () -> funcionario.authenticateOrFail("wrongPassword"));
         }
 
         @Test
@@ -128,20 +128,20 @@ class FuncionarioTest {
         @Test
         @DisplayName("funcionários com mesmo id devem ser equals")
         void shouldBeEqualWithSameId() {
-            Funcionario outro = new Funcionario();
-            outro.setId(1L);
+            Funcionario other = new Funcionario();
+            other.setId(1L);
 
-            assertEquals(funcionario, outro);
-            assertEquals(funcionario.hashCode(), outro.hashCode());
+            assertEquals(funcionario, other);
+            assertEquals(funcionario.hashCode(), other.hashCode());
         }
 
         @Test
         @DisplayName("funcionários com ids diferentes não devem ser equals")
         void shouldNotBeEqualWithDifferentId() {
-            Funcionario outro = new Funcionario();
-            outro.setId(2L);
+            Funcionario other = new Funcionario();
+            other.setId(2L);
 
-            assertNotEquals(funcionario, outro);
+            assertNotEquals(funcionario, other);
         }
     }
 }
