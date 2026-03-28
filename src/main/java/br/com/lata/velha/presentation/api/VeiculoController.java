@@ -72,8 +72,8 @@ public class VeiculoController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar veículo")
-    @ApiResponse(responseCode = "204", description = "Veículo deletado")
+    @Operation(summary = "Desativar veículo")
+    @ApiResponse(responseCode = "204", description = "Veículo desativado")
     @ApiResponse(responseCode = "404", description = "Veículo não encontrado")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deleteUseCase.execute(id);
