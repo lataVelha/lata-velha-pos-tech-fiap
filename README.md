@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Java-21-orange?logo=openjdk&logoColor=white" alt="Java 21"/>
   <img src="https://img.shields.io/badge/Spring%20Boot-3.2.5-green?logo=springboot&logoColor=white" alt="Spring Boot"/>
-  <img src="https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql&logoColor=white" alt="PostgreSQL"/>
   <img src="https://img.shields.io/badge/Docker-Compose-blue?logo=docker&logoColor=white" alt="Docker"/>
   <img src="https://img.shields.io/badge/SonarQube-Community-4E9BCD?logo=sonarqube&logoColor=white" alt="SonarQube"/>
   <img src="https://img.shields.io/badge/JaCoCo-Coverage-red?logo=java&logoColor=white" alt="JaCoCo"/>
@@ -119,14 +119,6 @@ mvn clean test
 ```bash
 mvn clean verify
 open target/site/jacoco/index.html
-```
-
-O relatório mostra a cobertura por pacote, classe e linha. O projeto utiliza **JUnit 5** para testes unitários com foco nos domínios críticos (models e value objects).
-
-```
-src/test/java/br/com/lata/velha/domain/
-├── model/         → Proprietario, Veiculo, Funcionario, Cargo, Role
-└── valueObject/   → Documento, Placa, NumeroCelular, Endereco, Senha
 ```
 
 ---
