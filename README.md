@@ -3,7 +3,7 @@
 <h3 align="center">Pós-Tech FIAP — Arquitetura de Software</h3>
 
 <p align="center">
-  Sistema de gestão automotiva
+  Sistema de gestão automotiva com DDD
 </p>
 
 <p align="center">
@@ -11,6 +11,8 @@
   <img src="https://img.shields.io/badge/Spring%20Boot-3.2.5-green?logo=springboot&logoColor=white" alt="Spring Boot"/>
   <img src="https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql&logoColor=white" alt="PostgreSQL"/>
   <img src="https://img.shields.io/badge/Docker-Compose-blue?logo=docker&logoColor=white" alt="Docker"/>
+  <img src="https://img.shields.io/badge/SonarQube-Community-4E9BCD?logo=sonarqube&logoColor=white" alt="SonarQube"/>
+  <img src="https://img.shields.io/badge/JaCoCo-Coverage-red?logo=java&logoColor=white" alt="JaCoCo"/>
 </p>
 
 ---
@@ -26,7 +28,7 @@ O projeto segue **Domain-Driven Design (DDD)** com arquitetura em camadas, onde 
 ```
 br.com.lata.velha
 ├── presentation/        → Entrada HTTP (controllers, exception handlers)
-├── application/         → Casos de uso, DTOs e portas de saída
+├── application/         → Casos de uso, DTOs, assemblers e portas de saída
 ├── domain/              → Regras de negócio puras (zero frameworks)
 └── infrastructure/      → JPA, JWT, configs do Spring
 ```
@@ -38,19 +40,20 @@ br.com.lata.velha
 ## Pré-requisitos
 
 - **Java 21**
-- **Docker Desktop** instalado e rodando
+- **Docker** instalado e rodando
+- **Maven** (ou usar o wrapper `./mvnw`)
 
 ---
 
 ## Como rodar
 
-**1. Subir o banco de dados**
+**1. Subir o banco de dados e SonarQube**
 
 ```bash
 docker compose -f docker/docker-compose.yml up -d
 ```
 
-**2. Verificar se o container está rodando**
+**2. Verificar se os containers estão rodando**
 
 ```bash
 docker ps
@@ -59,7 +62,7 @@ docker ps
 **3. Rodar a aplicação**
 
 ```bash
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 
 **4. Acessar o Swagger**
@@ -76,7 +79,7 @@ http://localhost:8080/swagger-ui.html
 | ----------- | ------------ |
 | Host        | `localhost`  |
 | Porta       | `5432`       |
-| Database    | `minha_base` |
+| Database    | `lata_velha` |
 | Usuário     | `admin`      |
 | Senha       | `admin123`   |
 
@@ -103,25 +106,98 @@ O sistema utiliza **JWT com chaves RSA** para autenticação. Após o login, o t
 
 ---
 
-## Parar a aplicação
-
-```bash
-docker compose -f docker/docker-compose.yml down -v
-```
-
-## O flag `-v` remove os volumes, limpando os dados do banco.
-
 ## Testes
 
 **Rodar todos os testes:**
 
 ```bash
-chmod +x mvnw
-./mvnw clean test
+mvn clean test
 ```
 
 **Visualizar cobertura (JaCoCo):**
 
 ```bash
+mvn clean verify
 open target/site/jacoco/index.html
 ```
+
+O relatório mostra a cobertura por pacote, classe e linha. O projeto utiliza **JUnit 5** para testes unitários com foco nos domínios críticos (models e value objects).
+
+```
+src/test/java/br/com/lata/velha/domain/
+├── model/         → Proprietario, Veiculo, Funcionario, Cargo, Role
+└── valueObject/   → Documento, Placa, NumeroCelular, Endereco, Senha
+```
+
+---
+
+## SonarQube
+
+O projeto utiliza **SonarQube Community Edition** para análise estática de código. Ele identifica bugs, vulnerabilidades, code smells e mede a cobertura de testes.
+
+**1. Subir o SonarQube (já incluso no docker-compose)**
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+**2. Acessar o painel**
+
+```
+http://localhost:9000
+```
+
+Login padrão: `admin` / `admin` (será pedido para trocar na primeira vez)
+
+**3. Gerar token de análise**
+
+- Avatar (canto superior direito) → **My Account** → **Security**
+- Em **Generate Tokens**: nome `lata-velha`, tipo **Global Analysis Token**
+- Clique **Generate** e copie o token
+
+**4. Rodar a análise**
+
+```bash
+mvn clean test sonar:sonar -Dsonar.token=SEU_TOKEN_AQUI
+```
+
+**5. Ver os resultados**
+
+Acesse `http://localhost:9000` e clique no projeto **Lata-Velha**.
+
+| Métrica         | Descrição                               |
+| --------------- | --------------------------------------- |
+| Security        | Vulnerabilidades de segurança           |
+| Reliability     | Bugs que podem causar falhas            |
+| Maintainability | Code smells que dificultam manutenção   |
+| Coverage        | Percentual de código coberto por testes |
+| Duplications    | Trechos de código duplicados            |
+
+---
+
+## Parar tudo
+
+```bash
+docker compose -f docker/docker-compose.yml down -v
+```
+
+O flag `-v` remove os volumes, limpando os dados do banco e do SonarQube.
+
+---
+
+## Tecnologias
+
+| Tecnologia      | Uso                            |
+| --------------- | ------------------------------ |
+| Java 21         | Linguagem principal            |
+| Spring Boot 3.2 | Framework web e DI             |
+| Spring Security | Autenticação JWT com RSA       |
+| Spring Data JPA | Persistência                   |
+| PostgreSQL 16   | Banco de dados relacional      |
+| Flyway          | Versionamento de migrations    |
+| Swagger/OpenAPI | Documentação interativa da API |
+| JUnit 5         | Testes unitários               |
+| JaCoCo          | Cobertura de testes            |
+| SonarQube       | Análise estática de código     |
+| Docker Compose  | Orquestração de containers     |
+| Lombok          | Redução de boilerplate         |

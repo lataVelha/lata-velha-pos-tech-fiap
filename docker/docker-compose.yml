@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -10,3 +10,11 @@ services:
       POSTGRES_PASSWORD: admin123
     ports:
       - "5432:5432"
+
+  sonarqube:
+    image: sonarqube:community
+    container_name: lata-velha-sonar
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    ports:
+      - "9000:9000"
