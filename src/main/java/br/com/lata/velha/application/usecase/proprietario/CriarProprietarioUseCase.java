@@ -16,7 +16,7 @@ public class CriarProprietarioUseCase {
     private final ProprietarioAssembler assembler;
 
     public ProprietarioResponse execute(ProprietarioRequest request) {
-        Proprietario salvo = repository.save(assembler.toDomain(request));
-        return assembler.toResponse(salvo);
+        Proprietario saved = repository.save(assembler.toDomain(request));
+        return assembler.toResponse(saved);
     }
 }

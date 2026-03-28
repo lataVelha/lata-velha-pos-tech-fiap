@@ -32,10 +32,10 @@ class CargoTest {
     @Test
     @DisplayName("deve criar cargo vazio com set de roles inicializado")
     void shouldCreateEmptyCargoWithInitializedRoles() {
-        Cargo vazio = new Cargo();
+        Cargo empty = new Cargo();
 
-        assertNotNull(vazio.getRoles());
-        assertTrue(vazio.getRoles().isEmpty());
+        assertNotNull(empty.getRoles());
+        assertTrue(empty.getRoles().isEmpty());
     }
 
     @Test
@@ -53,12 +53,12 @@ class CargoTest {
     @Test
     @DisplayName("deve adicionar role")
     void shouldAddRole() {
-        Cargo novoCargo = new Cargo(2L, "Teste", null);
+        Cargo newCargo = new Cargo(2L, "Teste", null);
         Role role = new Role(3L, "MECANICO");
 
-        novoCargo.addRole(role);
+        newCargo.addRole(role);
 
-        assertEquals(1, novoCargo.getRoles().size());
+        assertEquals(1, newCargo.getRoles().size());
     }
 
     @Test
@@ -93,9 +93,9 @@ class CargoTest {
     @Test
     @DisplayName("cargos com mesmo id devem ser equals")
     void shouldBeEqualWithSameId() {
-        Cargo outro = new Cargo();
-        outro.setId(1L);
+        Cargo other = new Cargo();
+        other.setId(1L);
 
-        assertEquals(cargo, outro);
+        assertEquals(cargo, other);
     }
 }
