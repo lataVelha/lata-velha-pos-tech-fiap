@@ -17,7 +17,7 @@ public class ReativarProprietarioUseCase {
     public ProprietarioResponse execute(Long id) {
         Proprietario proprietario = repository.findInactiveById(id);
         proprietario.activate();
-        Proprietario salvo = repository.save(proprietario);
-        return assembler.toResponse(salvo);
+        Proprietario saved = repository.save(proprietario);
+        return assembler.toResponse(saved);
     }
 }
