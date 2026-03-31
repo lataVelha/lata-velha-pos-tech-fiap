@@ -1,9 +1,9 @@
 package br.com.lata.velha.domain.model;
 
-import java.util.Objects;
-
 import br.com.lata.velha.domain.exception.InvalidLoginException;
 import br.com.lata.velha.domain.valueObject.Senha;
+
+import java.util.Objects;
 
 public class Funcionario {
 
@@ -12,6 +12,7 @@ public class Funcionario {
     private String username;
     private Senha senha;
     private Cargo cargo;
+    private boolean ativo = true;
 
     public Funcionario() {
     }
@@ -22,6 +23,16 @@ public class Funcionario {
         setUsername(username);
         this.senha = senha;
         this.cargo = cargo;
+        this.ativo = true;
+    }
+
+    public Funcionario(Long id, String nome, String username, Senha senha, Cargo cargo, boolean ativo) {
+        this.id = id;
+        setNome(nome);
+        setUsername(username);
+        this.senha = senha;
+        this.cargo = cargo;
+        this.ativo = ativo;
     }
 
     // --- business rules ---
@@ -30,6 +41,13 @@ public class Funcionario {
         if (rawPassword == null || senha == null || !senha.matches(rawPassword)) {
             throw new InvalidLoginException();
         }
+    }
+
+    public void desativar() {
+        if (!this.ativo) {
+            throw new IllegalArgumentException("Funcionário já está desativado");
+        }
+        this.ativo = false;
     }
 
     public boolean hasRole(String roleName) {
@@ -63,6 +81,9 @@ public class Funcionario {
 
     public Cargo getCargo() { return cargo; }
     public void setCargo(Cargo cargo) { this.cargo = cargo; }
+
+    public boolean isAtivo() { return ativo; }
+    public void setAtivo(boolean ativo) { this.ativo = ativo; }
 
     @Override
     public boolean equals(Object o) {

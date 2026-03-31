@@ -9,7 +9,7 @@ import lombok.Data;
 public class FuncionarioEntity {
  
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", nullable = false)
     private Long id;
  
@@ -21,7 +21,10 @@ public class FuncionarioEntity {
  
     @Column(name = "PASSWORD", nullable = false)
     private String password;
- 
+
+    @Column(name = "ATIVO", nullable = false)
+    private Boolean ativo = true;
+
     @ManyToOne
     @JoinColumn(name = "cargo_id")
     private CargoEntity cargo;
