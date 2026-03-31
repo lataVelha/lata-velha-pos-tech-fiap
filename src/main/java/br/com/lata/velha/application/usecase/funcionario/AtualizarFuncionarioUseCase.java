@@ -19,8 +19,7 @@ public class AtualizarFuncionarioUseCase {
     private final FuncionarioAssembler assembler;
 
     public FuncionarioResponse execute(Long id, AtualizarFuncionarioRequest request) {
-        Funcionario funcionario = funcionarioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Funcionário não encontrado"));
+        Funcionario funcionario = funcionarioRepository.findActiveById(id);
 
         Cargo cargo = cargoRepository.findById(request.cargoId())
                 .orElseThrow(() -> new IllegalArgumentException("Cargo não encontrado"));

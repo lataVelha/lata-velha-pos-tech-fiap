@@ -12,8 +12,7 @@ public class DesativarFuncionarioUseCase {
     private final FuncionarioRepository repository;
 
     public void execute(Long id) {
-        Funcionario funcionario = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Funcionário não encontrado"));
+        Funcionario funcionario = repository.findActiveById(id);
 
         funcionario.desativar();
         repository.save(funcionario);

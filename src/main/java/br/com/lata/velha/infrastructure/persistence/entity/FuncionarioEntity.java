@@ -23,10 +23,10 @@ public class FuncionarioEntity {
     private String password;
 
     @Column(name = "ATIVO", nullable = false)
-    private Boolean ativo = true;
+    private boolean ativo = true;
 
-    @ManyToOne
-    @JoinColumn(name = "cargo_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CARGO_ID", nullable = false)
     private CargoEntity cargo;
 }
  

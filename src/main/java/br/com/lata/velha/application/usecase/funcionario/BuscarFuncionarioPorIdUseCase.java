@@ -14,8 +14,6 @@ public class BuscarFuncionarioPorIdUseCase {
     private final FuncionarioAssembler assembler;
 
     public FuncionarioResponse execute(Long id) {
-        return repository.findById(id)
-                .map(assembler::toResponse)
-                .orElseThrow(() -> new IllegalArgumentException("Funcionário não encontrado"));
+        return assembler.toResponse(repository.findActiveById(id));
     }
 }

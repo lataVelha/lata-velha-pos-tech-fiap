@@ -7,19 +7,17 @@ import br.com.lata.velha.domain.valueObject.Senha;
 import br.com.lata.velha.infrastructure.persistence.entity.CargoEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.FuncionarioEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.RoleEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class FuncionarioPersistenceMapper {
 
     private final PasswordEncoder passwordEncoder;
-
-    public FuncionarioPersistenceMapper(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
 
     // --- Entity → Domain ---
 
@@ -37,7 +35,7 @@ public class FuncionarioPersistenceMapper {
                 entity.getUsername(),
                 senha,
                 toDomain(entity.getCargo()),
-                entity.getAtivo() != null ? entity.getAtivo() : true
+                entity.isAtivo()
         );
     }
 
