@@ -111,6 +111,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- H2 - banco em memória para testes de integração -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
