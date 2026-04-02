@@ -59,4 +59,11 @@ public class FuncionarioRepositoryImpl implements FuncionarioRepository {
                 result.getTotalPages()
         );
     }
+
+    @Override
+    public Funcionario findById(Long id) {
+        return jpaRepository.findById(id)
+                .map(mapper::toDomain)
+                .orElseThrow(InvalidLoginException::new);
+    }
 }

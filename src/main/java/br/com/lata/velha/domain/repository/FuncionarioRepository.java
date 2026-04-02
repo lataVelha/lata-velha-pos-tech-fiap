@@ -15,4 +15,6 @@ public interface FuncionarioRepository {
     List<Funcionario> findAllActive();
 
     PaginatedResult<Funcionario> findAllActivePaginated(int page, int size);
+
+    Funcionario findById(Long id);
 }
