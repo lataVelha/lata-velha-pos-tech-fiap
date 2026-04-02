@@ -20,4 +20,11 @@ public class FuncionarioRepositoryImpl implements FuncionarioRepository {
                 .map(mapper::toDomain)
                 .orElseThrow(InvalidLoginException::new);
     }
+
+    @Override
+    public Funcionario findById(Long id) {
+        return jpaRepository.findById(id)
+                .map(mapper::toDomain)
+                .orElseThrow(InvalidLoginException::new);
+    }
 }
