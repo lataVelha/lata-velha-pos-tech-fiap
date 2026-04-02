@@ -1,7 +1,6 @@
 package br.com.lata.velha.domain.model;
 
 import br.com.lata.velha.domain.enuns.StatusOrdemServico;
-import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

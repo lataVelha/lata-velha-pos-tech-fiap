@@ -7,19 +7,17 @@ import br.com.lata.velha.domain.valueObject.Senha;
 import br.com.lata.velha.infrastructure.persistence.entity.CargoEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.FuncionarioEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.RoleEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class FuncionarioPersistenceMapper {
 
     private final PasswordEncoder passwordEncoder;
-
-    public FuncionarioPersistenceMapper(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
 
     // --- Entity → Domain ---
 
@@ -36,7 +34,8 @@ public class FuncionarioPersistenceMapper {
                 entity.getNome(),
                 entity.getUsername(),
                 senha,
-                toDomain(entity.getCargo())
+                toDomain(entity.getCargo()),
+                entity.isAtivo()
         );
     }
 
@@ -53,5 +52,33 @@ public class FuncionarioPersistenceMapper {
     public Role toDomain(RoleEntity entity) {
         if (entity == null) return null;
         return new Role(entity.getId(), entity.getNome());
+    }
+
+    // --- Domain → Entity ---
+
+    public FuncionarioEntity toEntity(Funcionario model) {
+        if (model == null) return null;
+
+        var entity = new FuncionarioEntity();
+        entity.setId(model.getId());
+        entity.setNome(model.getNome());
+        entity.setUsername(model.getUsername());
+        
+        if (model.getSenha() != null) {
+            entity.setPassword(model.getSenha().getHash());
+        }
+
+        entity.setCargo(toEntity(model.getCargo()));
+        entity.setAtivo(model.isAtivo());
+
+        return entity;
+    }
+
+    public CargoEntity toEntity(Cargo model) {
+        if (model == null) return null;
+        var entity = new CargoEntity();
+        entity.setId(model.getId());
+        entity.setNome(model.getNome());
+        return entity;
     }
 }
