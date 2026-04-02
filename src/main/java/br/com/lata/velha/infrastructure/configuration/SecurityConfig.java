@@ -55,6 +55,10 @@ public class SecurityConfig {
                 // CRUD — USER e ADMIN
                 .requestMatchers("/proprietarios/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/veiculos/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/ordens-servico/create/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/ordens-servico/**").hasAnyRole( "MECANICO", "ADMIN")
+
+
 
                 // qualquer outra rota exige autenticação
                 .anyRequest().authenticated()
