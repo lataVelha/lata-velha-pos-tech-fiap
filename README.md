@@ -193,3 +193,17 @@ O flag `-v` remove os volumes, limpando os dados do banco e do SonarQube.
 | SonarQube       | Análise estática de código     |
 | Docker Compose  | Orquestração de containers     |
 | Lombok          | Redução de boilerplate         |
+
+---
+
+## Guias para desenvolvimento
+- idioma usado
+    - ingles -> nome dos metodos
+    - portugues -> dominio, mensagem de erro
+- injeção de dependência por @RequiredArgsConstructor e remover os construtores
+- usecases com apenas 1 metodo, anotar com @Component
+    - obs: caso tenha busca por campos diferentes, criar um usecase para campos diferentes
+- usar Records para DTO
+- adicionar testes unitários e integração (pelo menos nos usecases)
+    - usar jacoco, mockito
+    - cobertura mínima é 80%
