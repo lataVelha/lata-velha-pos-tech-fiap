@@ -3,7 +3,6 @@ package br.com.lata.velha.application.usecase.funcionario;
 import br.com.lata.velha.application.assembler.FuncionarioAssembler;
 import br.com.lata.velha.application.assembler.PaginatedAssembler;
 import br.com.lata.velha.application.dto.response.FuncionarioResponse;
-import br.com.lata.velha.application.dto.response.PaginatedResponse;
 import br.com.lata.velha.domain.common.PaginatedResult;
 import br.com.lata.velha.domain.model.Cargo;
 import br.com.lata.velha.domain.model.Funcionario;
@@ -47,7 +46,7 @@ class BuscarFuncionariosUseCaseTest {
             new FuncionarioResponse(2L, "Beltrano", "beltrano", true, "ATENDENTE")
         );
 
-        PaginatedResponse<FuncionarioResponse> result = useCase.execute(0, 10);
+        PaginatedResult<FuncionarioResponse> result = useCase.execute(0, 10);
 
         assertEquals(2, result.content().size());
         assertEquals(0, result.page());

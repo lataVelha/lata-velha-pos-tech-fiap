@@ -1,6 +1,5 @@
 package br.com.lata.velha.application.assembler;
 
-import br.com.lata.velha.application.dto.response.PaginatedResponse;
 import br.com.lata.velha.domain.common.PaginatedResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
