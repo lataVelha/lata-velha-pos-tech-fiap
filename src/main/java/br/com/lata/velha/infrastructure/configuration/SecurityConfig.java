@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,37 +45,40 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable())
 
-            .authorizeHttpRequests(auth -> auth
-                // público
-                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/teste/publico").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        // público
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
 
-                // CRUD — USER e ADMIN
-                .requestMatchers("/proprietarios/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/veiculos/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/ordens-servico/create/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/ordens-servico/**").hasAnyRole( "MECANICO", "ADMIN")
+                        // CRUD — USER e ADMIN
+                        .requestMatchers("/proprietarios/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/veiculos/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/funcionario/**").hasAnyRole( "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/ordens-servico/create").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/aprovar").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/*/reprovar").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/*/iniciar").hasAnyRole("MECANICO", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/adiciona-servico").hasAnyRole("MECANICO", "ADMIN")
+                        .requestMatchers("/ordens-servico/**").hasAnyRole("USER", "MECANICO", "ADMIN")
 
 
-
-                // qualquer outra rota exige autenticação
-                .anyRequest().authenticated()
-            )
-
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt
-                    .decoder(jwtDecoder())
-                    .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                        // qualquer outra rota exige autenticação
+                        .anyRequest().authenticated()
                 )
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(401);
-                    response.setContentType("application/json");
-                    response.getWriter().write("{\"error\":\"Token inválido ou expirado\"}");
-                })
-            );
+
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .decoder(jwtDecoder())
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                        )
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\":\"Token inválido ou expirado\"}");
+                        })
+                );
 
         return http.build();
     }

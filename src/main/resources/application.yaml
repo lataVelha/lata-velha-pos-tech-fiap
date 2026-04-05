@@ -22,4 +22,5 @@ jwt:
     key: classpath:app.key
     jwt:
   issuer: mybackend
-  expires-in: 300
+  expires-in: 3600
+

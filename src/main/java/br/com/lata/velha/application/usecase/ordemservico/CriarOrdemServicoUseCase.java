@@ -24,16 +24,16 @@ public class CriarOrdemServicoUseCase {
 
     public OrdemServicoResponse execute(OrdemServicoRequest request) {
 
-        var veiculo = buscarVeiculoPorIdUseCase.execute(request.getVeiculoId());
+        var veiculo = buscarVeiculoPorIdUseCase.execute(request.veiculoId());
 
-        var proprietario = buscarProprietarioPorIdUseCase.execute(request.getProprietarioId());
+        var proprietario = buscarProprietarioPorIdUseCase.execute(request.proprietarioId());
 
         OrdemServico os = new OrdemServico(
                 null,
-                request.getProprietarioId(),
-                request.getVeiculoId(),
-                request.getReclamacaoCliente(),
-                request.getAtendenteInicioId()
+                request.proprietarioId(),
+                request.veiculoId(),
+                request.reclamacaoCliente(),
+                request.atendenteInicioId()
         );
 
         repository.save(os);

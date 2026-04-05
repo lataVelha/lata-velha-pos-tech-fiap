@@ -1,14 +1,19 @@
 package br.com.lata.velha.application.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(name = "OrdemServicoResponse", description = "Resposta da Ordem de Serviço")
 public class OrdemServicoResponse {
 
@@ -42,22 +47,23 @@ public class OrdemServicoResponse {
     @Schema(description = "Status da ordem", example = "ABERTA")
     private String status;
 
-    @Schema(description = "Observações", example = "Trocar pastilhas de freio")
-    private String observacoes;
-
-    @Schema(description = "Data de criação", example = "2026-03-30T10:15:30")
-    private LocalDateTime criadaEm;
+    @Schema(description = "Reclamaçâo do Cliente", example = "Trocar pastilhas de freio")
+    private String reclamacaoCliente;
 
     @Schema(description = "Data de início", example = "2026-03-30T11:00:00")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss", timezone = "America/Sao_Paulo")
     private LocalDateTime iniciadoEm;
 
     @Schema(description = "Data de finalização", example = "2026-03-30T15:30:00")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss", timezone = "America/Sao_Paulo")
     private LocalDateTime finalizadoEm;
 
     @Schema(description = "Data da Entrega", example = "2026-03-30T15:30:00")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss", timezone = "America/Sao_Paulo")
     private LocalDateTime entregueEm;
 
     @Schema(description = "Data da ultima atualização", example = "2026-03-30T15:30:00")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss", timezone = "America/Sao_Paulo")
     private LocalDateTime atualizadoEm;
 
     @Schema(description = "Lista de serviços da OS")

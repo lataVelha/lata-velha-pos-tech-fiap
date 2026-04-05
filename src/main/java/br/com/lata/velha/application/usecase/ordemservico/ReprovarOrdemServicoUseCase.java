@@ -2,7 +2,6 @@ package br.com.lata.velha.application.usecase.ordemservico;
 
 import br.com.lata.velha.application.assembler.OrdemServicoAssembler;
 import br.com.lata.velha.application.dto.response.OrdemServicoResponse;
-import br.com.lata.velha.domain.model.OrdemServico;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
 import br.com.lata.velha.domain.repository.OrdemServicoRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,24 +9,24 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class IniciarDiagnosticoUseCase {
+public class ReprovarOrdemServicoUseCase {
 
-    private final OrdemServicoRepository repository;
-
+    private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
-
     private final OrdemServicoAssembler ordemServicoAssembler;
 
-    public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
+    public OrdemServicoResponse execute(Long osId, Long idFunc) {
 
-        OrdemServico os = repository.findById(idOs);
+        var os = ordemServicoRepository.findById(osId);
+        var funcionario = funcionarioRepository.findById(idFunc);
 
-        var mecanico = funcionarioRepository.findById(idMecanico);
+        os.getServicos().forEach(sOs -> {
 
-        os.iniciarDiagnostico(os.getId(), mecanico.getId());
+            sOs.recusado(funcionario.getId());
 
-        var osIniciada = repository.save(os);
+        });
 
-        return ordemServicoAssembler.toResponse(osIniciada,null, null);
+        os.reprovar(funcionario.getId());
+        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null,null);
     }
 }

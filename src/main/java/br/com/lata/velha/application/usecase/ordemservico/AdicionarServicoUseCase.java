@@ -1,23 +1,34 @@
 package br.com.lata.velha.application.usecase.ordemservico;
 
-import br.com.lata.velha.domain.model.OrdemServico;
-import br.com.lata.velha.domain.model.ServicoOS;
+import br.com.lata.velha.application.assembler.OrdemServicoAssembler;
+import br.com.lata.velha.application.dto.request.AddServicoOsRequest;
+import br.com.lata.velha.application.dto.response.OrdemServicoResponse;
 import br.com.lata.velha.domain.repository.OrdemServicoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
 
 @Component
 @RequiredArgsConstructor
 public class AdicionarServicoUseCase {
 
-    private final OrdemServicoRepository repository;
+    private final OrdemServicoRepository ordemServicoRepository;
+    private final OrdemServicoAssembler ordemServicoAssembler;
 
-    public void executar(Long ordemId, Long servicoOS) {
+    public OrdemServicoResponse execute(AddServicoOsRequest request) {
 
-        OrdemServico os = repository.findById(ordemId);
+        var os = ordemServicoRepository.findById(request.idOs());
+        request.servicoOSRequests().stream().forEach(so -> {
+            //    var servicoOs =
 
-       // os.adicionarServico(servicoOS);
+            so.pecasId().forEach(p -> {
+                //   var peca =
+                //   adicionarPeca(p)
+                // alocar peca
+            });
+            // os.adicionarServico(servicoOS);
+        });
 
-        repository.save(os);
+        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null, null);
     }
 }
