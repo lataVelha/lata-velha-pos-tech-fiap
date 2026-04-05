@@ -10,12 +10,12 @@ public class ServicoOSAssembler {
     public static ServicoOS toDomain(ServicoOSRequest request) {
 
         Servico servico = new Servico();
-        servico.setId(request.getServicoId());
+        servico.setId(request.servicoId());
 
         return new ServicoOS(
                 null,
                 servico,
-                request.getValorMaoDeObra()
+                request.valorMaoDeObra()
         );
     }
 

@@ -52,24 +52,35 @@ public class OrdemServico {
         this.atualizadoEm = LocalDateTime.now();
     }
 
-    public void fimDignostico(Long mecanicoId) {
+    public void fimDignostico(List<Long> servicoOsId) {
         if (this.status != StatusOrdemServico.EM_DIAGNOSTICO) {
             throw new IllegalStateException("O Diagnostico não pode ser finalizado");
         }
-        this.mecanicoFinalId = mecanicoId;
         this.status = StatusOrdemServico.AGUARDANDO_APROVACAO;
         this.atualizadoEm = LocalDateTime.now();
     }
 
-    public void emExecucao(Long mecanicoId) {
+    public void aprovar(Long atendenteInicioId) {
 
         if (this.status != StatusOrdemServico.AGUARDANDO_APROVACAO) {
             throw new IllegalStateException("Ordem não está aprovada");
         }
 
-        this.mecanicoFinalId = mecanicoId;
+        this.atendenteInicioId = atendenteInicioId;
         this.status = StatusOrdemServico.EM_EXECUCAO;
         this.atualizadoEm = LocalDateTime.now();
+
+    }
+
+    public void reprovar(Long atendenteInicioId) {
+
+        if (this.status != StatusOrdemServico.AGUARDANDO_APROVACAO) {
+            throw new IllegalStateException("Ordem não está aprovada");
+        }
+
+        this.atendenteInicioId = atendenteInicioId;
+        this.status = StatusOrdemServico.FINALIZADA;
+        this.finalizadoEm = LocalDateTime.now();
 
     }
 
@@ -202,5 +213,6 @@ public class OrdemServico {
     public int hashCode() {
         return Objects.hash(id);
     }
+
 
 }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/funcionario")
 @Tag(name = "Funcionários", description = "Gerenciamento de Funcionários")
 public class FuncionarioController {
 

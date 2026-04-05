@@ -31,7 +31,7 @@ public class ServicoOS {
         setServico(servico);
         setValorMaoDeObra(valorMaoDeObra);
         this.status = StatusServico.PENDENTE;
-        this.atualizadoEm = LocalDateTime.now();
+        this.iniciadoEm = LocalDateTime.now();
     }
 
     /* ===================== REGRAS ===================== */
@@ -39,13 +39,14 @@ public class ServicoOS {
     public void aprovado(Long atendente) {
         this.status = StatusServico.APROVADO;
         this.atendenteId = atendente;
-        this.iniciadoEm = LocalDateTime.now();
+        this.atualizadoEm  = LocalDateTime.now();
     }
 
     public void recusado(Long atendente) {
         this.status = StatusServico.RECUSADO;
         this.atendenteId = atendente;
-        this.iniciadoEm = LocalDateTime.now();
+        this.atualizadoEm = LocalDateTime.now();
+        this.terminadoEm = LocalDateTime.now();
     }
 
     public void finalizado(Long mecanicoId) {
@@ -59,6 +60,7 @@ public class ServicoOS {
             throw new IllegalArgumentException("Peça inválida");
 
         pecas.add(peca);
+        this.atualizadoEm = LocalDateTime.now();
     }
 
     public double calcularTotal() {
