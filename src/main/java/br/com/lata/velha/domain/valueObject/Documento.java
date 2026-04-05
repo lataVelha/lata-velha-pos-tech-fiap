@@ -103,6 +103,14 @@ public class Documento {
                valor.substring(12, 14);
     }
 
+    public String getMasked() {
+        String formatted = getFormatted();
+        if (tipo == Tipo.CPF) {
+            return "***." + formatted.substring(4, 11) + "-**";
+        }
+        return "**." + formatted.substring(3, 15) + "-**";
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

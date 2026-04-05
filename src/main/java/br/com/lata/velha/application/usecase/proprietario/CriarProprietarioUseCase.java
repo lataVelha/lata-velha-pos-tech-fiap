@@ -14,9 +14,11 @@ public class CriarProprietarioUseCase {
 
     private final ProprietarioRepository repository;
     private final ProprietarioAssembler assembler;
+    private final NotificarCadastroProprietarioUseCase notificarUseCase;
 
     public ProprietarioResponse execute(ProprietarioRequest request) {
         Proprietario saved = repository.save(assembler.toDomain(request));
+        notificarUseCase.execute(saved);
         return assembler.toResponse(saved);
     }
 }
