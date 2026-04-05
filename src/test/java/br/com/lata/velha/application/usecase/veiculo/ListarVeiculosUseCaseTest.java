@@ -43,14 +43,14 @@ class ListarVeiculosUseCaseTest {
         Veiculo veiculo = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
         PaginatedResult<Veiculo> paginatedResult = new PaginatedResult<>(
                 List.of(veiculo), 0, 10, 1, 1);
-        PaginatedResponse<VeiculoResponse> paginatedResponse = new PaginatedResponse<>(
+        PaginatedResult<VeiculoResponse> paginatedResponse = new PaginatedResult<>(
                 List.of(mock(VeiculoResponse.class)), 0, 10, 1, 1);
 
         when(repository.findAllActivePaginated(0, 10)).thenReturn(paginatedResult);
         when(paginatedAssembler.toResponse(eq(paginatedResult), any(Function.class)))
                 .thenReturn(paginatedResponse);
 
-        PaginatedResponse<VeiculoResponse> result = useCase.execute(0, 10);
+        PaginatedResult<VeiculoResponse> result = useCase.execute(0, 10);
 
         assertNotNull(result);
         assertEquals(1, result.content().size());

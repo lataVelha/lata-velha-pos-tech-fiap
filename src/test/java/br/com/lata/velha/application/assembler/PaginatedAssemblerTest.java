@@ -24,7 +24,7 @@ class PaginatedAssemblerTest {
         PaginatedResult<String> result = new PaginatedResult<>(
                 List.of("a", "b", "c"), 0, 10, 3L, 1);
 
-        PaginatedResponse<String> response = assembler.toResponse(result, String::toUpperCase);
+        PaginatedResult<String> response = assembler.toResponse(result, String::toUpperCase);
 
         assertThat(response.content()).containsExactly("A", "B", "C");
         assertThat(response.page()).isZero();
@@ -38,7 +38,7 @@ class PaginatedAssemblerTest {
     void shouldReturnEmptyContentWhenResultIsEmpty() {
         PaginatedResult<String> result = new PaginatedResult<>(List.of(), 0, 10, 0L, 0);
 
-        PaginatedResponse<String> response = assembler.toResponse(result, String::toUpperCase);
+        PaginatedResult<String> response = assembler.toResponse(result, String::toUpperCase);
 
         assertThat(response.content()).isEmpty();
         assertThat(response.totalElements()).isZero();
@@ -51,7 +51,7 @@ class PaginatedAssemblerTest {
         PaginatedResult<Integer> result = new PaginatedResult<>(
                 List.of(1, 2, 3), 2, 5, 13L, 3);
 
-        PaginatedResponse<String> response = assembler.toResponse(result, Object::toString);
+        PaginatedResult<String> response = assembler.toResponse(result, Object::toString);
 
         assertThat(response.page()).isEqualTo(2);
         assertThat(response.size()).isEqualTo(5);
@@ -65,7 +65,7 @@ class PaginatedAssemblerTest {
         PaginatedResult<Integer> result = new PaginatedResult<>(
                 List.of(1, 2, 3), 0, 10, 3L, 1);
 
-        PaginatedResponse<Integer> response = assembler.toResponse(result, n -> n * 2);
+        PaginatedResult<Integer> response = assembler.toResponse(result, n -> n * 2);
 
         assertThat(response.content()).containsExactly(2, 4, 6);
     }
