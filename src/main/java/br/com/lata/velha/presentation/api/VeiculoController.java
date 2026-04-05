@@ -1,9 +1,9 @@
 package br.com.lata.velha.presentation.api;
 
 import br.com.lata.velha.application.dto.request.VeiculoRequest;
-import br.com.lata.velha.application.dto.response.PaginatedResponse;
 import br.com.lata.velha.application.dto.response.VeiculoResponse;
 import br.com.lata.velha.application.usecase.veiculo.*;
+import br.com.lata.velha.domain.common.PaginatedResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -56,7 +56,7 @@ public class VeiculoController {
 
     @GetMapping
     @Operation(summary = "Listar veículos paginado")
-    public ResponseEntity<PaginatedResponse<VeiculoResponse>> listAll(
+    public ResponseEntity<PaginatedResult<VeiculoResponse>> listAll(
             @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(listUseCase.execute(page, size));

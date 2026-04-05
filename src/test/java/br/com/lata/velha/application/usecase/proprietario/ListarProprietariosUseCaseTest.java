@@ -2,7 +2,6 @@ package br.com.lata.velha.application.usecase.proprietario;
 
 import br.com.lata.velha.application.assembler.PaginatedAssembler;
 import br.com.lata.velha.application.assembler.ProprietarioAssembler;
-import br.com.lata.velha.application.dto.response.PaginatedResponse;
 import br.com.lata.velha.application.dto.response.ProprietarioResponse;
 import br.com.lata.velha.domain.common.PaginatedResult;
 import br.com.lata.velha.domain.model.Proprietario;
@@ -46,14 +45,20 @@ class ListarProprietariosUseCaseTest {
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
         PaginatedResult<Proprietario> paginatedResult = new PaginatedResult<>(
                 List.of(domain), 0, 10, 1, 1);
-        PaginatedResponse<ProprietarioResponse> paginatedResponse = new PaginatedResponse<>(
-                List.of(mock(ProprietarioResponse.class)), 0, 10, 1, 1);
+        PaginatedResult<ProprietarioResponse> paginatedResponse =
+                new PaginatedResult<>(
+                        List.of(mock(ProprietarioResponse.class)),
+                        0,
+                        10,
+                        1,
+                        1
+                );
 
         when(repository.findAllActivePaginated(0, 10)).thenReturn(paginatedResult);
         when(paginatedAssembler.toResponse(eq(paginatedResult), any(Function.class)))
                 .thenReturn(paginatedResponse);
 
-        PaginatedResponse<ProprietarioResponse> result = useCase.execute(0, 10);
+        PaginatedResult<ProprietarioResponse> result = useCase.execute(0, 10);
 
         assertNotNull(result);
         assertEquals(1, result.content().size());

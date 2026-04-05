@@ -3,8 +3,8 @@ package br.com.lata.velha.presentation.api;
 import br.com.lata.velha.application.dto.request.AtualizarFuncionarioRequest;
 import br.com.lata.velha.application.dto.request.CadastrarFuncionarioRequest;
 import br.com.lata.velha.application.dto.response.FuncionarioResponse;
-import br.com.lata.velha.application.dto.response.PaginatedResponse;
 import br.com.lata.velha.application.usecase.funcionario.*;
+import br.com.lata.velha.domain.common.PaginatedResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,7 +38,7 @@ public class FuncionarioController {
     @GetMapping("/funcionarios")
     @Operation(summary = "Listar todos os funcionários ativos", description = "Retorna lista de funcionários ativos no sistema")
     @ApiResponse(responseCode = "200", description = "Funcionários listados")
-    public ResponseEntity<PaginatedResponse<FuncionarioResponse>> listar(
+    public ResponseEntity<PaginatedResult<FuncionarioResponse>> listar(
             @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(buscarTodosUseCase.execute(page, size));

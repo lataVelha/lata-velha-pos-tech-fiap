@@ -21,16 +21,17 @@ public class ServicoOSAssembler {
 
     public static ServicoOSResponse toResponse(ServicoOS domain) {
 
-        return ServicoOSResponse.builder()
-                .id(domain.getId())
-                .servicoId(domain.getServico().getId())
-                .servicoNome(domain.getServico().getNome())
-                .status(domain.getStatus().name())
-                .mecanicoResponsavelId(domain.getMecanicoResponsavelId())
-                .valorMaoDeObra(domain.getValorMaoDeObra())
-                .iniciadoEm(domain.getIniciadoEm())
-                .terminadoEm(domain.getTerminadoEm())
-                .atualizadoEm(domain.getAtualizadoEm())
-                .build();
+        return new ServicoOSResponse(
+                domain.getId(),
+                domain.getServico().getId(),
+                domain.getServico().getNome(),
+                domain.getStatus().name(),
+                domain.getMecanicoResponsavelId(),
+                domain.getValorMaoDeObra(),
+                domain.getIniciadoEm(),
+                domain.getTerminadoEm(),
+                domain.getAtualizadoEm(),
+                null // pecas
+        );
     }
 }

@@ -1,9 +1,9 @@
 package br.com.lata.velha.presentation.api;
 
 import br.com.lata.velha.application.dto.request.ProprietarioRequest;
-import br.com.lata.velha.application.dto.response.PaginatedResponse;
 import br.com.lata.velha.application.dto.response.ProprietarioResponse;
 import br.com.lata.velha.application.usecase.proprietario.*;
+import br.com.lata.velha.domain.common.PaginatedResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -54,7 +54,7 @@ public class ProprietarioController {
 
     @GetMapping
     @Operation(summary = "Listar proprietários paginado")
-    public ResponseEntity<PaginatedResponse<ProprietarioResponse>> listAll(
+    public ResponseEntity<PaginatedResult<ProprietarioResponse>> listAll(
             @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(listUseCase.execute(page, size));

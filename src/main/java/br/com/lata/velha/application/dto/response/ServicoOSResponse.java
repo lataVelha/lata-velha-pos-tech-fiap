@@ -1,42 +1,35 @@
 package br.com.lata.velha.application.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class ServicoOSResponse {
+public record ServicoOSResponse(
 
-    @Schema(example = "189")
-    private Long id;
+        @Schema(example = "189")
+        Long id,
 
-    @Schema(example = "134")
-    private Long servicoId;
+        @Schema(example = "134")
+        Long servicoId,
 
-    @Schema(example = "Balancemento")
-    private String servicoNome;
+        @Schema(example = "Balanceamento")
+        String servicoNome,
 
-    @Schema(example = "APROVADO")
-    private String status;
+        @Schema(example = "APROVADO")
+        String status,
 
-    @Schema(example = "134")
-    private Long mecanicoResponsavelId;
+        @Schema(example = "134")
+        Long mecanicoResponsavelId,
 
-    @Schema(example = "000.00")
-    private BigDecimal valorMaoDeObra;
+        @Schema(example = "150.00")
+        BigDecimal valorMaoDeObra,
 
-    private LocalDateTime iniciadoEm;
-    private LocalDateTime terminadoEm;
-    private LocalDateTime atualizadoEm;
+        LocalDateTime iniciadoEm,
+        LocalDateTime terminadoEm,
+        LocalDateTime atualizadoEm,
 
-    private List<PecaServicoResponse> pecas;
-}
+        List<PecaServicoResponse> pecas
+
+) {}

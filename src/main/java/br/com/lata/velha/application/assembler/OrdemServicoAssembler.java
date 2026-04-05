@@ -36,29 +36,32 @@ public class OrdemServicoAssembler {
             String veiculoDescricao
     ) {
 
-        return OrdemServicoResponse.builder()
-                .id(domain.getId())
-                .veiculoId(domain.getVeiculoId())
-                .veiculoDescricao(veiculoDescricao)
-                .proprietarioId(domain.getProprietarioId())
-                .proprietarioNome(proprietarioNome)
-                .status(domain.getStatus() != null ? domain.getStatus().name() : null)
-                .reclamacaoCliente(domain.getReclamacaoCliente())
-                .iniciadoEm(domain.getIniciadoEm())
-                .finalizadoEm(domain.getFinalizadoEm())
-                .entregueEm(domain.getEntregueEm())
-                .atualizadoEm(domain.getAtualizadoEm())
-                .atendenteInicioId(domain.getAtendenteInicioId())
-                .mecanicoFinalId(domain.getMecanicoFinalId())
-                .servicos(
-                        domain.getServicos() != null
-                                ? domain.getServicos()
-                                .stream()
-                                .map(ServicoOSAssembler::toResponse)
-                                .collect(Collectors.toList())
-                                : Collections.emptyList()
-                )
-                .build();
+        List<ServicoOSResponse> servicos =
+                domain.getServicos() != null
+                        ? domain.getServicos()
+                        .stream()
+                        .map(ServicoOSAssembler::toResponse)
+                        .collect(Collectors.toList())
+                        : Collections.emptyList();
+
+        return new OrdemServicoResponse(
+                domain.getId(),
+                domain.getAtendenteInicioId(),
+                null, // atendenteNome
+                domain.getVeiculoId(),
+                veiculoDescricao,
+                domain.getProprietarioId(),
+                proprietarioNome,
+                domain.getMecanicoFinalId(),
+                null, // mecanicoNome
+                domain.getStatus() != null ? domain.getStatus().name() : null,
+                domain.getReclamacaoCliente(),
+                domain.getIniciadoEm(),
+                domain.getFinalizadoEm(),
+                domain.getEntregueEm(),
+                domain.getAtualizadoEm(),
+                servicos
+        );
     }
 
     public OrdemServicoResponse map(OrdemServicoProjection p) {
@@ -69,30 +72,31 @@ public class OrdemServicoAssembler {
             if (p.getServicos() != null) {
                 servicos = mapper.readValue(
                         p.getServicos(),
-                        new TypeReference<List<ServicoOSResponse>>() {});
+                        new TypeReference<List<ServicoOSResponse>>() {}
+                );
             }
         } catch (Exception e) {
             throw new RuntimeException("Erro ao converter serviços JSON", e);
         }
 
-        return OrdemServicoResponse.builder()
-                .id(p.getId())
-                .atendenteInicioId(p.getAtendenteInicioId())
-                .atendenteNome(p.getAtendenteNome())
-                .veiculoId(p.getVeiculoId())
-                .veiculoDescricao(p.getVeiculoDescricao())
-                .proprietarioId(p.getProprietarioId())
-                .proprietarioNome(p.getProprietarioNome())
-                .mecanicoFinalId(p.getMecanicoFinalId())
-                .mecanicoNome(p.getMecanicoNome())
-                .status(p.getStatus())
-                .reclamacaoCliente(p.getReclamacaoCliente())
-                .iniciadoEm(p.getIniciadoEm())
-                .finalizadoEm(p.getFinalizadoEm())
-                .entregueEm(p.getEntregueEm())
-                .atualizadoEm(p.getAtualizadoEm())
-                .servicos(servicos)
-                .build();
+        return new OrdemServicoResponse(
+                p.getId(),
+                p.getAtendenteInicioId(),
+                p.getAtendenteNome(),
+                p.getVeiculoId(),
+                p.getVeiculoDescricao(),
+                p.getProprietarioId(),
+                p.getProprietarioNome(),
+                p.getMecanicoFinalId(),
+                p.getMecanicoNome(),
+                p.getStatus(),
+                p.getReclamacaoCliente(),
+                p.getIniciadoEm(),
+                p.getFinalizadoEm(),
+                p.getEntregueEm(),
+                p.getAtualizadoEm(),
+                servicos
+        );
     }
 
     public AprovarOrdemServicoResponse toAprovarResponse(OrdemServico domain) {
