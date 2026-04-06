@@ -15,74 +15,75 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/proprietarios")
 @RequiredArgsConstructor
-@Tag(name = "Proprietários", description = "CRUD de proprietários / clientes")
+@RequestMapping("/proprietarios")
+@Tag(name = "Proprietários", description = "Gerenciamento de Proprietários")
 public class ProprietarioController {
 
-    private final CriarProprietarioUseCase createUseCase;
-    private final BuscarProprietarioPorIdUseCase findByIdUseCase;
-    private final BuscarProprietarioPorDocumentoUseCase findByDocumentoUseCase;
-    private final ListarProprietariosUseCase listUseCase;
-    private final AtualizarProprietarioUseCase updateUseCase;
-    private final DeletarProprietarioUseCase deleteUseCase;
-    private final ReativarProprietarioUseCase reactivateUseCase;
+    private final CriarProprietarioUseCase criarUseCase;
+    private final BuscarProprietarioPorIdUseCase buscarPorIdUseCase;
+    private final BuscarProprietarioPorDocumentoUseCase buscarPorDocumentoUseCase;
+    private final ListarProprietariosUseCase listarUseCase;
+    private final AtualizarProprietarioUseCase atualizarUseCase;
+    private final DesativarProprietarioUseCase desativarUseCase;
+    private final ReativarProprietarioUseCase reativarUseCase;
 
     @PostMapping
     @Operation(summary = "Cadastrar proprietário")
     @ApiResponse(responseCode = "201", description = "Proprietário criado")
     @ApiResponse(responseCode = "409", description = "Documento já cadastrado")
-    public ResponseEntity<ProprietarioResponse> create(@Valid @RequestBody ProprietarioRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(createUseCase.execute(request));
+    public ResponseEntity<ProprietarioResponse> cadastrar(@Valid @RequestBody ProprietarioRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(criarUseCase.execute(request));
+    }
+
+    @GetMapping
+    @Operation(summary = "Listar proprietários ativos paginado")
+    @ApiResponse(responseCode = "200", description = "Proprietários listados")
+    public ResponseEntity<PaginatedResult<ProprietarioResponse>> listar(
+            @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(listarUseCase.execute(page, size));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar proprietário por ID")
     @ApiResponse(responseCode = "200", description = "Proprietário encontrado")
     @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
-    public ResponseEntity<ProprietarioResponse> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(findByIdUseCase.execute(id));
+    public ResponseEntity<ProprietarioResponse> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(buscarPorIdUseCase.execute(id));
     }
 
     @GetMapping("/documento/{documento}")
     @Operation(summary = "Buscar proprietário por CPF/CNPJ")
     @ApiResponse(responseCode = "200", description = "Proprietário encontrado")
     @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
-    public ResponseEntity<ProprietarioResponse> findByDocumento(@PathVariable String documento) {
-        return ResponseEntity.ok(findByDocumentoUseCase.execute(documento));
-    }
-
-    @GetMapping
-    @Operation(summary = "Listar proprietários paginado")
-    public ResponseEntity<PaginatedResult<ProprietarioResponse>> listAll(
-            @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(listUseCase.execute(page, size));
+    public ResponseEntity<ProprietarioResponse> buscarPorDocumento(@PathVariable String documento) {
+        return ResponseEntity.ok(buscarPorDocumentoUseCase.execute(documento));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar proprietário")
     @ApiResponse(responseCode = "200", description = "Proprietário atualizado")
     @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
-    public ResponseEntity<ProprietarioResponse> update(@PathVariable Long id,
-                                                       @Valid @RequestBody ProprietarioRequest request) {
-        return ResponseEntity.ok(updateUseCase.execute(id, request));
+    public ResponseEntity<ProprietarioResponse> atualizar(@PathVariable Long id,
+                                                          @Valid @RequestBody ProprietarioRequest request) {
+        return ResponseEntity.ok(atualizarUseCase.execute(id, request));
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Desativar proprietário")
+    @PatchMapping("/{id}/desativar")
+    @Operation(summary = "Desativar proprietário (soft delete)")
     @ApiResponse(responseCode = "204", description = "Proprietário desativado")
     @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        deleteUseCase.execute(id);
+    public ResponseEntity<Void> desativar(@PathVariable Long id) {
+        desativarUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/reactivate")
+    @PatchMapping("/{id}/reativar")
     @Operation(summary = "Reativar proprietário")
     @ApiResponse(responseCode = "200", description = "Proprietário reativado")
     @ApiResponse(responseCode = "404", description = "Proprietário inativo não encontrado")
-    public ResponseEntity<ProprietarioResponse> reactivate(@PathVariable Long id) {
-        return ResponseEntity.ok(reactivateUseCase.execute(id));
+    public ResponseEntity<ProprietarioResponse> reativar(@PathVariable Long id) {
+        return ResponseEntity.ok(reativarUseCase.execute(id));
     }
 }

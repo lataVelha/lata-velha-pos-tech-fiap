@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class DeletarProprietarioUseCase {
+public class DesativarProprietarioUseCase {
 
     private final ProprietarioRepository repository;
 
