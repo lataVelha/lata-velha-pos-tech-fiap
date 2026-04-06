@@ -9,15 +9,21 @@ public class Peca {
     private String nome;
     private String descricao;
     private BigDecimal valor;
+    private boolean ativo = true;
 
     public Peca() {
     }
 
     public Peca(Long id, String nome, String descricao, BigDecimal valor) {
+        this(id, nome, descricao, valor, true);
+    }
+
+    public Peca(Long id, String nome, String descricao, BigDecimal valor, boolean ativo) {
         this.id = id;
         setNome(nome);
         setDescricao(descricao);
         setValor(valor);
+        this.ativo = ativo;
     }
 
     public Long getId() {
@@ -54,9 +60,24 @@ public class Peca {
         this.valor = valor;
     }
 
+    public void desativar() {
+        if (!this.ativo) {
+            throw new IllegalArgumentException("Peça já está desativada");
+        }
+        this.ativo = false;
+    }
+
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
+    }
+
     @Override
     public String toString() {
-        return "Peca{id=" + id + ", nome='" + nome + "', valor=" + valor + "}";
+        return "Peca{id=" + id + ", nome='" + nome + "', valor=" + valor + ", ativo=" + ativo + "}";
     }
 
     @Override

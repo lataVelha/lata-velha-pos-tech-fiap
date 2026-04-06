@@ -1,0 +1,84 @@
+package br.com.lata.velha.presentation.api;
+
+import br.com.lata.velha.application.dto.request.AtualizarPecaRequest;
+import br.com.lata.velha.application.dto.request.CadastrarPecaRequest;
+import br.com.lata.velha.application.dto.response.PecaResponse;
+import br.com.lata.velha.application.usecase.peca.AtualizarPecaUseCase;
+import br.com.lata.velha.application.usecase.peca.BuscarPecaPorIdUseCase;
+import br.com.lata.velha.application.usecase.peca.BuscarPecasUseCase;
+import br.com.lata.velha.application.usecase.peca.CadastrarPecaUseCase;
+import br.com.lata.velha.application.usecase.peca.DesativarPecaUseCase;
+import br.com.lata.velha.domain.common.PaginatedResult;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/peca")
+@Tag(name = "Peças", description = "Gerenciamento de Peças")
+public class PecaController {
+
+    private final CadastrarPecaUseCase cadastrarUseCase;
+    private final BuscarPecasUseCase buscarTodosUseCase;
+    private final BuscarPecaPorIdUseCase buscarPorIdUseCase;
+    private final AtualizarPecaUseCase atualizarUseCase;
+    private final DesativarPecaUseCase desativarUseCase;
+
+    @PostMapping("/cadastrar-peca")
+    @Operation(summary = "Cadastrar nova peça", description = "Cria uma nova peça para uso em serviços")
+    @ApiResponse(responseCode = "201", description = "Peça criada")
+    public ResponseEntity<PecaResponse> cadastrar(@Valid @RequestBody CadastrarPecaRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(cadastrarUseCase.execute(request));
+    }
+
+    @GetMapping("/pecas")
+    @Operation(summary = "Listar todas as peças ativas", description = "Retorna lista de peças ativas no sistema")
+    @ApiResponse(responseCode = "200", description = "Peças listadas")
+    public ResponseEntity<PaginatedResult<PecaResponse>> listar(
+            @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(buscarTodosUseCase.execute(page, size));
+    }
+
+    @GetMapping("/pecas/{id}")
+    @Operation(summary = "Buscar peça por ID")
+    @ApiResponse(responseCode = "200", description = "Peça encontrada")
+    @ApiResponse(responseCode = "404", description = "Peça não encontrada")
+    public ResponseEntity<PecaResponse> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(buscarPorIdUseCase.execute(id));
+    }
+
+    @PutMapping("/atualizar-peca/{id}")
+    @Operation(summary = "Atualizar informações da peça")
+    @ApiResponse(responseCode = "200", description = "Peça atualizada")
+    @ApiResponse(responseCode = "404", description = "Peça não encontrada")
+    public ResponseEntity<PecaResponse> atualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody AtualizarPecaRequest request) {
+        return ResponseEntity.ok(atualizarUseCase.execute(id, request));
+    }
+
+    @PatchMapping("/desativar-peca/{id}")
+    @Operation(summary = "Desativar peça", description = "Inativa (Soft Delete) a peça no sistema")
+    @ApiResponse(responseCode = "204", description = "Peça desativada")
+    @ApiResponse(responseCode = "404", description = "Peça não encontrada")
+    public ResponseEntity<Void> desativar(@PathVariable Long id) {
+        desativarUseCase.execute(id);
+        return ResponseEntity.noContent().build();
+    }
+}
