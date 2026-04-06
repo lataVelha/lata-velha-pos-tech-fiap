@@ -17,74 +17,75 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/veiculos")
 @RequiredArgsConstructor
-@Tag(name = "Veículos", description = "CRUD de veículos")
+@RequestMapping("/veiculos")
+@Tag(name = "Veículos", description = "Gerenciamento de Veículos")
 public class VeiculoController {
 
-    private final CriarVeiculoUseCase createUseCase;
-    private final BuscarVeiculoPorIdUseCase findByIdUseCase;
-    private final ListarVeiculosPorProprietarioUseCase listByProprietarioUseCase;
-    private final ListarVeiculosUseCase listUseCase;
-    private final AtualizarVeiculoUseCase updateUseCase;
-    private final DeletarVeiculoUseCase deleteUseCase;
-    private final ReativarVeiculoUseCase reactivateUseCase;
-
+    private final CriarVeiculoUseCase cadastrarUseCase;
+    private final BuscarVeiculoPorIdUseCase buscarPorIdUseCase;
+    private final ListarVeiculosPorProprietarioUseCase listarPorProprietarioUseCase;
+    private final ListarVeiculosUseCase listarUseCase;
+    private final AtualizarVeiculoUseCase atualizarUseCase;
+    private final DesativarVeiculoUseCase desativarUseCase;
+    private final ReativarVeiculoUseCase reativarUseCase;
 
     @PostMapping
     @Operation(summary = "Cadastrar veículo")
     @ApiResponse(responseCode = "201", description = "Veículo criado")
     @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
     @ApiResponse(responseCode = "409", description = "Placa já cadastrada")
-    public ResponseEntity<VeiculoResponse> create(@Valid @RequestBody VeiculoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(createUseCase.execute(request));
+    public ResponseEntity<VeiculoResponse> cadastrar(@Valid @RequestBody VeiculoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(cadastrarUseCase.execute(request));
+    }
+
+    @GetMapping
+    @Operation(summary = "Listar veículos ativos paginado")
+    @ApiResponse(responseCode = "200", description = "Veículos listados")
+    public ResponseEntity<PaginatedResult<VeiculoResponse>> listar(
+            @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(listarUseCase.execute(page, size));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar veículo por ID")
     @ApiResponse(responseCode = "200", description = "Veículo encontrado")
     @ApiResponse(responseCode = "404", description = "Veículo não encontrado")
-    public ResponseEntity<VeiculoResponse> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(findByIdUseCase.execute(id));
+    public ResponseEntity<VeiculoResponse> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(buscarPorIdUseCase.execute(id));
     }
 
     @GetMapping("/proprietario/{proprietarioId}")
     @Operation(summary = "Listar veículos de um proprietário")
-    public ResponseEntity<List<VeiculoResponse>> listByProprietario(@PathVariable Long proprietarioId) {
-        return ResponseEntity.ok(listByProprietarioUseCase.execute(proprietarioId));
-    }
-
-    @GetMapping
-    @Operation(summary = "Listar veículos paginado")
-    public ResponseEntity<PaginatedResult<VeiculoResponse>> listAll(
-            @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(listUseCase.execute(page, size));
+    @ApiResponse(responseCode = "200", description = "Veículos listados")
+    public ResponseEntity<List<VeiculoResponse>> listarPorProprietario(@PathVariable Long proprietarioId) {
+        return ResponseEntity.ok(listarPorProprietarioUseCase.execute(proprietarioId));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar veículo")
     @ApiResponse(responseCode = "200", description = "Veículo atualizado")
     @ApiResponse(responseCode = "404", description = "Veículo ou proprietário não encontrado")
-    public ResponseEntity<VeiculoResponse> update(@PathVariable Long id,
-                                                   @Valid @RequestBody VeiculoRequest request) {
-        return ResponseEntity.ok(updateUseCase.execute(id, request));
+    public ResponseEntity<VeiculoResponse> atualizar(@PathVariable Long id,
+                                                     @Valid @RequestBody VeiculoRequest request) {
+        return ResponseEntity.ok(atualizarUseCase.execute(id, request));
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Desativar veículo")
+    @PatchMapping("/{id}/desativar")
+    @Operation(summary = "Desativar veículo (soft delete)")
     @ApiResponse(responseCode = "204", description = "Veículo desativado")
     @ApiResponse(responseCode = "404", description = "Veículo não encontrado")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        deleteUseCase.execute(id);
+    public ResponseEntity<Void> desativar(@PathVariable Long id) {
+        desativarUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/reactivate")
+    @PatchMapping("/{id}/reativar")
     @Operation(summary = "Reativar veículo")
     @ApiResponse(responseCode = "200", description = "Veículo reativado")
     @ApiResponse(responseCode = "404", description = "Veículo inativo não encontrado")
-    public ResponseEntity<VeiculoResponse> reactivate(@PathVariable Long id) {
-        return ResponseEntity.ok(reactivateUseCase.execute(id));
+    public ResponseEntity<VeiculoResponse> reativar(@PathVariable Long id) {
+        return ResponseEntity.ok(reativarUseCase.execute(id));
     }
 }
