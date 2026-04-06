@@ -15,13 +15,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class DeletarProprietarioUseCaseTest {
+class DesativarProprietarioUseCaseTest {
 
     @Mock
     private ProprietarioRepository repository;
 
     @InjectMocks
-    private DeletarProprietarioUseCase useCase;
+    private DesativarProprietarioUseCase useCase;
 
     @Test
     @DisplayName("deve desativar proprietário (soft delete)")
