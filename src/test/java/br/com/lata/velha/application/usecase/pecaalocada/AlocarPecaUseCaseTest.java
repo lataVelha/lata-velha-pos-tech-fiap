@@ -4,9 +4,11 @@ import br.com.lata.velha.application.dto.request.AlocarPecaRequest;
 import br.com.lata.velha.application.dto.response.PecaAlocadaResponse;
 import br.com.lata.velha.domain.model.Peca;
 import br.com.lata.velha.domain.model.PecaAlocada;
+import br.com.lata.velha.domain.model.PecaEstoque;
 import br.com.lata.velha.domain.model.Servico;
 import br.com.lata.velha.domain.model.ServicoOS;
 import br.com.lata.velha.domain.repository.PecaAlocadaRepository;
+import br.com.lata.velha.domain.repository.PecaEstoqueRepository;
 import br.com.lata.velha.domain.repository.PecaRepository;
 import br.com.lata.velha.domain.repository.ServicoOSRepository;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,9 @@ class AlocarPecaUseCaseTest {
     private PecaRepository pecaRepository;
 
     @Mock
+    private PecaEstoqueRepository pecaEstoqueRepository;
+
+    @Mock
     private ServicoOSRepository servicoOSRepository;
 
     @InjectMocks
@@ -50,6 +55,10 @@ class AlocarPecaUseCaseTest {
         Peca peca = new Peca(2L, "Pastilha", "Desc", new BigDecimal("50.0"));
         when(pecaRepository.findActiveById(2L)).thenReturn(peca);
 
+        PecaEstoque estoque = new PecaEstoque(2L, 10);
+        when(pecaEstoqueRepository.findByPecaId(2L)).thenReturn(estoque);
+        when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
+
         PecaAlocada pecaAlocadaSalva = new PecaAlocada(10L, 2L, 1L, 3);
         when(pecaAlocadaRepository.save(any(PecaAlocada.class))).thenReturn(pecaAlocadaSalva);
 
@@ -63,6 +72,7 @@ class AlocarPecaUseCaseTest {
         assertThat(response.quantidadeAlocada()).isEqualTo(3);
         assertThat(response.servicoOsId()).isEqualTo(1L);
 
+        verify(pecaEstoqueRepository).save(any(PecaEstoque.class));
         verify(pecaAlocadaRepository).save(any(PecaAlocada.class));
     }
 
@@ -78,6 +88,7 @@ class AlocarPecaUseCaseTest {
                 .hasMessage("Serviço OS não encontrado");
         
         verify(pecaRepository, never()).findActiveById(anyLong());
+        verify(pecaEstoqueRepository, never()).save(any());
         verify(pecaAlocadaRepository, never()).save(any());
     }
 
@@ -95,6 +106,7 @@ class AlocarPecaUseCaseTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Peça não encontrada");
 
+        verify(pecaEstoqueRepository, never()).save(any());
         verify(pecaAlocadaRepository, never()).save(any());
     }
 }
