@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/peca")
+@RequestMapping("/pecas")
 @Tag(name = "Peças", description = "Gerenciamento de Peças")
 public class PecaController {
 
@@ -39,14 +39,14 @@ public class PecaController {
     private final AtualizarPecaUseCase atualizarUseCase;
     private final DesativarPecaUseCase desativarUseCase;
 
-    @PostMapping("/cadastrar-peca")
+    @PostMapping
     @Operation(summary = "Cadastrar nova peça", description = "Cria uma nova peça para uso em serviços")
     @ApiResponse(responseCode = "201", description = "Peça criada")
     public ResponseEntity<PecaResponse> cadastrar(@Valid @RequestBody CadastrarPecaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(cadastrarUseCase.execute(request));
     }
 
-    @GetMapping("/pecas")
+    @GetMapping
     @Operation(summary = "Listar todas as peças ativas", description = "Retorna lista de peças ativas no sistema")
     @ApiResponse(responseCode = "200", description = "Peças listadas")
     public ResponseEntity<PaginatedResult<PecaResponse>> listar(
@@ -55,7 +55,7 @@ public class PecaController {
         return ResponseEntity.ok(buscarTodosUseCase.execute(page, size));
     }
 
-    @GetMapping("/pecas/{id}")
+    @GetMapping("/{id}")
     @Operation(summary = "Buscar peça por ID")
     @ApiResponse(responseCode = "200", description = "Peça encontrada")
     @ApiResponse(responseCode = "404", description = "Peça não encontrada")
@@ -63,7 +63,7 @@ public class PecaController {
         return ResponseEntity.ok(buscarPorIdUseCase.execute(id));
     }
 
-    @PutMapping("/atualizar-peca/{id}")
+    @PutMapping("/{id}")
     @Operation(summary = "Atualizar informações da peça")
     @ApiResponse(responseCode = "200", description = "Peça atualizada")
     @ApiResponse(responseCode = "404", description = "Peça não encontrada")
@@ -73,7 +73,7 @@ public class PecaController {
         return ResponseEntity.ok(atualizarUseCase.execute(id, request));
     }
 
-    @PatchMapping("/desativar-peca/{id}")
+    @PatchMapping("/{id}/desativar")
     @Operation(summary = "Desativar peça", description = "Inativa (Soft Delete) a peça no sistema")
     @ApiResponse(responseCode = "204", description = "Peça desativada")
     @ApiResponse(responseCode = "404", description = "Peça não encontrada")

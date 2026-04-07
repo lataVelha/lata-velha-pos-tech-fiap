@@ -55,7 +55,7 @@ public class SecurityConfig {
                         // CRUD — USER e ADMIN
                         .requestMatchers("/proprietarios/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/veiculos/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/funcionario/**").hasAnyRole( "ADMIN")
+                        .requestMatchers("/funcionarios/**").hasAnyRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/ordens-servico/create").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/aprovar").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/*/reprovar").hasAnyRole("USER", "ADMIN")

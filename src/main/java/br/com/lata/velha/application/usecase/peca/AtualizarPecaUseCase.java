@@ -18,9 +18,7 @@ public class AtualizarPecaUseCase {
     public PecaResponse execute(Long id, AtualizarPecaRequest request) {
         Peca peca = repository.findActiveById(id);
 
-        peca.setNome(request.nome());
-        peca.setDescricao(request.descricao());
-        peca.setValor(request.valor());
+        peca.atualizar(request.nome(), request.descricao(), request.valor());
 
         Peca saved = repository.save(peca);
         return assembler.toResponse(saved);
