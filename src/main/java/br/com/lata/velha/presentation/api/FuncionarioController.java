@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/funcionario")
+@RequestMapping("/funcionarios")
 @Tag(name = "Funcionários", description = "Gerenciamento de Funcionários")
 public class FuncionarioController {
 
@@ -27,7 +27,7 @@ public class FuncionarioController {
     private final AtualizarFuncionarioUseCase atualizarUseCase;
     private final DesativarFuncionarioUseCase desativarUseCase;
 
-    @PostMapping("/cadastrar-funcionario")
+    @PostMapping
     @Operation(summary = "Cadastrar novo funcionário", description = "Cria um novo funcionário associado a um cargo")
     @ApiResponse(responseCode = "201", description = "Funcionário criado")
     @ApiResponse(responseCode = "404", description = "Cargo não encontrado")
@@ -35,7 +35,7 @@ public class FuncionarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(cadastrarUseCase.execute(request));
     }
 
-    @GetMapping("/funcionarios")
+    @GetMapping
     @Operation(summary = "Listar todos os funcionários ativos", description = "Retorna lista de funcionários ativos no sistema")
     @ApiResponse(responseCode = "200", description = "Funcionários listados")
     public ResponseEntity<PaginatedResult<FuncionarioResponse>> listar(
@@ -44,7 +44,7 @@ public class FuncionarioController {
         return ResponseEntity.ok(buscarTodosUseCase.execute(page, size));
     }
 
-    @GetMapping("/funcionarios/{id}")
+    @GetMapping("/{id}")
     @Operation(summary = "Buscar funcionário por ID")
     @ApiResponse(responseCode = "200", description = "Funcionário encontrado")
     @ApiResponse(responseCode = "404", description = "Funcionário não encontrado")
@@ -52,7 +52,7 @@ public class FuncionarioController {
         return ResponseEntity.ok(buscarPorIdUseCase.execute(id));
     }
 
-    @PutMapping("/atualizar-funcionario/{id}")
+    @PutMapping("/{id}")
     @Operation(summary = "Atualizar informações do funcionário")
     @ApiResponse(responseCode = "200", description = "Funcionário atualizado")
     @ApiResponse(responseCode = "404", description = "Funcionário ou cargo não encontrado")
@@ -62,7 +62,7 @@ public class FuncionarioController {
         return ResponseEntity.ok(atualizarUseCase.execute(id, request));
     }
 
-    @PatchMapping("/desativar-funcionario/{id}")
+    @PatchMapping("/{id}/desativar")
     @Operation(summary = "Desativar funcionário", description = "Inativa (Soft Delete) o funcionário no sistema")
     @ApiResponse(responseCode = "204", description = "Funcionário desativado")
     @ApiResponse(responseCode = "404", description = "Funcionário não encontrado")

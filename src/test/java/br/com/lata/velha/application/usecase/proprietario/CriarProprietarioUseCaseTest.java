@@ -26,6 +26,9 @@ class CriarProprietarioUseCaseTest {
     @Mock
     private ProprietarioAssembler assembler;
 
+    @Mock
+    private NotificarCadastroProprietarioUseCase notificarUseCase;
+
     @InjectMocks
     private CriarProprietarioUseCase useCase;
 

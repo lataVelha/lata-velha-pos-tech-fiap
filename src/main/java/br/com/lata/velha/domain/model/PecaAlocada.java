@@ -5,15 +5,17 @@ import java.util.Objects;
 public class PecaAlocada {
 
     private Long id;
-    private Peca peca;
+    private Long pecaId;
+    private Long servicoOsId;
     private Integer quantidadeAlocada;
 
     public PecaAlocada() {
     }
 
-    public PecaAlocada(Long id, Peca peca, Integer quantidadeAlocada) {
+    public PecaAlocada(Long id, Long pecaId, Long servicoOsId, Integer quantidadeAlocada) {
         this.id = id;
-        setPeca(peca);
+        setPecaId(pecaId);
+        setServicoOsId(servicoOsId);
         setQuantidadeAlocada(quantidadeAlocada);
     }
 
@@ -21,14 +23,24 @@ public class PecaAlocada {
         return id;
     }
 
-    public Peca getPeca() {
-        return peca;
+    public Long getPecaId() {
+        return pecaId;
     }
 
-    public void setPeca(Peca peca) {
-        if (peca == null)
-            throw new IllegalArgumentException("Peça não pode ser nula");
-        this.peca = peca;
+    public void setPecaId(Long pecaId) {
+        if (pecaId == null)
+            throw new IllegalArgumentException("ID da peça não pode ser nulo");
+        this.pecaId = pecaId;
+    }
+
+    public Long getServicoOsId() {
+        return servicoOsId;
+    }
+
+    public void setServicoOsId(Long servicoOsId) {
+        if (servicoOsId == null)
+            throw new IllegalArgumentException("ID do serviço não pode ser nulo");
+        this.servicoOsId = servicoOsId;
     }
 
     public Integer getQuantidadeAlocada() {
@@ -44,7 +56,8 @@ public class PecaAlocada {
     @Override
     public String toString() {
         return "PecaAlocada{id=" + id +
-                ", peca=" + peca +
+                ", pecaId=" + pecaId +
+                ", servicoOsId=" + servicoOsId +
                 ", quantidade=" + quantidadeAlocada + '}';
     }
 

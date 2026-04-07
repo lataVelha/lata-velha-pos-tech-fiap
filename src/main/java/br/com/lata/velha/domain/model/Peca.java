@@ -9,15 +9,16 @@ public class Peca {
     private String nome;
     private String descricao;
     private BigDecimal valor;
-
-    public Peca() {
-    }
+    private boolean ativo = true;
 
     public Peca(Long id, String nome, String descricao, BigDecimal valor) {
+        this(id, nome, descricao, valor, true);
+    }
+
+    public Peca(Long id, String nome, String descricao, BigDecimal valor, boolean ativo) {
         this.id = id;
-        setNome(nome);
-        setDescricao(descricao);
-        setValor(valor);
+        atualizar(nome, descricao, valor);
+        this.ativo = ativo;
     }
 
     public Long getId() {
@@ -28,35 +29,44 @@ public class Peca {
         return nome;
     }
 
-    public void setNome(String nome) {
-        if (nome == null || nome.isBlank())
-            throw new IllegalArgumentException("Nome da peça não pode ser vazio");
-        this.nome = nome;
-    }
-
     public String getDescricao() {
         return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        if (descricao == null || descricao.isBlank())
-            throw new IllegalArgumentException("Descrição da peça não pode ser vazia");
-        this.descricao = descricao;
     }
 
     public BigDecimal getValor() {
         return valor;
     }
 
-    public void setValor(BigDecimal valor) {
-        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0)
+    public void atualizar(String nome, String descricao, BigDecimal valor) {
+        if (nome == null || nome.isBlank()) {
+            throw new IllegalArgumentException("Nome da peça não pode ser vazio");
+        }
+        if (descricao == null || descricao.isBlank()) {
+            throw new IllegalArgumentException("Descrição da peça não pode ser vazia");
+        }
+        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Valor da peça deve ser maior que zero");
+        }
+
+        this.nome = nome;
+        this.descricao = descricao;
         this.valor = valor;
+    }
+
+    public void desativar() {
+        if (!this.ativo) {
+            throw new IllegalArgumentException("Peça já está desativada");
+        }
+        this.ativo = false;
+    }
+
+    public boolean isAtivo() {
+        return ativo;
     }
 
     @Override
     public String toString() {
-        return "Peca{id=" + id + ", nome='" + nome + "', valor=" + valor + "}";
+        return "Peca{id=" + id + ", nome='" + nome + "', valor=" + valor + ", ativo=" + ativo + "}";
     }
 
     @Override
