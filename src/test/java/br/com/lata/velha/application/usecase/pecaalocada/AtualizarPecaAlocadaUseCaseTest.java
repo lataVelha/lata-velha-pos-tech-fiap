@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,10 +32,10 @@ class AtualizarPecaAlocadaUseCaseTest {
         // Arrange
         AtualizarPecaAlocadaRequest request = new AtualizarPecaAlocadaRequest(5);
         Peca peca = new Peca(2L, "Pastilha", "Desc", new BigDecimal("50.0"));
-        PecaAlocada pecaAlocada = new PecaAlocada(1L, peca, 2);
+        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 99L, 2);
         
         when(pecaAlocadaRepository.findById(1L)).thenReturn(pecaAlocada);
-        when(pecaAlocadaRepository.save(pecaAlocada, null)).thenReturn(pecaAlocada);
+        when(pecaAlocadaRepository.save(pecaAlocada)).thenReturn(pecaAlocada);
 
         // Act
         PecaAlocadaResponse response = atualizarPecaAlocadaUseCase.execute(1L, request);
@@ -44,7 +43,7 @@ class AtualizarPecaAlocadaUseCaseTest {
         // Assert
         assertThat(response).isNotNull();
         assertThat(response.quantidadeAlocada()).isEqualTo(5);
-        verify(pecaAlocadaRepository).save(pecaAlocada, null);
+        verify(pecaAlocadaRepository).save(pecaAlocada);
     }
 
     @Test
@@ -58,6 +57,6 @@ class AtualizarPecaAlocadaUseCaseTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Peça alocada não encontrada");
 
-        verify(pecaAlocadaRepository, never()).save(any(), any());
+        verify(pecaAlocadaRepository, never()).save(any());
     }
 }

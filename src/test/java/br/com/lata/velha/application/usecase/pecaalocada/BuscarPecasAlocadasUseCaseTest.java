@@ -31,8 +31,8 @@ class BuscarPecasAlocadasUseCaseTest {
     void deveBuscarPecasDeUmServicoComSucesso() {
         // Arrange
         Peca peca = new Peca(2L, "Pastilha", "Desc", new BigDecimal("50.0"));
-        PecaAlocada peca1 = new PecaAlocada(1L, peca, 2);
-        PecaAlocada peca2 = new PecaAlocada(2L, peca, 4);
+        PecaAlocada peca1 = new PecaAlocada(1L, 2L, 99L, 2);
+        PecaAlocada peca2 = new PecaAlocada(2L, 2L, 99L, 4);
         
         PaginatedResult<PecaAlocada> paginatedResult = new PaginatedResult<>(
                 List.of(peca1, peca2), 0, 10, 2L, 1

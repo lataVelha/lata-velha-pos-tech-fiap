@@ -29,7 +29,7 @@ class BuscarPecaAlocadaPorIdUseCaseTest {
     void deveBuscarPecaAlocadaComSucesso() {
         // Arrange
         Peca peca = new Peca(2L, "Pastilha", "Desc", new BigDecimal("50.0"));
-        PecaAlocada pecaAlocada = new PecaAlocada(1L, peca, 2);
+        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 99L, 2);
         
         when(pecaAlocadaRepository.findById(1L)).thenReturn(pecaAlocada);
 
@@ -39,7 +39,7 @@ class BuscarPecaAlocadaPorIdUseCaseTest {
         // Assert
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.pecaNome()).isEqualTo("Pastilha");
+        assertThat(response.pecaNome()).isNull();
         verify(pecaAlocadaRepository).findById(1L);
     }
 }
