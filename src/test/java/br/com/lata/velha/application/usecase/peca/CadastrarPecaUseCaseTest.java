@@ -4,6 +4,7 @@ import br.com.lata.velha.application.assembler.PecaAssembler;
 import br.com.lata.velha.application.dto.request.CadastrarPecaRequest;
 import br.com.lata.velha.application.dto.response.PecaResponse;
 import br.com.lata.velha.domain.model.Peca;
+import br.com.lata.velha.domain.repository.PecaEstoqueRepository;
 import br.com.lata.velha.domain.repository.PecaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,9 @@ class CadastrarPecaUseCaseTest {
 
     @Mock
     private PecaRepository repository;
+
+    @Mock
+    private PecaEstoqueRepository pecaEstoqueRepository;
 
     @Mock
     private PecaAssembler assembler;
@@ -49,5 +53,8 @@ class CadastrarPecaUseCaseTest {
         assertThat(result.nome()).isEqualTo("Pastilha");
         assertThat(result.ativo()).isTrue();
         verify(repository).save(domain);
+        verify(pecaEstoqueRepository).save(org.mockito.ArgumentMatchers.argThat(
+            estoque -> estoque.getPecaId().equals(10L) && estoque.getQuantidadeArmazenada().equals(0)
+        ));
     }
 }

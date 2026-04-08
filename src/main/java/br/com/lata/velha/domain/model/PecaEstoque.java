@@ -9,7 +9,7 @@ public class PecaEstoque {
     }
 
     public PecaEstoque(Long pecaId, Integer quantidadeArmazenada) {
-        this.pecaId = pecaId;
+        setPecaId(pecaId);
         setQuantidadeArmazenada(quantidadeArmazenada);
     }
 
@@ -17,8 +17,40 @@ public class PecaEstoque {
         return pecaId;
     }
 
+    public void setPecaId(Long pecaId) {
+        if (pecaId == null || pecaId <= 0) {
+            throw new IllegalArgumentException("ID da peça inválido");
+        }
+
+        this.pecaId = pecaId;
+    }
+
     public Integer getQuantidadeArmazenada() {
         return quantidadeArmazenada;
+    }
+
+    public void adicionar(Integer quantidade) {
+        if (quantidade == null || quantidade <= 0) {
+            throw new IllegalArgumentException("Quantidade de entrada inválida");
+        }
+
+        this.quantidadeArmazenada += quantidade;
+    }
+
+    public void remover(Integer quantidade) {
+        if (quantidade == null || quantidade <= 0) {
+            throw new IllegalArgumentException("Quantidade de saída inválida");
+        }
+
+        if (this.quantidadeArmazenada < quantidade) {
+            throw new IllegalArgumentException("Estoque insuficiente para a peça informada");
+        }
+
+        this.quantidadeArmazenada -= quantidade;
+    }
+
+    public void ajustar(Integer quantidadeArmazenada) {
+        setQuantidadeArmazenada(quantidadeArmazenada);
     }
 
     public void setQuantidadeArmazenada(Integer quantidadeArmazenada) {
