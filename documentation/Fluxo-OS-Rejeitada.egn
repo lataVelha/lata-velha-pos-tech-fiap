@@ -60,11 +60,15 @@
       "waypoints": [
         {
           "original": {
-            "x": 232,
-            "y": 701
+            "x": 236,
+            "y": 709
           },
-          "x": 232,
-          "y": 701
+          "x": 236,
+          "y": 709
+        },
+        {
+          "x": 449,
+          "y": 709
         },
         {
           "original": {
@@ -72,10 +76,10 @@
             "y": 723
           },
           "x": 546,
-          "y": 721
+          "y": 719
         }
       ],
-      "source": "shape_6252",
+      "source": "shape_2069",
       "target": "shape_7956",
       "multipleNumberAllowed": false
     },
@@ -137,6 +141,38 @@
     },
     {
       "type": "domainStory:activity",
+      "name": "recusa",
+      "id": "connection_1224",
+      "pickedColor": "black",
+      "number": 11,
+      "waypoints": [
+        {
+          "original": {
+            "x": 1120,
+            "y": 590
+          },
+          "x": 1082,
+          "y": 564
+        },
+        {
+          "x": 1028,
+          "y": 527
+        },
+        {
+          "original": {
+            "x": 967,
+            "y": 567
+          },
+          "x": 967,
+          "y": 567
+        }
+      ],
+      "source": "shape_5562",
+      "target": "shape_8000",
+      "multipleNumberAllowed": false
+    },
+    {
+      "type": "domainStory:activity",
       "name": "Realiza",
       "id": "connection_1289",
       "pickedColor": "black",
@@ -168,23 +204,23 @@
       "name": "Retira",
       "id": "connection_1296",
       "pickedColor": "black",
-      "number": 11,
+      "number": 12,
       "waypoints": [
         {
           "original": {
             "x": 1119,
             "y": 723
           },
-          "x": 1145,
-          "y": 748
+          "x": 1119,
+          "y": 770
         },
         {
           "original": {
-            "x": 1316,
-            "y": 910
+            "x": 1119,
+            "y": 886
           },
-          "x": 1307,
-          "y": 901
+          "x": 1119,
+          "y": 886
         }
       ],
       "source": "shape_4166",
@@ -231,8 +267,12 @@
             "x": 193,
             "y": 739
           },
-          "x": 230,
-          "y": 754
+          "x": 220,
+          "y": 773
+        },
+        {
+          "x": 276,
+          "y": 812
         },
         {
           "original": {
@@ -240,10 +280,10 @@
             "y": 812
           },
           "x": 341,
-          "y": 797
+          "y": 812
         }
       ],
-      "source": "shape_6252",
+      "source": "shape_2069",
       "target": "shape_5292",
       "multipleNumberAllowed": false
     },
@@ -275,7 +315,35 @@
     },
     {
       "type": "domainStory:activity",
-      "name": "",
+      "name": "para",
+      "id": "connection_1980",
+      "pickedColor": "black",
+      "number": null,
+      "waypoints": [
+        {
+          "original": {
+            "x": 925,
+            "y": 590
+          },
+          "x": 968,
+          "y": 590
+        },
+        {
+          "original": {
+            "x": 1076,
+            "y": 591
+          },
+          "x": 1076,
+          "y": 591
+        }
+      ],
+      "source": "shape_8000",
+      "target": "shape_5562",
+      "multipleNumberAllowed": false
+    },
+    {
+      "type": "domainStory:activity",
+      "name": "na",
       "id": "connection_3263",
       "pickedColor": "black",
       "number": null,
@@ -285,20 +353,25 @@
             "x": 380,
             "y": 902
           },
-          "x": 403,
-          "y": 882
+          "x": 423,
+          "y": 902
+        },
+        {
+          "x": 549,
+          "y": 902
         },
         {
           "original": {
-            "x": 584,
-            "y": 723
+            "x": 549,
+            "y": 766
           },
-          "x": 546,
-          "y": 756
+          "x": 549,
+          "y": 770
         }
       ],
       "source": "shape_5622",
-      "target": "shape_7956"
+      "target": "shape_7956",
+      "multipleNumberAllowed": false
     },
     {
       "type": "domainStory:connection",
@@ -307,19 +380,19 @@
       "waypoints": [
         {
           "original": {
-            "x": 1344,
-            "y": 723
+            "x": 925,
+            "y": 590
           },
-          "x": 1354,
-          "y": 691
+          "x": 889,
+          "y": 552
         },
         {
           "original": {
-            "x": 1375,
-            "y": 625
+            "x": 824,
+            "y": 482
           },
-          "x": 1368,
-          "y": 647
+          "x": 847,
+          "y": 507
         }
       ],
       "source": "shape_8000",
@@ -337,8 +410,12 @@
             "x": 379,
             "y": 812
           },
-          "x": 409,
-          "y": 799
+          "x": 422,
+          "y": 812
+        },
+        {
+          "x": 490,
+          "y": 812
         },
         {
           "original": {
@@ -346,7 +423,7 @@
             "y": 723
           },
           "x": 546,
-          "y": 739
+          "y": 759
         }
       ],
       "source": "shape_5292",
@@ -421,16 +498,16 @@
             "x": 1119,
             "y": 723
           },
-          "x": 1162,
-          "y": 723
+          "x": 1081,
+          "y": 697
         },
         {
           "original": {
-            "x": 1344,
-            "y": 723
+            "x": 925,
+            "y": 590
           },
-          "x": 1306,
-          "y": 723
+          "x": 956,
+          "y": 611
         }
       ],
       "source": "shape_4166",
@@ -467,7 +544,35 @@
     },
     {
       "type": "domainStory:activity",
-      "name": "",
+      "name": "no",
+      "id": "connection_6032",
+      "pickedColor": "black",
+      "number": null,
+      "waypoints": [
+        {
+          "original": {
+            "x": 925,
+            "y": 590
+          },
+          "x": 887,
+          "y": 614
+        },
+        {
+          "original": {
+            "x": 775,
+            "y": 683
+          },
+          "x": 775,
+          "y": 683
+        }
+      ],
+      "source": "shape_8000",
+      "target": "shape_2788",
+      "multipleNumberAllowed": false
+    },
+    {
+      "type": "domainStory:activity",
+      "name": "adiciona",
       "id": "connection_6324",
       "pickedColor": "black",
       "number": 8,
@@ -477,19 +582,23 @@
             "x": 193,
             "y": 739
           },
-          "x": 218,
-          "y": 776
+          "x": 193,
+          "y": 786
+        },
+        {
+          "x": 193,
+          "y": 902
         },
         {
           "original": {
-            "x": 341,
+            "x": 380,
             "y": 902
           },
-          "x": 341,
+          "x": 342,
           "y": 902
         }
       ],
-      "source": "shape_6252",
+      "source": "shape_2069",
       "target": "shape_5622",
       "multipleNumberAllowed": false
     },
@@ -533,8 +642,12 @@
             "x": 193,
             "y": 739
           },
-          "x": 234,
-          "y": 737
+          "x": 236,
+          "y": 739
+        },
+        {
+          "x": 449,
+          "y": 739
         },
         {
           "original": {
@@ -542,10 +655,10 @@
             "y": 723
           },
           "x": 546,
-          "y": 725
+          "y": 728
         }
       ],
-      "source": "shape_6252",
+      "source": "shape_2069",
       "target": "shape_7956",
       "multipleNumberAllowed": false
     },
@@ -609,8 +722,8 @@
       "type": "domainStory:textAnnotation",
       "name": "",
       "id": "shape_0047",
-      "x": 1325,
-      "y": 597,
+      "x": 749,
+      "y": 457,
       "text": "Finaliza fluxo da OS como REPROVADA",
       "number": 49.796875,
       "height": 49.796875,
@@ -627,6 +740,13 @@
       "height": 100,
       "pickedColor": "#000000",
       "width": 157
+    },
+    {
+      "type": "domainStory:actorPerson",
+      "name": "Mecânico",
+      "id": "shape_2069",
+      "x": 155,
+      "y": 701
     },
     {
       "name": "Sistema",
@@ -665,6 +785,13 @@
       "y": 774
     },
     {
+      "name": "Atendentes",
+      "id": "shape_5562",
+      "type": "domainStory:actorGroup",
+      "x": 1082,
+      "y": 552
+    },
+    {
       "type": "domainStory:workObjectInfo",
       "name": "Queixas",
       "id": "shape_5578",
@@ -678,14 +805,6 @@
       "id": "shape_5622",
       "x": 342,
       "y": 864
-    },
-    {
-      "type": "domainStory:actorworker-4-custom",
-      "name": "Mecânico",
-      "id": "shape_6252",
-      "x": 155,
-      "y": 701,
-      "pickedColor": "#000000"
     },
     {
       "type": "domainStory:actorPerson",
@@ -719,8 +838,8 @@
       "name": "Ordem de serviço",
       "id": "shape_8000",
       "type": "domainStory:workObjectReceipt",
-      "x": 1306,
-      "y": 685
+      "x": 887,
+      "y": 552
     },
     {
       "type": "domainStory:workObjectCar",
@@ -740,8 +859,8 @@
       "type": "domainStory:workObjectCar",
       "name": "Veículo",
       "id": "shape_9441",
-      "x": 1307,
-      "y": 865
+      "x": 1081,
+      "y": 888
     },
     {
       "info": ""
