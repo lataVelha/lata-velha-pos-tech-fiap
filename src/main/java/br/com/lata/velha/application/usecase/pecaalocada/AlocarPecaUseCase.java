@@ -11,6 +11,7 @@ import br.com.lata.velha.domain.repository.PecaRepository;
 import br.com.lata.velha.domain.repository.ServicoOSRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class AlocarPecaUseCase {
     private final PecaRepository pecaRepository;
     private final ServicoOSRepository servicoOSRepository;
 
+    @Transactional
     public PecaAlocadaResponse execute(AlocarPecaRequest request) {
         
         var servicoOS = servicoOSRepository.findById(request.servicoOsId());

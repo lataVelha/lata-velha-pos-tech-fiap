@@ -8,6 +8,7 @@ import br.com.lata.velha.domain.repository.PecaAlocadaRepository;
 import br.com.lata.velha.domain.repository.PecaEstoqueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -16,6 +17,7 @@ public class AtualizarPecaAlocadaUseCase {
     private final PecaAlocadaRepository pecaAlocadaRepository;
     private final PecaEstoqueRepository pecaEstoqueRepository;
 
+    @Transactional
     public PecaAlocadaResponse execute(Long id, AtualizarPecaAlocadaRequest request) {
         
         PecaAlocada pecaAlocada = pecaAlocadaRepository.findById(id);

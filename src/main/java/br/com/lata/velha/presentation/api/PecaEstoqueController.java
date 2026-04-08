@@ -35,6 +35,7 @@ public class PecaEstoqueController {
     @GetMapping
     @Operation(summary = "Consultar estoque da peça")
     @ApiResponse(responseCode = "200", description = "Estoque consultado")
+    @ApiResponse(responseCode = "404", description = "Peça ou estoque não encontrado")
     public ResponseEntity<PecaEstoqueResponse> buscar(@PathVariable Long pecaId) {
         return ResponseEntity.ok(buscarPecaEstoqueUseCase.execute(pecaId));
     }
@@ -42,6 +43,8 @@ public class PecaEstoqueController {
     @PostMapping("/entrada")
     @Operation(summary = "Registrar entrada no estoque")
     @ApiResponse(responseCode = "200", description = "Entrada registrada")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    @ApiResponse(responseCode = "404", description = "Peça não encontrada")
     public ResponseEntity<PecaEstoqueResponse> entrada(
             @PathVariable Long pecaId,
             @Valid @RequestBody MovimentarPecaEstoqueRequest request) {
@@ -51,6 +54,8 @@ public class PecaEstoqueController {
     @PostMapping("/saida")
     @Operation(summary = "Registrar saída do estoque")
     @ApiResponse(responseCode = "200", description = "Saída registrada")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos ou estoque insuficiente")
+    @ApiResponse(responseCode = "404", description = "Peça ou estoque não encontrado")
     public ResponseEntity<PecaEstoqueResponse> saida(
             @PathVariable Long pecaId,
             @Valid @RequestBody MovimentarPecaEstoqueRequest request) {
@@ -60,6 +65,8 @@ public class PecaEstoqueController {
     @PatchMapping("/ajuste")
     @Operation(summary = "Ajustar saldo de estoque")
     @ApiResponse(responseCode = "200", description = "Saldo ajustado")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    @ApiResponse(responseCode = "404", description = "Peça não encontrada")
     public ResponseEntity<PecaEstoqueResponse> ajustar(
             @PathVariable Long pecaId,
             @Valid @RequestBody AjustarPecaEstoqueRequest request) {

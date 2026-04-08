@@ -9,12 +9,20 @@ public class PecaEstoque {
     }
 
     public PecaEstoque(Long pecaId, Integer quantidadeArmazenada) {
-        this.pecaId = pecaId;
+        setPecaId(pecaId);
         setQuantidadeArmazenada(quantidadeArmazenada);
     }
 
     public Long getPecaId() {
         return pecaId;
+    }
+
+    public void setPecaId(Long pecaId) {
+        if (pecaId == null || pecaId <= 0) {
+            throw new IllegalArgumentException("ID da peça inválido");
+        }
+
+        this.pecaId = pecaId;
     }
 
     public Integer getQuantidadeArmazenada() {
