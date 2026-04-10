@@ -56,27 +56,27 @@
       "name": "Da baixa",
       "id": "connection_0452",
       "pickedColor": "black",
-      "number": 16,
+      "number": 18,
       "waypoints": [
         {
           "original": {
-            "x": 764,
-            "y": 930
+            "x": 755,
+            "y": 931
           },
-          "x": 764,
-          "y": 930
+          "x": 755,
+          "y": 931
         },
         {
-          "x": 764,
-          "y": 1068
+          "x": 799,
+          "y": 1115
         },
         {
           "original": {
             "x": 925,
-            "y": 1124
+            "y": 1215
           },
           "x": 887,
-          "y": 1111
+          "y": 1185
         }
       ],
       "source": "shape_2788",
@@ -99,8 +99,8 @@
           "y": 866
         },
         {
-          "x": 366,
-          "y": 820
+          "x": 462,
+          "y": 866
         },
         {
           "original": {
@@ -108,11 +108,43 @@
             "y": 888
           },
           "x": 546,
-          "y": 876
+          "y": 881
         }
       ],
-      "source": "shape_6252",
+      "source": "shape_6353",
       "target": "shape_7956",
+      "multipleNumberAllowed": false
+    },
+    {
+      "type": "domainStory:activity",
+      "name": "para",
+      "id": "connection_0738",
+      "pickedColor": "black",
+      "number": null,
+      "waypoints": [
+        {
+          "original": {
+            "x": 1314,
+            "y": 740
+          },
+          "x": 1314,
+          "y": 744
+        },
+        {
+          "x": 1314,
+          "y": 825
+        },
+        {
+          "original": {
+            "x": 1345,
+            "y": 888
+          },
+          "x": 1326,
+          "y": 850
+        }
+      ],
+      "source": "shape_7769",
+      "target": "shape_0238",
       "multipleNumberAllowed": false
     },
     {
@@ -181,18 +213,18 @@
         {
           "original": {
             "x": 925,
-            "y": 1124
+            "y": 1215
           },
           "x": 968,
-          "y": 1124
+          "y": 1215
         },
         {
           "original": {
             "x": 1119,
-            "y": 1124
+            "y": 1215
           },
           "x": 1081,
-          "y": 1124
+          "y": 1215
         }
       ],
       "source": "shape_8711",
@@ -292,22 +324,26 @@
       "waypoints": [
         {
           "original": {
-            "x": 193,
-            "y": 904
+            "x": 236,
+            "y": 945
           },
-          "x": 229,
-          "y": 919
+          "x": 236,
+          "y": 945
+        },
+        {
+          "x": 277,
+          "y": 1023
         },
         {
           "original": {
             "x": 370,
-            "y": 977
+            "y": 1023
           },
           "x": 332,
-          "y": 961
+          "y": 1023
         }
       ],
-      "source": "shape_6252",
+      "source": "shape_6353",
       "target": "shape_5292",
       "multipleNumberAllowed": false
     },
@@ -347,16 +383,16 @@
             "x": 925,
             "y": 784
           },
-          "x": 956,
-          "y": 772
+          "x": 925,
+          "y": 746
         },
         {
           "original": {
-            "x": 1105,
-            "y": 714
+            "x": 925,
+            "y": 687
           },
-          "x": 1062,
-          "y": 731
+          "x": 925,
+          "y": 687
         }
       ],
       "source": "shape_7914",
@@ -367,7 +403,7 @@
       "name": "Reprova",
       "id": "connection_2021",
       "pickedColor": "black",
-      "number": 14,
+      "number": 15,
       "waypoints": [
         {
           "original": {
@@ -420,7 +456,7 @@
       "name": "Envia",
       "id": "connection_2690",
       "pickedColor": "black",
-      "number": 18,
+      "number": 20,
       "waypoints": [
         {
           "original": {
@@ -428,7 +464,7 @@
             "y": 888
           },
           "x": 762,
-          "y": 917
+          "y": 932
         },
         {
           "original": {
@@ -452,19 +488,23 @@
       "waypoints": [
         {
           "original": {
-            "x": 411,
-            "y": 1029
+            "x": 370,
+            "y": 1124
           },
-          "x": 411,
-          "y": 1029
+          "x": 413,
+          "y": 1124
+        },
+        {
+          "x": 513,
+          "y": 1124
         },
         {
           "original": {
-            "x": 584,
-            "y": 888
+            "x": 551,
+            "y": 930
           },
-          "x": 546,
-          "y": 919
+          "x": 550,
+          "y": 935
         }
       ],
       "source": "shape_5622",
@@ -506,19 +546,19 @@
       "waypoints": [
         {
           "original": {
-            "x": 1344,
-            "y": 888
+            "x": 1345,
+            "y": 1105
           },
-          "x": 1354,
-          "y": 856
+          "x": 1307,
+          "y": 1147
         },
         {
           "original": {
-            "x": 1375,
-            "y": 790
+            "x": 1270,
+            "y": 1187
           },
-          "x": 1370,
-          "y": 805
+          "x": 1270,
+          "y": 1187
         }
       ],
       "source": "shape_8000",
@@ -534,10 +574,14 @@
         {
           "original": {
             "x": 370,
-            "y": 977
+            "y": 1023
           },
-          "x": 400,
-          "y": 965
+          "x": 413,
+          "y": 1023
+        },
+        {
+          "x": 465,
+          "y": 1023
         },
         {
           "original": {
@@ -545,7 +589,7 @@
             "y": 888
           },
           "x": 546,
-          "y": 904
+          "y": 931
         }
       ],
       "source": "shape_5292",
@@ -557,23 +601,23 @@
       "name": "Retira",
       "id": "connection_3891",
       "pickedColor": "black",
-      "number": 19,
+      "number": 21,
       "waypoints": [
         {
           "original": {
             "x": 1119,
             "y": 888
           },
-          "x": 1148,
-          "y": 931
+          "x": 1119,
+          "y": 935
         },
         {
           "original": {
-            "x": 1344,
-            "y": 1068
+            "x": 1119,
+            "y": 1105
           },
-          "x": 1306,
-          "y": 1038
+          "x": 1119,
+          "y": 1067
         }
       ],
       "source": "shape_4166",
@@ -610,10 +654,42 @@
     },
     {
       "type": "domainStory:activity",
+      "name": "aprova",
+      "id": "connection_4028",
+      "pickedColor": "black",
+      "number": 11,
+      "waypoints": [
+        {
+          "original": {
+            "x": 1345,
+            "y": 888
+          },
+          "x": 1359,
+          "y": 926
+        },
+        {
+          "x": 1383,
+          "y": 990
+        },
+        {
+          "original": {
+            "x": 1383,
+            "y": 1060
+          },
+          "x": 1383,
+          "y": 1060
+        }
+      ],
+      "source": "shape_0238",
+      "target": "shape_8000",
+      "multipleNumberAllowed": false
+    },
+    {
+      "type": "domainStory:activity",
       "name": "Realiza",
       "id": "connection_4163",
       "pickedColor": "black",
-      "number": 15,
+      "number": 17,
       "waypoints": [
         {
           "original": {
@@ -629,14 +705,14 @@
         },
         {
           "original": {
-            "x": 331,
+            "x": 371,
             "y": 1215
           },
-          "x": 331,
+          "x": 333,
           "y": 1215
         }
       ],
-      "source": "shape_6252",
+      "source": "shape_6353",
       "target": "shape_6691",
       "multipleNumberAllowed": false
     },
@@ -645,7 +721,7 @@
       "name": "Notifica",
       "id": "connection_4388",
       "pickedColor": "black",
-      "number": 13,
+      "number": 14,
       "waypoints": [
         {
           "original": {
@@ -726,6 +802,38 @@
     },
     {
       "type": "domainStory:activity",
+      "name": "no",
+      "id": "connection_4423",
+      "pickedColor": "black",
+      "number": null,
+      "waypoints": [
+        {
+          "original": {
+            "x": 1345,
+            "y": 697
+          },
+          "x": 1388,
+          "y": 697
+        },
+        {
+          "x": 1532,
+          "y": 697
+        },
+        {
+          "original": {
+            "x": 1532,
+            "y": 843
+          },
+          "x": 1532,
+          "y": 843
+        }
+      ],
+      "source": "shape_7769",
+      "target": "shape_7791",
+      "multipleNumberAllowed": false
+    },
+    {
+      "type": "domainStory:activity",
       "name": "Aprova",
       "id": "connection_5468",
       "pickedColor": "black",
@@ -736,16 +844,16 @@
             "x": 1119,
             "y": 888
           },
-          "x": 1162,
-          "y": 888
+          "x": 1145,
+          "y": 913
         },
         {
           "original": {
-            "x": 1344,
-            "y": 888
+            "x": 1345,
+            "y": 1105
           },
-          "x": 1306,
-          "y": 888
+          "x": 1307,
+          "y": 1069
         }
       ],
       "source": "shape_4166",
@@ -757,30 +865,34 @@
       "name": "Finaliza",
       "id": "connection_5720",
       "pickedColor": "black",
-      "number": 17,
+      "number": 19,
       "waypoints": [
         {
           "original": {
-            "x": 177,
-            "y": 862
+            "x": 691,
+            "y": 847
           },
-          "x": 177,
-          "y": 862
+          "x": 691,
+          "y": 847
         },
         {
-          "x": 364,
-          "y": 774
+          "x": 691,
+          "y": 806
+        },
+        {
+          "x": 584,
+          "y": 806
         },
         {
           "original": {
             "x": 584,
             "y": 888
           },
-          "x": 546,
-          "y": 868
+          "x": 584,
+          "y": 850
         }
       ],
-      "source": "shape_6252",
+      "source": "shape_2788",
       "target": "shape_7956",
       "multipleNumberAllowed": false
     },
@@ -824,19 +936,23 @@
             "x": 193,
             "y": 904
           },
-          "x": 220,
-          "y": 949
+          "x": 207,
+          "y": 942
+        },
+        {
+          "x": 272,
+          "y": 1124
         },
         {
           "original": {
             "x": 370,
-            "y": 1068
+            "y": 1124
           },
           "x": 332,
-          "y": 1033
+          "y": 1124
         }
       ],
-      "source": "shape_6252",
+      "source": "shape_6353",
       "target": "shape_5622",
       "multipleNumberAllowed": false
     },
@@ -875,23 +991,119 @@
       "waypoints": [
         {
           "original": {
-            "x": 371,
-            "y": 1215
+            "x": 414,
+            "y": 1256
           },
-          "x": 391,
-          "y": 1246
+          "x": 414,
+          "y": 1256
         },
         {
           "original": {
-            "x": 429,
-            "y": 1305
+            "x": 584,
+            "y": 1343
           },
-          "x": 419,
-          "y": 1290
+          "x": 537,
+          "y": 1319
         }
       ],
       "source": "shape_6691",
       "target": "shape_4659"
+    },
+    {
+      "type": "domainStory:activity",
+      "name": "no",
+      "id": "connection_6613",
+      "pickedColor": "black",
+      "number": null,
+      "waypoints": [
+        {
+          "original": {
+            "x": 1387,
+            "y": 1105
+          },
+          "x": 1388,
+          "y": 1105
+        },
+        {
+          "x": 1534,
+          "y": 1105
+        },
+        {
+          "original": {
+            "x": 1534,
+            "y": 888
+          },
+          "x": 1534,
+          "y": 935
+        }
+      ],
+      "source": "shape_8000",
+      "target": "shape_7791",
+      "multipleNumberAllowed": false
+    },
+    {
+      "type": "domainStory:activity",
+      "name": "para",
+      "id": "connection_7186",
+      "pickedColor": "black",
+      "number": null,
+      "waypoints": [
+        {
+          "original": {
+            "x": 1313,
+            "y": 1064
+          },
+          "x": 1313,
+          "y": 1064
+        },
+        {
+          "x": 1313,
+          "y": 974
+        },
+        {
+          "original": {
+            "x": 1345,
+            "y": 888
+          },
+          "x": 1328,
+          "y": 935
+        }
+      ],
+      "source": "shape_8000",
+      "target": "shape_0238",
+      "multipleNumberAllowed": false
+    },
+    {
+      "type": "domainStory:activity",
+      "name": "reprova",
+      "id": "connection_7460",
+      "pickedColor": "black",
+      "number": 16,
+      "waypoints": [
+        {
+          "original": {
+            "x": 1385,
+            "y": 845
+          },
+          "x": 1385,
+          "y": 845
+        },
+        {
+          "x": 1385,
+          "y": 736
+        },
+        {
+          "original": {
+            "x": 1345,
+            "y": 697
+          },
+          "x": 1371,
+          "y": 722
+        }
+      ],
+      "source": "shape_0238",
+      "target": "shape_7769",
+      "multipleNumberAllowed": false
     },
     {
       "type": "domainStory:activity",
@@ -905,8 +1117,12 @@
             "x": 193,
             "y": 904
           },
-          "x": 234,
-          "y": 902
+          "x": 236,
+          "y": 904
+        },
+        {
+          "x": 458,
+          "y": 904
         },
         {
           "original": {
@@ -914,10 +1130,10 @@
             "y": 888
           },
           "x": 546,
-          "y": 890
+          "y": 893
         }
       ],
-      "source": "shape_6252",
+      "source": "shape_6353",
       "target": "shape_7956",
       "multipleNumberAllowed": false
     },
@@ -926,27 +1142,27 @@
       "name": "Aguarda",
       "id": "connection_8961",
       "pickedColor": "black",
-      "number": 12,
+      "number": 13,
       "waypoints": [
         {
           "original": {
-            "x": 693,
-            "y": 927
+            "x": 717,
+            "y": 931
           },
-          "x": 702,
+          "x": 717,
           "y": 935
         },
         {
-          "x": 704,
-          "y": 1124
+          "x": 717,
+          "y": 1179
         },
         {
           "original": {
             "x": 925,
-            "y": 1124
+            "y": 1215
           },
           "x": 887,
-          "y": 1124
+          "y": 1208
         }
       ],
       "source": "shape_2788",
@@ -958,27 +1174,31 @@
       "name": "Verifica disponibilidade",
       "id": "connection_9615",
       "pickedColor": "black",
-      "number": 11,
+      "number": 12,
       "waypoints": [
         {
           "original": {
             "x": 734,
             "y": 888
           },
-          "x": 734,
+          "x": 702,
           "y": 935
         },
         {
-          "x": 734,
-          "y": 1096
+          "x": 664,
+          "y": 990
+        },
+        {
+          "x": 664,
+          "y": 1215
         },
         {
           "original": {
             "x": 925,
-            "y": 1124
+            "y": 1215
           },
           "x": 887,
-          "y": 1118
+          "y": 1215
         }
       ],
       "source": "shape_2788",
@@ -1045,12 +1265,19 @@
       "type": "domainStory:textAnnotation",
       "name": "",
       "id": "shape_0047",
-      "x": 1325,
-      "y": 762,
+      "x": 1270,
+      "y": 1193,
       "text": "Cliente pode aprovar serviços individualmente",
       "number": 43,
       "height": 43,
       "width": 149.984375
+    },
+    {
+      "name": "Atendentes",
+      "id": "shape_0238",
+      "type": "domainStory:actorGroup",
+      "x": 1307,
+      "y": 850
     },
     {
       "name": "E-mail de finalização",
@@ -1093,8 +1320,8 @@
       "type": "domainStory:textAnnotation",
       "name": "",
       "id": "shape_3551",
-      "x": 1055,
-      "y": 699,
+      "x": 861,
+      "y": 650,
       "text": "Notifica por e-mail",
       "number": 31.85063152114223,
       "height": 31.85063152114223,
@@ -1119,8 +1346,8 @@
       "type": "domainStory:textAnnotation",
       "name": "",
       "id": "shape_4659",
-      "x": 379,
-      "y": 1290,
+      "x": 486,
+      "y": 1319,
       "text": "Somente realiza serviços APROVADOS E COM PEÇAS",
       "number": 47.61904761904762,
       "height": 47.61904761904762,
@@ -1138,14 +1365,14 @@
       "name": "Serviço",
       "id": "shape_5292",
       "x": 332,
-      "y": 939
+      "y": 985
     },
     {
       "type": "domainStory:workObjectCar",
       "name": "Veículo",
       "id": "shape_5526",
-      "x": 1306,
-      "y": 1030
+      "x": 1081,
+      "y": 1067
     },
     {
       "type": "domainStory:workObjectInfo",
@@ -1160,15 +1387,14 @@
       "name": "Peça",
       "id": "shape_5622",
       "x": 332,
-      "y": 1030
+      "y": 1086
     },
     {
-      "type": "domainStory:actorworker-4-custom",
+      "type": "domainStory:actorPerson",
       "name": "Mecânico",
-      "id": "shape_6252",
+      "id": "shape_6353",
       "x": 155,
-      "y": 866,
-      "pickedColor": "#000000"
+      "y": 866
     },
     {
       "name": "Serviço",
@@ -1196,7 +1422,7 @@
       "name": "Serviço",
       "id": "shape_7061",
       "x": 1081,
-      "y": 1086
+      "y": 1177
     },
     {
       "type": "domainStory:workObjectEmail",
@@ -1211,6 +1437,13 @@
       "type": "domainStory:workObjectWrench",
       "x": 1307,
       "y": 659
+    },
+    {
+      "name": "Sistema",
+      "id": "shape_7791",
+      "type": "domainStory:actorSystem",
+      "x": 1496,
+      "y": 850
     },
     {
       "type": "domainStory:workObjectProblem",
@@ -1230,8 +1463,8 @@
       "name": "Ordem de serviço",
       "id": "shape_8000",
       "type": "domainStory:workObjectReceipt",
-      "x": 1306,
-      "y": 850
+      "x": 1307,
+      "y": 1067
     },
     {
       "type": "domainStory:workObjectCar",
@@ -1252,7 +1485,7 @@
       "name": "Peça",
       "id": "shape_8711",
       "x": 887,
-      "y": 1086
+      "y": 1177
     },
     {
       "type": "domainStory:workObjectCar",
