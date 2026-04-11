@@ -1,7 +1,5 @@
 package br.com.lata.velha.domain.model;
 
-import jakarta.validation.constraints.NotNull;
-
 import java.util.Objects;
 
 public class Servico {
@@ -9,14 +7,19 @@ public class Servico {
     private Long id;
     private String nome;
     private String descricao;
+    private boolean ativo = true;
 
     public Servico() {
     }
 
     public Servico(Long id, String nome, String descricao) {
+        this(id, nome, descricao, true);
+    }
+
+    public Servico(Long id, String nome, String descricao, boolean ativo) {
         this.id = id;
-        setNome(nome);
-        setDescricao(descricao);
+        atualizar(nome, descricao);
+        this.ativo = ativo;
     }
 
     public Long getId() {
@@ -45,6 +48,22 @@ public class Servico {
         this.descricao = descricao;
     }
 
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public void atualizar(String nome, String descricao) {
+        setNome(nome);
+        setDescricao(descricao);
+    }
+
+    public void desativar() {
+        if (!this.ativo) {
+            throw new IllegalArgumentException("Serviço já está desativado");
+        }
+        this.ativo = false;
+    }
+
     @Override
     public String toString() {
         return "Servico{" +
@@ -68,5 +87,10 @@ public class Servico {
     }
 
     public void setId(Long servicoId) {
+        this.id = servicoId;
+    }
+
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
     }
 }
