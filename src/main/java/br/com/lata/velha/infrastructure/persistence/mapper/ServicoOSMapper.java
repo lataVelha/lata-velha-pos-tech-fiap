@@ -8,7 +8,8 @@ import br.com.lata.velha.domain.model.Servico;
 import br.com.lata.velha.domain.model.ServicoOS;
 import br.com.lata.velha.infrastructure.persistence.entity.ServicoEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.ServicoOSEntity;
-@Component 
+
+@Component
 public class ServicoOSMapper {
 
     public ServicoOS toDomain(ServicoOSEntity entity) {
@@ -27,10 +28,11 @@ public class ServicoOSMapper {
         }
 
         ServicoOS domain = new ServicoOS(
-                entity.getId(),
                 servico,
                 entity.getValorMaoDeObra()
         );
+
+        domain.setId(entity.getId()); // ← FALTAVA
 
         if (entity.getStatusServico() != null) {
             domain.setStatus(
@@ -46,7 +48,7 @@ public class ServicoOSMapper {
         return domain;
     }
 
-    public static ServicoOSEntity toEntity(ServicoOS domain) {
+    public ServicoOSEntity toEntity(ServicoOS domain) {
 
         if (domain == null) {
             return null;

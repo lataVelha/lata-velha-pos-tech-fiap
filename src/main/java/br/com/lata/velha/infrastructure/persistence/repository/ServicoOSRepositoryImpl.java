@@ -1,6 +1,5 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
-import br.com.lata.velha.domain.exception.OrdemServicoNotFoundException;
 import br.com.lata.velha.domain.exception.ServicoOsNotFoundException;
 import br.com.lata.velha.domain.model.ServicoOS;
 import br.com.lata.velha.domain.repository.ServicoOSRepository;
