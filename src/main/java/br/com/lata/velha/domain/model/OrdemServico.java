@@ -43,7 +43,7 @@ public class OrdemServico {
         this.iniciadoEm = LocalDateTime.now();
     }
 
-    public void iniciarDiagnostico(Long idOs, Long mecanicoId) {
+    public void iniciarDiagnostico(Long mecanicoId) {
         if (this.status != StatusOrdemServico.RECEBIDA) {
             throw new IllegalStateException("Ordem não pode ser iniciada");
         }
@@ -52,10 +52,11 @@ public class OrdemServico {
         this.atualizadoEm = LocalDateTime.now();
     }
 
-    public void fimDignostico(List<Long> servicoOsId) {
+    public void fimDignostico(Long mecanicoId) {
         if (this.status != StatusOrdemServico.EM_DIAGNOSTICO) {
             throw new IllegalStateException("O Diagnostico não pode ser finalizado");
         }
+        this.mecanicoFinalId = mecanicoId;
         this.status = StatusOrdemServico.AGUARDANDO_APROVACAO;
         this.atualizadoEm = LocalDateTime.now();
     }

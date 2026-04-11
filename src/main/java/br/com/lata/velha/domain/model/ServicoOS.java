@@ -26,8 +26,7 @@ public class ServicoOS {
     public ServicoOS() {
     }
 
-    public ServicoOS(Long id, Servico servico, BigDecimal valorMaoDeObra) {
-        this.id = id;
+    public ServicoOS(Servico servico, BigDecimal valorMaoDeObra) {
         setServico(servico);
         setValorMaoDeObra(valorMaoDeObra);
         this.status = StatusServico.PENDENTE;
@@ -141,5 +140,8 @@ public class ServicoOS {
 
     public void setAtualizadoEm(LocalDateTime atualizadoEm) {
         this.atualizadoEm = atualizadoEm;
+    }
+
+    public void setId(Long id) {
     }
 }

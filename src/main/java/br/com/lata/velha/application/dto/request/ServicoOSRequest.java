@@ -13,7 +13,7 @@ public record ServicoOSRequest(
         Long servicoId,
 
         @Schema(example = "[1,2,3]")
-        List<Long> pecasId,
+        List<PecaRequest> pecas,
 
         @NotNull(message = "Valor de Mão de Obra é obrigatório!")
         @Schema(example = "150.00")

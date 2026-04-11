@@ -13,7 +13,6 @@ public class ServicoOSAssembler {
         servico.setId(request.servicoId());
 
         return new ServicoOS(
-                null,
                 servico,
                 request.valorMaoDeObra()
         );

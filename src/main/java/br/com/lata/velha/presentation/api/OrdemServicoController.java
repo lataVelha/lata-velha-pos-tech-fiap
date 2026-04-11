@@ -29,6 +29,7 @@ public class OrdemServicoController {
     private final AprovarOrdemServicoUseCase aprovarOrdemServicoUseCase;
     private final ReprovarOrdemServicoUseCase reprovarOrdemServicoUseCase;
     private final AdicionarServicoUseCase adicionarServicoUseCase;
+    private  final FinalizarDiagnosticoUseCase finalizarDiagnosticoUseCase;
 
     @PostMapping("/create")
     @Operation(summary = "Criar ordem de serviço")
@@ -73,6 +74,15 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "409", description = "Serviço já existe na Ordem de Serviço ou status inválido")
     public ResponseEntity<OrdemServicoResponse> addService(@Valid @RequestBody AddServicoOsRequest request) {
         return ResponseEntity.ok(adicionarServicoUseCase.execute(request));
+    }
+
+    @PatchMapping("/{idOs}/{idFunc}/finalizar-diagnostico")
+    @ApiResponse(responseCode = "200", description = "Ordem de Serviço reprovada")
+    @ApiResponse(responseCode = "404", description = "Ordem de Serviço não encontrada")
+    @ApiResponse(responseCode = "409", description = "Ordem de Serviço já está reprovada ou em status inválido")
+    public ResponseEntity<OrdemServicoResponse> finalDiagnostic(@PathVariable Long idOs,
+                                                                @PathVariable Long idFunc) {
+        return ResponseEntity.ok(finalizarDiagnosticoUseCase.execute(idOs,idFunc));
     }
 
     @PatchMapping("/aprovar")
