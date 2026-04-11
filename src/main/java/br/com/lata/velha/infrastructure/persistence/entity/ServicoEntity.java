@@ -9,9 +9,16 @@ import lombok.Data;
 public class ServicoEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID", nullable = false)
     private Long id;
 
+    @Column(name = "NOME", nullable = false)
     private String nome;
+
+    @Column(name = "DESCRICAO", nullable = false)
     private String descricao;
+
+    @Column(name = "ATIVO", nullable = false)
+    private boolean ativo = true;
 }

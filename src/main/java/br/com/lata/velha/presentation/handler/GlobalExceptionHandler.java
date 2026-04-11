@@ -4,6 +4,7 @@ import br.com.lata.velha.domain.exception.DomainException;
 import br.com.lata.velha.domain.exception.InvalidLoginException;
 import br.com.lata.velha.domain.exception.ProprietarioNotFoundException;
 import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
+import br.com.lata.velha.domain.exception.ServicoNotFoundException;
 import br.com.lata.velha.domain.exception.VeiculoNotFoundException;
 
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ public class GlobalExceptionHandler {
                 Map.of("error", "Unauthorized", "message", ex.getMessage(), "timestamp", Instant.now().toString()));
     }
 
-    @ExceptionHandler({ProprietarioNotFoundException.class, VeiculoNotFoundException.class})
+    @ExceptionHandler({ProprietarioNotFoundException.class, VeiculoNotFoundException.class, ServicoNotFoundException.class})
     public ResponseEntity<Map<String, Object>> handleNotFound(DomainException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 Map.of("error", "Not Found", "message", ex.getMessage(), "timestamp", Instant.now().toString()));
