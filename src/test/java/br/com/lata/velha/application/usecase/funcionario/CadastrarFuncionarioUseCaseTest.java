@@ -1,14 +1,15 @@
 package br.com.lata.velha.application.usecase.funcionario;
 
-import br.com.lata.velha.application.assembler.FuncionarioAssembler;
 import br.com.lata.velha.application.dto.request.CadastrarFuncionarioRequest;
-import br.com.lata.velha.application.dto.response.FuncionarioResponse;
+import br.com.lata.velha.authentication.domain.repositories.UserRepository;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
-import br.com.lata.velha.authentication.domain.valueObjects.Credential;
+import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
+import br.com.lata.velha.domain.exception.notFoundExceptions.CargoNotFoundException;
 import br.com.lata.velha.domain.model.Cargo;
 import br.com.lata.velha.domain.model.Funcionario;
 import br.com.lata.velha.domain.repository.CargoRepository;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
+import br.com.lata.velha.shared.domain.valueObjects.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,12 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,10 +29,10 @@ class CadastrarFuncionarioUseCaseTest {
     private FuncionarioRepository funcionarioRepository;
 
     @Mock
-    private CargoRepository cargoRepository;
+    private UserRepository userRepository;
 
     @Mock
-    private FuncionarioAssembler assembler;
+    private CargoRepository cargoRepository;
 
     @Mock
     private PasswordHasher passwordHasher;
@@ -45,39 +43,45 @@ class CadastrarFuncionarioUseCaseTest {
     @Test
     @DisplayName("Deve cadastrar funcionário com sucesso")
     void deveCadastrarFuncionarioComSucesso() {
-        // Arrange
-        var request = new CadastrarFuncionarioRequest("Fulano", "fulano", "Senha123!", 1L);
+        var request = new CadastrarFuncionarioRequest("Fulano", "fulano@example.com", "Senha123!", 1L);
         var cargo = new Cargo(1L, "MECANICO", null);
-        var domain = new Funcionario(null, "Fulano", "fulano", null, cargo, true);
-        var savedDomain = new Funcionario(10L, "Fulano", "fulano", null, cargo, true);
-        var response = new FuncionarioResponse(10L, "Fulano", "fulano", true, "MECANICO");
+        var savedDomain = new Funcionario(10L, "Fulano", cargo, UserId.random());
 
-        when(cargoRepository.findById(1L)).thenReturn(Optional.of(cargo));
+        when(cargoRepository.getByIdWithRoles(1L)).thenReturn(cargo);
+        when(userRepository.existsByEmail(any())).thenReturn(false);
         when(passwordHasher.hashSenha(any())).thenReturn("hash");
-        when(assembler.toDomain(eq(request), eq(cargo), any(Credential.class))).thenReturn(domain);
-        when(funcionarioRepository.save(domain)).thenReturn(savedDomain);
-        when(assembler.toResponse(savedDomain)).thenReturn(response);
+        when(userRepository.save(any())).thenReturn(null);
+        when(funcionarioRepository.save(any(Funcionario.class))).thenReturn(savedDomain);
 
-        // Act
         var result = useCase.execute(request);
 
-        // Assert
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(10L);
         assertThat(result.nome()).isEqualTo("Fulano");
-        assertThat(result.cargoNome()).isEqualTo("MECANICO");
+        assertThat(result.cargo()).isEqualTo("MECANICO");
         verify(funcionarioRepository).save(any(Funcionario.class));
+    }
+
+    @Test
+    @DisplayName("Deve lançar ResourceAlreadyExistsException ao cadastrar email já existente")
+    void deveLancarExcecaoQuandoEmailJaExiste() {
+        var request = new CadastrarFuncionarioRequest("Fulano", "fulano@example.com", "Senha123!", 1L);
+
+        when(userRepository.existsByEmail(any())).thenReturn(true);
+
+        assertThrows(ResourceAlreadyExistsException.class, () -> useCase.execute(request));
+        verify(funcionarioRepository, never()).save(any());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("Deve falhar ao tentar cadastrar funcionário com cargo inexistente")
     void deveFalharAoCriarFuncionarioComCargoInexistente() {
-        // Arrange
-        var request = new CadastrarFuncionarioRequest("Fulano", "fulano", "Senha123!", 99L);
-        when(cargoRepository.findById(99L)).thenReturn(Optional.empty());
+        var request = new CadastrarFuncionarioRequest("Fulano", "fulano@example.com", "Senha123!", 99L);
+        when(userRepository.existsByEmail(any())).thenReturn(false);
+        when(cargoRepository.getByIdWithRoles(99L)).thenThrow(CargoNotFoundException.fromId(99L));
 
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> useCase.execute(request), "Cargo não encontrado");
+        assertThrows(CargoNotFoundException.class, () -> useCase.execute(request));
         verify(funcionarioRepository, never()).save(any(Funcionario.class));
     }
 }

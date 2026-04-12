@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,17 +52,16 @@ class FuncionarioPersistenceMapperTest {
     @Test
     @DisplayName("deve converter funcionário com cargo e roles para domain")
     void shouldMapFuncionarioWithCargoAndRolesToDomain() {
-        String hash = passwordEncoder.encode("Senha123!");
-        FuncionarioEntity entity = buildFuncionarioEntity(hash, buildCargoEntity());
+        UUID userId = UUID.randomUUID();
+        FuncionarioEntity entity = buildFuncionarioEntity(userId, buildCargoEntity());
 
         Funcionario result = mapper.toDomain(entity);
 
         assertNotNull(result);
         assertEquals(100L, result.getId());
         assertEquals("Carlos", result.getNome());
-        assertEquals("carlos", result.getUsername());
-        assertNotNull(result.getCredential());
-        assertTrue(result.getCredential().match("Senha123!"));
+        assertNotNull(result.getUserId());
+        assertEquals(userId, result.getUserId().getValue());
 
         Cargo cargo = result.getCargo();
         assertNotNull(cargo);
@@ -72,17 +72,6 @@ class FuncionarioPersistenceMapperTest {
         Role role = cargo.getRoles().iterator().next();
         assertNotNull(role.getRoleId());
         assertEquals("ROLE_ADMIN", role.getNome());
-    }
-
-    @Test
-    @DisplayName("deve rejeitar senha incorreta ao verificar hash")
-    void shouldRejectIncorrectPassword() {
-        String hash = passwordEncoder.encode("Senha123!");
-        FuncionarioEntity entity = buildFuncionarioEntity(hash, buildCargoEntity());
-
-        Funcionario result = mapper.toDomain(entity);
-
-        assertFalse(result.getCredential().match("OutraSenha456@"));
     }
 
     @Test
@@ -111,9 +100,7 @@ class FuncionarioPersistenceMapperTest {
     @Test
     @DisplayName("deve converter role para domain")
     void shouldMapRoleToDomain() {
-        RoleEntity entity = new RoleEntity();
-        entity.setId(1L);
-        entity.setNome("ROLE_USER");
+        RoleEntity entity = new RoleEntity(UUID.randomUUID(), "ROLE_USER");
 
         Role result = mapper.toDomain(entity);
 
@@ -122,10 +109,23 @@ class FuncionarioPersistenceMapperTest {
         assertEquals("ROLE_USER", result.getNome());
     }
 
+    @Test
+    @DisplayName("deve converter domain para entity")
+    void shouldMapDomainToEntity() {
+        UUID userId = UUID.randomUUID();
+        FuncionarioEntity entity = buildFuncionarioEntity(userId, buildCargoEntity());
+        Funcionario domain = mapper.toDomain(entity);
+
+        FuncionarioEntity result = mapper.toEntity(domain);
+
+        assertNotNull(result);
+        assertEquals(100L, result.getId());
+        assertEquals("Carlos", result.getNome());
+        assertEquals(userId, result.getUserId());
+    }
+
     private CargoEntity buildCargoEntity() {
-        RoleEntity role = new RoleEntity();
-        role.setId(1L);
-        role.setNome("ROLE_ADMIN");
+        RoleEntity role = new RoleEntity(UUID.randomUUID(), "ROLE_ADMIN");
 
         CargoEntity cargo = new CargoEntity();
         cargo.setId(10L);
@@ -134,12 +134,11 @@ class FuncionarioPersistenceMapperTest {
         return cargo;
     }
 
-    private FuncionarioEntity buildFuncionarioEntity(String hash, CargoEntity cargo) {
+    private FuncionarioEntity buildFuncionarioEntity(UUID userId, CargoEntity cargo) {
         FuncionarioEntity entity = new FuncionarioEntity();
         entity.setId(100L);
         entity.setNome("Carlos");
-        entity.setUsername("carlos");
-        entity.setPassword(hash);
+        entity.setUserId(userId);
         entity.setCargo(cargo);
         return entity;
     }

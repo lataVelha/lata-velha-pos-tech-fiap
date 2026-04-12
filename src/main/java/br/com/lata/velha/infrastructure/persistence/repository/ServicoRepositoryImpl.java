@@ -1,7 +1,7 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.common.PaginatedResult;
-import br.com.lata.velha.domain.exception.ServicoNotFoundException;
+import br.com.lata.velha.domain.exception.notFoundExceptions.ServicoNotFoundException;
 import br.com.lata.velha.domain.model.Servico;
 import br.com.lata.velha.domain.repository.ServicoRepository;
 import br.com.lata.velha.infrastructure.persistence.mapper.ServicoPersistenceMapper;
@@ -27,7 +27,7 @@ public class ServicoRepositoryImpl implements ServicoRepository {
     public Servico findActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> new ServicoNotFoundException(id));
+                .orElseThrow(() -> ServicoNotFoundException.fromId(id));
     }
 
     @Override

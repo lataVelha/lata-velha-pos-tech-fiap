@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 
 public class Cargo {
-
     private Long id;
     private String nome;
     private Set<Role> roles;

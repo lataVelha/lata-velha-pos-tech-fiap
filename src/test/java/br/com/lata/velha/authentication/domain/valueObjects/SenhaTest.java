@@ -91,6 +91,24 @@ class SenhaTest {
                     String.format("Senha deve conter no mínimo %d caractere(s) especial(is)", Senha.MIN_SPECIAL_CHARACTERS),
                     ex.getMessage());
         }
+
+        @Test
+        @DisplayName("deve aceitar senha com exatamente o tamanho mínimo")
+        void shouldAcceptSenhaAtMinLength() {
+            // exactly 8 chars with 1 digit and 1 special char
+            String atMin = "Ab1!efgh";
+            assertEquals(Senha.MIN_LENGTH, atMin.length());
+            assertDoesNotThrow(() -> Senha.fromString(atMin));
+        }
+
+        @Test
+        @DisplayName("deve aceitar senha com exatamente o tamanho máximo")
+        void shouldAcceptSenhaAtMaxLength() {
+            // "A1!" prefix (3 chars) + (MAX_LENGTH - 3) lowercase letters = MAX_LENGTH total
+            String atMax = "A1!" + "a".repeat(Senha.MAX_LENGTH - 3);
+            assertEquals(Senha.MAX_LENGTH, atMax.length());
+            assertDoesNotThrow(() -> Senha.fromString(atMax));
+        }
     }
 
     // ==================== EQUALS / HASHCODE / TOSTRING ====================

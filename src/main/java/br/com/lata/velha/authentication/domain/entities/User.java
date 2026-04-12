@@ -1,24 +1,25 @@
 package br.com.lata.velha.authentication.domain.entities;
 
 import br.com.lata.velha.authentication.domain.valueObjects.Credential;
-import br.com.lata.velha.authentication.domain.valueObjects.Senha;
+import br.com.lata.velha.domain.exception.InvalidLoginException;
+import br.com.lata.velha.shared.domain.valueObjects.Email;
 import br.com.lata.velha.shared.domain.valueObjects.UserId;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 
 public final class User {
-    private final UserId userId;
+    private final UserId id;
     private final String username;
-    private final String email;
+    private final Email email;
     private final Credential credential;
     private final Set<Role> roles;
     private boolean ativo;
     private final LocalDateTime criacaoDate;
     private LocalDateTime ultimoLoginDate;
 
-    public User(UserId userId, String username, String email, Credential credential, Set<Role> roles, boolean isActive, LocalDateTime criacaoDate, LocalDateTime ultimoLoginDate) {
-        this.userId = userId;
+    public User(UserId id, String username, Email email, Credential credential, Set<Role> roles, boolean isActive, LocalDateTime criacaoDate, LocalDateTime ultimoLoginDate) {
+        this.id = id;
         this.username = username;
         this.email = email;
         this.credential = credential;
@@ -28,15 +29,22 @@ public final class User {
         this.ultimoLoginDate = ultimoLoginDate;
     }
 
-    public boolean login(Senha senha) {
-        if (!credential.match(senha.getValor())) return false;
+    public static User create(Email email, Credential credential, Set<Role> roles) {
+        var id = UserId.random();
+        var creationDate = LocalDateTime.now();
+        return new User(id, email.getValor(), email, credential, roles, true, creationDate, null);
+    }
+
+    public boolean login(String senha) {
+        if(!isAtivo()) throw new InvalidLoginException("Usuário inativo");
+        if (!credential.match(senha)) throw new InvalidLoginException();
         this.ultimoLoginDate = LocalDateTime.now();
         return true;
     }
 
     public void addRole(Role role) {
         if(role == null)
-            throw new IllegalArgumentException("Tentando inserir uma role null ao usuário: " + userId.toString());
+            throw new IllegalArgumentException("Tentando inserir uma role null ao usuário: " + id.toString());
         this.roles.add(role);
     }
 
@@ -49,15 +57,15 @@ public final class User {
     }
 
     //region GETTERS
-    public UserId getUserId() {
-        return userId;
+    public UserId getId() {
+        return id;
     }
 
     public String getUsername() {
         return username;
     }
 
-    public String getEmail() {
+    public Email getEmail() {
         return email;
     }
 

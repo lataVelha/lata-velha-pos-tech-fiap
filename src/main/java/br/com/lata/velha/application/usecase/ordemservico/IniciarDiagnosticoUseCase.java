@@ -22,7 +22,7 @@ public class IniciarDiagnosticoUseCase {
 
         var os = repository.findById(idOs);
 
-        var mecanico = funcionarioRepository.findById(idMecanico);
+        var mecanico = funcionarioRepository.getById(idMecanico);
 
         os.iniciarDiagnostico(mecanico.getId());
 

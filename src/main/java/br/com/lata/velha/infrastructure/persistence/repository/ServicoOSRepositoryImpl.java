@@ -1,6 +1,6 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
-import br.com.lata.velha.domain.exception.ServicoOsNotFoundException;
+import br.com.lata.velha.domain.exception.notFoundExceptions.ServicoOsNotFoundException;
 import br.com.lata.velha.domain.model.ServicoOS;
 import br.com.lata.velha.domain.repository.ServicoOSRepository;
 import br.com.lata.velha.infrastructure.persistence.mapper.ServicoOSMapper;
@@ -26,7 +26,7 @@ public class ServicoOSRepositoryImpl implements ServicoOSRepository {
     public ServicoOS findById(Long id) {
         return jpaRepository.findById(id)
                 .map(servicoOSMapper::toDomain)
-                .orElseThrow(() -> new ServicoOsNotFoundException(id));
+                .orElseThrow(() -> ServicoOsNotFoundException.fromId(id));
     }
 
 }

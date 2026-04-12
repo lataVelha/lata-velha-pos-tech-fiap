@@ -1,8 +1,9 @@
 package br.com.lata.velha.application.usecase.funcionario;
 
-import br.com.lata.velha.application.assembler.FuncionarioAssembler;
 import br.com.lata.velha.application.dto.request.AtualizarFuncionarioRequest;
 import br.com.lata.velha.application.dto.response.FuncionarioResponse;
+import br.com.lata.velha.authentication.domain.repositories.UserRepository;
+import br.com.lata.velha.domain.exception.InactiveUserException;
 import br.com.lata.velha.domain.model.Cargo;
 import br.com.lata.velha.domain.model.Funcionario;
 import br.com.lata.velha.domain.repository.CargoRepository;
@@ -13,22 +14,21 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class AtualizarFuncionarioUseCase {
-
     private final FuncionarioRepository funcionarioRepository;
+    private final UserRepository userRepository;
     private final CargoRepository cargoRepository;
-    private final FuncionarioAssembler assembler;
 
     public FuncionarioResponse execute(Long id, AtualizarFuncionarioRequest request) {
-        Funcionario funcionario = funcionarioRepository.findActiveById(id);
+        var funcionario = funcionarioRepository.getById(id);
+        if(!userRepository.isAtivoById(funcionario.getUserId()))
+            throw InactiveUserException.fromFuncionario(funcionario);
 
-        Cargo cargo = cargoRepository.findById(request.cargoId())
-                .orElseThrow(() -> new IllegalArgumentException("Cargo não encontrado"));
+        Cargo cargo = cargoRepository.getById(request.cargoId());
 
         funcionario.setNome(request.nome());
-        funcionario.setUsername(request.username());
         funcionario.setCargo(cargo);
 
         Funcionario saved = funcionarioRepository.save(funcionario);
-        return assembler.toResponse(saved);
+        return FuncionarioResponse.fromEntity(saved);
     }
 }

@@ -2,7 +2,12 @@ package br.com.lata.velha.domain.exception;
 
 
 public  class InvalidLoginException extends DomainException {
+
     public InvalidLoginException() {
-       super("Usuário ou senha inválidos");
+        this("Usuário ou senha inválidos");
+    }
+
+    public InvalidLoginException(String message) {
+       super(message);
     }
 }

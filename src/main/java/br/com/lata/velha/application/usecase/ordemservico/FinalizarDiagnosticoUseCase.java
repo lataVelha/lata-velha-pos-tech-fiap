@@ -21,7 +21,7 @@ public class FinalizarDiagnosticoUseCase {
     public OrdemServicoResponse execute(Long idOs, Long idMecanico){
 
         var os = ordemServicoRepository.findById(idOs);
-        var mecanico = funcionarioRepository.findById(idMecanico);
+        var mecanico = funcionarioRepository.getById(idMecanico);
 
         os.finalizarDiagnostico(mecanico.getId());
         enviarNotificao(os);

@@ -91,11 +91,11 @@ O sistema utiliza **JWT com chaves RSA** para autenticação. Após o login, o t
 
 **Usuários pré-cadastrados:**
 
-| Usuário     | Senha    | Role     |
-| ----------- | -------- | -------- |
-| `admin`     | `123456` | ADMIN    |
-| `atendente` | `123456` | USER     |
-| `mecanico`  | `123456` | MECANICO |
+| Usuário                    | Senha       | Role     |
+| -------------------------- | ----------- | -------- |
+| `admin@latavelha.com`      | `Admin@123` | ADMIN    |
+| `atendente@latavelha.com`  | `Atend@123` | USER     |
+| `mecanico@latavelha.com`   | `Mecan@123` | MECANICO |
 
 **Como autenticar no Swagger:**
 

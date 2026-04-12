@@ -1,6 +1,6 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
-import br.com.lata.velha.domain.exception.OrdemServicoNotFoundException;
+import br.com.lata.velha.domain.exception.notFoundExceptions.OrdemServicoNotFoundException;
 import br.com.lata.velha.domain.model.OrdemServico;
 import br.com.lata.velha.domain.repository.OrdemServicoRepository;
 import br.com.lata.velha.infrastructure.persistence.mapper.OrdemServicoMapper;
@@ -28,7 +28,7 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
     public OrdemServico findById(Long id) {
         return jpaRepository.findById(id)
                 .map(OrdemServicoMapper::toDomain)
-                .orElseThrow(() -> new OrdemServicoNotFoundException(id));
+                .orElseThrow(() -> OrdemServicoNotFoundException.fromId(id));
     }
 
     @Override

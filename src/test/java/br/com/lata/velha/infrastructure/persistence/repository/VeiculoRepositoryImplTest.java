@@ -1,9 +1,9 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.common.PaginatedResult;
-import br.com.lata.velha.domain.exception.ProprietarioNotFoundException;
+import br.com.lata.velha.domain.exception.notFoundExceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
-import br.com.lata.velha.domain.exception.VeiculoNotFoundException;
+import br.com.lata.velha.domain.exception.notFoundExceptions.VeiculoNotFoundException;
 import br.com.lata.velha.domain.model.Proprietario;
 import br.com.lata.velha.domain.model.Veiculo;
 import br.com.lata.velha.domain.valueObject.Documento;

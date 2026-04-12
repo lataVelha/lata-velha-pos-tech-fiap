@@ -3,6 +3,7 @@ package br.com.lata.velha.authentication.domain.entities;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import br.com.lata.velha.authentication.domain.valueObjects.Credential;
 import br.com.lata.velha.authentication.domain.valueObjects.Senha;
+import br.com.lata.velha.shared.domain.valueObjects.Email;
 import br.com.lata.velha.shared.domain.valueObjects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,7 +38,7 @@ class UserTest {
         user = new User(
                 userId,
                 "joao",
-                "joao@email.com",
+                Email.fromString("joao@email.com"),
                 credential,
                 new HashSet<>(),
                 true,
@@ -56,22 +56,17 @@ class UserTest {
         @Test
         @DisplayName("deve retornar true e atualizar ultimoLoginDate com senha correta")
         void shouldReturnTrueAndUpdateLoginDateOnCorrectPassword() {
-            Senha senha = Senha.fromString(VALID_SENHA_VALUE);
-
-            boolean result = user.login(senha);
+            boolean result = user.login(VALID_SENHA_VALUE);
 
             assertTrue(result);
             assertNotNull(user.getUltimoLoginDate());
         }
 
         @Test
-        @DisplayName("deve retornar false e não atualizar ultimoLoginDate com senha errada")
+        @DisplayName("deve lançar InvalidLoginException com senha errada")
         void shouldReturnFalseAndNotUpdateLoginDateOnWrongPassword() {
-            Senha senhaErrada = Senha.fromString("Errada123@");
-
-            boolean result = user.login(senhaErrada);
-
-            assertFalse(result);
+            assertThrows(br.com.lata.velha.domain.exception.InvalidLoginException.class,
+                    () -> user.login("Errada123@"));
             assertNull(user.getUltimoLoginDate());
         }
     }
@@ -133,9 +128,9 @@ class UserTest {
         @Test
         @DisplayName("deve retornar os campos corretamente")
         void shouldReturnFieldsCorrectly() {
-            assertEquals(userId, user.getUserId());
+            assertEquals(userId, user.getId());
             assertEquals("joao", user.getUsername());
-            assertEquals("joao@email.com", user.getEmail());
+            assertEquals("joao@email.com", user.getEmail().getValor());
             assertEquals(credential, user.getCredential());
             assertEquals(criacaoDate, user.getCriacaoDate());
             assertTrue(user.isAtivo());
