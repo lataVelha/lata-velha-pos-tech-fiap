@@ -98,11 +98,14 @@ INSERT INTO SERVICO_OS (
 -- PECAS ALOCADAS
 -- =========================
 INSERT INTO PECA_ALOCADA (
-    ID,
     SERVICO_OS_ID,
     PECA_ID,
-    QUANTIDADE_ALOCADA
+    STATUS,
+    ATUALIZADO,
+    QTD_SOLICITADA,
+    QTD_RESERVADA,
+    QTD_ENCOMENDADA
 ) VALUES
-(1, 1, 3, 4),
-(2, 2, 1, 1),
-(3, 2, 2, 4);
+(1, 3, 'RESERVADA', NOW(), 4, 4, 0),
+(2, 1, 'RESERVADA', NOW(), 1, 1, 0),
+(2, 2, 'RESERVADA', NOW(), 4, 2, 2);

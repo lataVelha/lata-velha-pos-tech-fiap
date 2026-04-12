@@ -49,7 +49,7 @@ class AlocarPecaUseCaseTest {
         
         Servico servicoBase = new Servico();
         servicoBase.setId(100L);
-        ServicoOS servicoOS = new ServicoOS(1L, servicoBase, new BigDecimal("100.0"));
+        ServicoOS servicoOS = new ServicoOS( servicoBase, new BigDecimal("100.0"));
         when(servicoOSRepository.findById(1L)).thenReturn(servicoOS);
 
         Peca peca = new Peca(2L, "Pastilha", "Desc", new BigDecimal("50.0"));
@@ -59,7 +59,7 @@ class AlocarPecaUseCaseTest {
         when(pecaEstoqueRepository.findByPecaId(2L)).thenReturn(estoque);
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
 
-        PecaAlocada pecaAlocadaSalva = new PecaAlocada(10L, 2L, 1L, 3);
+        PecaAlocada pecaAlocadaSalva = new PecaAlocada(10L, 2L,  3);
         when(pecaAlocadaRepository.save(any(PecaAlocada.class))).thenReturn(pecaAlocadaSalva);
 
         // Act

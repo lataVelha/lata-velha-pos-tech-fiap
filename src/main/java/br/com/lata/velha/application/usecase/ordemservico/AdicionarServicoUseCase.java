@@ -31,7 +31,7 @@ public class AdicionarServicoUseCase {
             var servicoOs = new ServicoOS(servico, so.valorMaoDeObra());
             so.pecas().forEach(p -> {
                 var peca = buscarPecaPorIdUseCase.execute(p.pecaId());
-                var pecaAlocada = new PecaAlocada(null, peca.id(), servicoOs.getId(), p.quantidade());
+                var pecaAlocada = new PecaAlocada( peca.id(), servicoOs.getId(), p.quantidade());
                 servicoOs.adicionarPeca(pecaAlocada);
 
             });

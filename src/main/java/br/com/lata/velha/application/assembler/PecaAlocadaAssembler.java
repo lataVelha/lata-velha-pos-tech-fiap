@@ -9,8 +9,11 @@ public class PecaAlocadaAssembler {
         return new PecaAlocadaResponse(
                 domain.getId(),
                 domain.getPecaId(),
-                null, // For pecaNome, we need another query if the client needs it. Returning null.
-                domain.getQuantidadeAlocada(),
+                null, // pecaNome (buscar depois se precisar)
+                domain.getQuantidadeSolicitada(),
+                domain.getQuantidadeReservada(),
+                domain.getQuantidadeEncomendada(),
+                domain.getStatus(),
                 domain.getServicoOsId()
         );
     }

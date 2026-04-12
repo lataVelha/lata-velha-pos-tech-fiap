@@ -31,84 +31,134 @@ public class ServicoOS {
         setValorMaoDeObra(valorMaoDeObra);
         this.status = StatusServico.PENDENTE;
         this.iniciadoEm = LocalDateTime.now();
+        this.atualizadoEm = LocalDateTime.now();
     }
 
     /* ===================== REGRAS ===================== */
 
     public void aprovado(Long atendente) {
+
+        if (status != StatusServico.PENDENTE) {
+            throw new IllegalStateException(
+                    "Serviço não pode ser aprovado no status: " + status
+            );
+        }
+
         this.status = StatusServico.APROVADO;
         this.atendenteId = atendente;
-        this.atualizadoEm  = LocalDateTime.now();
+        touch();
     }
 
     public void recusado(Long atendente) {
+
+        if (status == StatusServico.FINALIZADO) {
+            throw new IllegalStateException("Serviço já finalizado");
+        }
+
         this.status = StatusServico.RECUSADO;
         this.atendenteId = atendente;
-        this.atualizadoEm = LocalDateTime.now();
         this.terminadoEm = LocalDateTime.now();
+        touch();
+    }
+
+    public void instalarPeca(Long pecaId, int quantidade) {
+
+        if (status != StatusServico.APROVADO) {
+            throw new IllegalStateException("Serviço deve estar aprovado para instalar peças");
+        }
+
+        if (quantidade <= 0) {
+            throw new IllegalArgumentException("Quantidade inválida");
+        }
+
+        PecaAlocada peca = pecas.stream()
+                .filter(p -> pecaId.equals(p.getPecaId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Peça não encontrada"));
+
+        peca.instalar(quantidade);
+
+        touch();
     }
 
     public void finalizado(Long mecanicoId) {
+
+        if (status != StatusServico.APROVADO) {
+            throw new IllegalStateException(
+                    "Serviço só pode ser finalizado se estiver aprovado"
+            );
+        }
+
+        boolean possuiNaoInstalada = pecas.stream()
+                .anyMatch(p -> !p.totalmenteInstalada());
+
+        if (possuiNaoInstalada) {
+            throw new IllegalStateException(
+                    "Existem peças não instaladas no serviço"
+            );
+        }
+
         this.status = StatusServico.FINALIZADO;
         this.mecanicoResponsavelId = mecanicoId;
         this.terminadoEm = LocalDateTime.now();
+        touch();
     }
 
     public void adicionarPeca(PecaAlocada peca) {
+
+        if (status == StatusServico.FINALIZADO) {
+            throw new IllegalStateException("Serviço já finalizado");
+        }
+
         if (peca == null)
             throw new IllegalArgumentException("Peça inválida");
 
+        boolean jaExiste = pecas.stream()
+                .anyMatch(p -> p.getPecaId().equals(peca.getPecaId()));
+
+        if (jaExiste) {
+            throw new IllegalStateException(
+                    "Peça já adicionada ao serviço"
+            );
+        }
+
         pecas.add(peca);
-        this.atualizadoEm = LocalDateTime.now();
+        touch();
     }
 
-    public double calcularTotal() {
-        double totalPecas = pecas.stream()
-                .mapToDouble(p -> 0.0) // Requires fetching peca details from DB, not directly in domain if decoupled. Simplified for compilation.
-                .sum();
+    public BigDecimal calcularTotal() {
 
-        return totalPecas + valorMaoDeObra.doubleValue();
+        BigDecimal totalPecas = pecas.stream()
+                .map(p -> BigDecimal.ZERO) // sem valor na peça no seu modelo atual
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return totalPecas.add(valorMaoDeObra != null ? valorMaoDeObra : BigDecimal.ZERO);
+    }
+
+    /* ===================== HELPERS ===================== */
+
+    private void touch() {
+        this.atualizadoEm = LocalDateTime.now();
     }
 
     /* ===================== GETTERS ===================== */
 
-    public Long getId() {
-        return id;
-    }
-
-    public StatusServico getStatus() {
-        return status;
-    }
-
-    public Servico getServico() {
-        return servico;
-    }
-
-    public LocalDateTime getIniciadoEm() {
-        return iniciadoEm;
-    }
-
-    public LocalDateTime getTerminadoEm() {
-        return terminadoEm;
-    }
-
-    public Long getMecanicoResponsavelId() {
-        return mecanicoResponsavelId;
-    }
-
-    public List<PecaAlocada> getPecas() {
-        return pecas;
-    }
-
-    public BigDecimal getValorMaoDeObra() {
-        return valorMaoDeObra;
-    }
-
-    public LocalDateTime getAtualizadoEm() {
-        return atualizadoEm;
-    }
+    public Long getId() { return id; }
+    public StatusServico getStatus() { return status; }
+    public Servico getServico() { return servico; }
+    public LocalDateTime getIniciadoEm() { return iniciadoEm; }
+    public LocalDateTime getTerminadoEm() { return terminadoEm; }
+    public Long getMecanicoResponsavelId() { return mecanicoResponsavelId; }
+    public List<PecaAlocada> getPecas() { return pecas; }
+    public BigDecimal getValorMaoDeObra() { return valorMaoDeObra; }
+    public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
+    public Long getAtendenteId() { return atendenteId; }
 
     /* ===================== SETTERS CONTROLADOS ===================== */
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public void setStatus(StatusServico status) {
         this.status = status;
@@ -142,6 +192,15 @@ public class ServicoOS {
         this.atualizadoEm = atualizadoEm;
     }
 
-    public void setId(Long id) {
+    public boolean isFinalizado() {
+        return StatusServico.FINALIZADO.equals(this.status);
+    }
+
+    public boolean isAprovado() {
+        return StatusServico.APROVADO.equals(this.status);
+    }
+
+    public boolean isRecusado() {
+        return StatusServico.RECUSADO.equals(this.status);
     }
 }
