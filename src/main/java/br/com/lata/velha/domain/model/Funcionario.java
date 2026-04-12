@@ -1,7 +1,7 @@
 package br.com.lata.velha.domain.model;
 
+import br.com.lata.velha.authentication.domain.valueObjects.Credential;
 import br.com.lata.velha.domain.exception.InvalidLoginException;
-import br.com.lata.velha.domain.valueObject.Senha;
 
 import java.util.Objects;
 
@@ -10,27 +10,27 @@ public class Funcionario {
     private Long id;
     private String nome;
     private String username;
-    private Senha senha;
+    private Credential credential;
     private Cargo cargo;
     private boolean ativo = true;
 
     public Funcionario() {
     }
 
-    public Funcionario(Long id, String nome, String username, Senha senha, Cargo cargo) {
+    public Funcionario(Long id, String nome, String username, Credential credential, Cargo cargo) {
         this.id = id;
         setNome(nome);
         setUsername(username);
-        this.senha = senha;
+        this.credential = credential;
         this.cargo = cargo;
         this.ativo = true;
     }
 
-    public Funcionario(Long id, String nome, String username, Senha senha, Cargo cargo, boolean ativo) {
+    public Funcionario(Long id, String nome, String username, Credential credential, Cargo cargo, boolean ativo) {
         this.id = id;
         setNome(nome);
         setUsername(username);
-        this.senha = senha;
+        this.credential = credential;
         this.cargo = cargo;
         this.ativo = ativo;
     }
@@ -38,7 +38,7 @@ public class Funcionario {
     // --- business rules ---
 
     public void authenticateOrFail(String rawPassword) {
-        if (rawPassword == null || senha == null || !senha.matches(rawPassword)) {
+        if (credential == null || !credential.match(rawPassword)) {
             throw new InvalidLoginException();
         }
     }
@@ -76,8 +76,8 @@ public class Funcionario {
         this.username = username;
     }
 
-    public Senha getSenha() { return senha; }
-    public void setSenha(Senha senha) { this.senha = senha; }
+    public Credential getCredential() { return credential; }
+    public void setCredential(Credential credential) { this.credential = credential; }
 
     public Cargo getCargo() { return cargo; }
     public void setCargo(Cargo cargo) { this.cargo = cargo; }

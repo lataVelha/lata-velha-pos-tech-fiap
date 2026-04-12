@@ -2,20 +2,20 @@ package br.com.lata.velha.application.assembler;
 
 import br.com.lata.velha.application.dto.request.CadastrarFuncionarioRequest;
 import br.com.lata.velha.application.dto.response.FuncionarioResponse;
+import br.com.lata.velha.authentication.domain.valueObjects.Credential;
 import br.com.lata.velha.domain.model.Cargo;
 import br.com.lata.velha.domain.model.Funcionario;
-import br.com.lata.velha.domain.valueObject.Senha;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FuncionarioAssembler {
 
-    public Funcionario toDomain(CadastrarFuncionarioRequest request, Cargo cargo, Senha senha) {
+    public Funcionario toDomain(CadastrarFuncionarioRequest request, Cargo cargo, Credential credential) {
         return new Funcionario(
                 null,
                 request.nome(),
                 request.username(),
-                senha,
+                credential,
                 cargo,
                 true
         );

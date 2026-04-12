@@ -1,8 +1,11 @@
 package br.com.lata.velha.infrastructure.persistence.mapper;
 
+import br.com.lata.velha.authentication.domain.entities.Role;
+import br.com.lata.velha.authentication.domain.services.PasswordHasher;
+import br.com.lata.velha.authentication.domain.valueObjects.Credential;
+import br.com.lata.velha.authentication.domain.valueObjects.Senha;
 import br.com.lata.velha.domain.model.Cargo;
 import br.com.lata.velha.domain.model.Funcionario;
-import br.com.lata.velha.domain.model.Role;
 import br.com.lata.velha.infrastructure.persistence.entity.CargoEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.FuncionarioEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.RoleEntity;
@@ -19,12 +22,24 @@ import static org.junit.jupiter.api.Assertions.*;
 class FuncionarioPersistenceMapperTest {
 
     private FuncionarioPersistenceMapper mapper;
+    private PasswordHasher passwordHasher;
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
         passwordEncoder = new BCryptPasswordEncoder();
-        mapper = new FuncionarioPersistenceMapper(passwordEncoder);
+        passwordHasher = new PasswordHasher() {
+            @Override
+            public String hashSenha(Senha senha) {
+                return passwordEncoder.encode(senha.getValor());
+            }
+
+            @Override
+            public boolean match(Credential credential, String rawPassword) {
+                return passwordEncoder.matches(rawPassword, credential.getHash());
+            }
+        };
+        mapper = new FuncionarioPersistenceMapper(passwordHasher);
     }
 
     @Test
@@ -36,7 +51,7 @@ class FuncionarioPersistenceMapperTest {
     @Test
     @DisplayName("deve converter funcionário com cargo e roles para domain")
     void shouldMapFuncionarioWithCargoAndRolesToDomain() {
-        String hash = passwordEncoder.encode("senha123");
+        String hash = passwordEncoder.encode("Senha123!");
         FuncionarioEntity entity = buildFuncionarioEntity(hash, buildCargoEntity());
 
         Funcionario result = mapper.toDomain(entity);
@@ -45,7 +60,8 @@ class FuncionarioPersistenceMapperTest {
         assertEquals(100L, result.getId());
         assertEquals("Carlos", result.getNome());
         assertEquals("carlos", result.getUsername());
-        assertTrue(result.getSenha().matches("senha123"));
+        assertNotNull(result.getCredential());
+        assertTrue(result.getCredential().match("Senha123!"));
 
         Cargo cargo = result.getCargo();
         assertNotNull(cargo);
@@ -54,19 +70,19 @@ class FuncionarioPersistenceMapperTest {
         assertEquals(1, cargo.getRoles().size());
 
         Role role = cargo.getRoles().iterator().next();
-        assertEquals(1L, role.getId());
+        assertNotNull(role.getRoleId());
         assertEquals("ROLE_ADMIN", role.getNome());
     }
 
     @Test
     @DisplayName("deve rejeitar senha incorreta ao verificar hash")
     void shouldRejectIncorrectPassword() {
-        String hash = passwordEncoder.encode("senha123");
+        String hash = passwordEncoder.encode("Senha123!");
         FuncionarioEntity entity = buildFuncionarioEntity(hash, buildCargoEntity());
 
         Funcionario result = mapper.toDomain(entity);
 
-        assertFalse(result.getSenha().matches("senhaErrada"));
+        assertFalse(result.getCredential().match("OutraSenha456@"));
     }
 
     @Test
@@ -102,7 +118,7 @@ class FuncionarioPersistenceMapperTest {
         Role result = mapper.toDomain(entity);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
+        assertNotNull(result.getRoleId());
         assertEquals("ROLE_USER", result.getNome());
     }
 

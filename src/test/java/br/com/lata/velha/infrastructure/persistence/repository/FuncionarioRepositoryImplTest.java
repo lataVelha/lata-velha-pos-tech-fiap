@@ -3,6 +3,7 @@ package br.com.lata.velha.infrastructure.persistence.repository;
 import br.com.lata.velha.domain.exception.InvalidLoginException;
 import br.com.lata.velha.domain.model.Funcionario;
 import br.com.lata.velha.infrastructure.persistence.mapper.FuncionarioPersistenceMapper;
+import br.com.lata.velha.infrastructure.security.PasswordHasherImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +16,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({FuncionarioRepositoryImpl.class, FuncionarioPersistenceMapper.class,
-        FuncionarioRepositoryImplTest.TestConfig.class})
+        PasswordHasherImpl.class, FuncionarioRepositoryImplTest.TestConfig.class})
 class FuncionarioRepositoryImplTest {
 
     @TestConfiguration
@@ -79,8 +81,8 @@ class FuncionarioRepositoryImplTest {
     void shouldReturnFuncionarioWithValidSenha() {
         Funcionario funcionario = repository.findByUsername("admin");
 
-        assertThat(funcionario.getSenha().matches("123456")).isTrue();
-        assertThat(funcionario.getSenha().matches("senhaerrada")).isFalse();
+        assertThat(funcionario.getCredential().match("123456")).isTrue();
+        assertThat(funcionario.getCredential().match("senhaerrada")).isFalse();
     }
 
     @Test

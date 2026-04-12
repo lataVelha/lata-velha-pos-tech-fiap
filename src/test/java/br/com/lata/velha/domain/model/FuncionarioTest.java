@@ -1,7 +1,10 @@
 package br.com.lata.velha.domain.model;
 
+import br.com.lata.velha.authentication.domain.entities.Role;
+import br.com.lata.velha.authentication.domain.services.PasswordHasher;
+import br.com.lata.velha.authentication.domain.valueObjects.Credential;
+import br.com.lata.velha.authentication.domain.valueObjects.Senha;
 import br.com.lata.velha.domain.exception.InvalidLoginException;
-import br.com.lata.velha.domain.valueObject.Senha;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,15 +16,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FuncionarioTest {
 
+    // Hasher simples: hash = senha em texto plano; match compara diretamente
+    private static final PasswordHasher PLAIN_HASHER = new PasswordHasher() {
+        @Override public String hashSenha(Senha s) { return s.getValor(); }
+        @Override public boolean match(Credential cred, String raw) { return raw.equals(cred.getHash()); }
+    };
+
     private Funcionario funcionario;
-    private Senha senha;
+    private Credential credential;
     private Cargo cargo;
 
     @BeforeEach
     void setUp() {
-        senha = Senha.fromHash("hash123", (raw, hash) -> raw.equals("123456"));
-        cargo = new Cargo(1L, "ADMIN", Set.of(new Role(1L, "ADMIN"), new Role(2L, "USER")));
-        funcionario = new Funcionario(1L, "João", "admin", senha, cargo);
+        credential = Credential.fromHash("123456", PLAIN_HASHER);
+        cargo = new Cargo(1L, "ADMIN", Set.of(Role.create("ADMIN"), Role.create("USER")));
+        funcionario = new Funcionario(1L, "João", "admin", credential, cargo);
     }
 
     // ==================== AUTENTICAÇÃO ====================
@@ -40,7 +49,7 @@ class FuncionarioTest {
         @DisplayName("não deve autenticar com senha errada")
         void shouldFailWithWrongPassword() {
             assertThrows(InvalidLoginException.class,
-                    () -> funcionario.authenticateOrFail("wrongPassword"));
+                    () -> funcionario.authenticateOrFail("wrongPassword!1"));
         }
 
         @Test
@@ -51,9 +60,9 @@ class FuncionarioTest {
         }
 
         @Test
-        @DisplayName("não deve autenticar quando senha do funcionário é nula")
-        void shouldFailWhenSenhaIsNull() {
-            funcionario.setSenha(null);
+        @DisplayName("não deve autenticar quando credential do funcionário é nula")
+        void shouldFailWhenCredentialIsNull() {
+            funcionario.setCredential(null);
 
             assertThrows(InvalidLoginException.class,
                     () -> funcionario.authenticateOrFail("123456"));
@@ -166,11 +175,11 @@ class FuncionarioTest {
         }
 
         @Test
-        @DisplayName("deve setar e obter senha")
-        void shouldSetAndGetSenha() {
-            Senha newSenha = Senha.fromHash("newHash", (r, h) -> true);
-            funcionario.setSenha(newSenha);
-            assertEquals(newSenha, funcionario.getSenha());
+        @DisplayName("deve setar e obter credential")
+        void shouldSetAndGetCredential() {
+            Credential newCredential = Credential.fromHash("newHash", PLAIN_HASHER);
+            funcionario.setCredential(newCredential);
+            assertEquals(newCredential, funcionario.getCredential());
         }
 
         @Test

@@ -1,90 +1,139 @@
 package br.com.lata.velha.domain.valueObject;
 
+import br.com.lata.velha.authentication.domain.valueObjects.Senha;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class SenhaTest {
 
+    private static final String VALID_SENHA = "Senha123!";
+
     @Test
-    @DisplayName("deve criar senha a partir de hash")
-    void shouldCreateFromHash() {
-        Senha senha = Senha.fromHash("hash123", (raw, hash) -> raw.equals("123456"));
+    @DisplayName("deve criar senha válida")
+    void shouldCreateValidSenha() {
+        Senha senha = assertDoesNotThrow(() -> Senha.fromString(VALID_SENHA));
 
         assertNotNull(senha);
-        assertEquals("hash123", senha.getHash());
+        assertEquals(VALID_SENHA, senha.getValor());
+    }
+
+    @Nested
+    @DisplayName("validação")
+    class ValidationTests {
+        @Test
+        @DisplayName("deve lançar exceção quando senha é nula")
+        void shouldThrowWhenSenhaIsNull() {
+            var exception = assertThrows(IllegalArgumentException.class,
+                    () -> Senha.fromString(null));
+
+            assertEquals("Senha não pode ser vazia", exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("deve lançar exceção quando senha é vazia")
+        void shouldThrowWhenSenhaIsEmpty() {
+            var exception = assertThrows(IllegalArgumentException.class,
+                    () -> Senha.fromString(""));
+
+            assertEquals("Senha não pode ser vazia", exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("deve lançar exceção quando senha tem apenas espaços")
+        void shouldThrowWhenSenhaIsBlank() {
+            var exception = assertThrows(IllegalArgumentException.class,
+                    () -> Senha.fromString("   "));
+
+            assertEquals("Senha não pode ser vazia", exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("deve lançar exceção quando senha é menor que o tamanho mínimo")
+        void shouldThrowWhenSenhaIsShorterThanMinLength() {
+            var exception = assertThrows(IllegalArgumentException.class,
+                    () -> Senha.fromString("Ab1!"));
+
+            assertEquals(
+                    String.format("Senha deve ter no mínimo %d caracteres", Senha.MIN_LENGTH),
+                    exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("deve lançar exceção quando senha é maior que o tamanho máximo")
+        void shouldThrowWhenSenhaIsLongerThanMaxLength() {
+            String largeSenha = "A1!" + "a".repeat(Senha.MAX_LENGTH);
+
+            var exception = assertThrows(IllegalArgumentException.class,
+                    () -> Senha.fromString(largeSenha));
+
+            assertEquals(
+                    String.format("Senha deve ter no máximo %d caracteres", Senha.MAX_LENGTH),
+                    exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("deve lançar exceção quando senha não tem números")
+        void shouldThrowWhenSenhaHasNoNumbers() {
+            var exception = assertThrows(IllegalArgumentException.class,
+                    () -> Senha.fromString("SenhaWithoutNum!"));
+
+            assertEquals(
+                    String.format("Senha deve conter no mínimo %d número(s)", Senha.MIN_NUMBERS),
+                    exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("deve lançar exceção quando senha não tem caracteres especiais")
+        void shouldThrowWhenSenhaHasNoSpecialCharacters() {
+            var exception = assertThrows(IllegalArgumentException.class,
+                    () -> Senha.fromString("SenhaWithout123"));
+
+            assertEquals(
+                    String.format("Senha deve conter no mínimo %d caractere(s) especial(is)", Senha.MIN_SPECIAL_CHARACTERS),
+                    exception.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("equals e hashCode")
+    class EqualsHashCodeTests {
+        @Test
+        @DisplayName("senhas iguais devem ser equals")
+        void equalSenhasShouldBeEquals() {
+            Senha senha1 = Senha.fromString(VALID_SENHA);
+            Senha senha2 = Senha.fromString(VALID_SENHA);
+
+            assertEquals(senha1, senha2);
+            assertEquals(senha1.hashCode(), senha2.hashCode());
+        }
+
+        @Test
+        @DisplayName("senhas diferentes não devem ser equals")
+        void differentSenhasShouldNotBeEquals() {
+            Senha senha1 = Senha.fromString("Senha123!");
+            Senha senha2 = Senha.fromString("OutraSenha456@");
+
+            assertNotEquals(senha1, senha2);
+        }
+
+        @Test
+        @DisplayName("deve igualar a ela mesma")
+        void shouldEqualItself() {
+            Senha senha = Senha.fromString(VALID_SENHA);
+
+            assertEquals(senha, senha);
+        }
     }
 
     @Test
-    @DisplayName("deve retornar true quando senha corresponde")
-    void shouldReturnTrueWhenMatches() {
-        Senha senha = Senha.fromHash("hash123", (raw, hash) -> raw.equals("123456"));
+    @DisplayName("toString não deve expor o valor da senha")
+    void toStringShouldNotExposeSenhaValue() {
+        Senha senha = Senha.fromString(VALID_SENHA);
 
-        assertTrue(senha.matches("123456"));
-    }
-
-    @Test
-    @DisplayName("deve retornar false quando senha não corresponde")
-    void shouldReturnFalseWhenNotMatches() {
-        Senha senha = Senha.fromHash("hash123", (raw, hash) -> raw.equals("123456"));
-
-        assertFalse(senha.matches("wrongPassword"));
-    }
-
-    @Test
-    @DisplayName("deve retornar false quando senha plana é nula")
-    void shouldReturnFalseWhenNull() {
-        Senha senha = Senha.fromHash("hash123", (raw, hash) -> true);
-
-        assertFalse(senha.matches(null));
-    }
-
-    @Test
-    @DisplayName("deve retornar false quando senha plana é vazia")
-    void shouldReturnFalseWhenEmpty() {
-        Senha senha = Senha.fromHash("hash123", (raw, hash) -> true);
-
-        assertFalse(senha.matches(""));
-    }
-
-    @Test
-    @DisplayName("deve rejeitar hash nulo")
-    void shouldRejectNullHash() {
-        assertThrows(IllegalArgumentException.class,
-                () -> Senha.fromHash(null, (raw, hash) -> true));
-    }
-
-    @Test
-    @DisplayName("deve rejeitar hash vazio")
-    void shouldRejectEmptyHash() {
-        assertThrows(IllegalArgumentException.class,
-                () -> Senha.fromHash("", (raw, hash) -> true));
-    }
-
-    @Test
-    @DisplayName("deve rejeitar verificador nulo")
-    void shouldRejectNullVerifier() {
-        assertThrows(NullPointerException.class,
-                () -> Senha.fromHash("hash123", null));
-    }
-
-    @Test
-    @DisplayName("senhas com mesmo hash devem ser equals")
-    void shouldBeEqualWithSameHash() {
-        Senha senha1 = Senha.fromHash("hash123", (r, h) -> true);
-        Senha senha2 = Senha.fromHash("hash123", (r, h) -> false);
-
-        assertEquals(senha1, senha2);
-        assertEquals(senha1.hashCode(), senha2.hashCode());
-    }
-
-    @Test
-    @DisplayName("toString não deve expor o hash")
-    void shouldNotExposeHashOnToString() {
-        Senha senha = Senha.fromHash("hash_secreto", (r, h) -> true);
-
-        assertFalse(senha.toString().contains("hash_secreto"));
+        assertFalse(senha.toString().contains(VALID_SENHA));
         assertTrue(senha.toString().contains("***"));
     }
 }

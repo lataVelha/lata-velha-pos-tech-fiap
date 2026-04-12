@@ -3,12 +3,13 @@ package br.com.lata.velha.application.usecase.auth;
 import br.com.lata.velha.application.dto.request.LoginRequest;
 import br.com.lata.velha.application.dto.response.LoginResponse;
 import br.com.lata.velha.application.port.TokenProvider;
+import br.com.lata.velha.authentication.domain.entities.Role;
+import br.com.lata.velha.authentication.domain.services.PasswordHasher;
+import br.com.lata.velha.authentication.domain.valueObjects.Credential;
 import br.com.lata.velha.domain.exception.InvalidLoginException;
 import br.com.lata.velha.domain.model.Cargo;
 import br.com.lata.velha.domain.model.Funcionario;
-import br.com.lata.velha.domain.model.Role;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
-import br.com.lata.velha.domain.valueObject.Senha;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,9 @@ class LoginUseCaseTest {
     private FuncionarioRepository funcionarioRepository;
 
     @Mock
+    private PasswordHasher passwordHasher;
+
+    @Mock
     private TokenProvider tokenProvider;
 
     @InjectMocks
@@ -38,9 +42,10 @@ class LoginUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        Senha senha = Senha.fromHash("hash", (raw, hash) -> raw.equals("123456"));
-        Cargo cargo = new Cargo(1L, "ADMIN", Set.of(new Role(1L, "ADMIN")));
-        funcionario = new Funcionario(1L, "Admin", "admin", senha, cargo);
+        lenient().when(passwordHasher.match(any(), eq("123456"))).thenReturn(true);
+        Credential credential = Credential.fromHash("hash", passwordHasher);
+        Cargo cargo = new Cargo(1L, "ADMIN", Set.of(Role.create("ADMIN")));
+        funcionario = new Funcionario(1L, "Admin", "admin", credential, cargo);
     }
 
     @Test
@@ -64,7 +69,7 @@ class LoginUseCaseTest {
     @Test
     @DisplayName("deve falhar com senha errada")
     void shouldFailWithWrongPassword() {
-        LoginRequest request = new LoginRequest("admin", "wrongPassword");
+        LoginRequest request = new LoginRequest("admin", "wrongPassword!1");
 
         when(funcionarioRepository.findByUsername("admin")).thenReturn(funcionario);
 
@@ -76,12 +81,12 @@ class LoginUseCaseTest {
     @Test
     @DisplayName("deve gerar scopes com múltiplas roles")
     void shouldGenerateScopesWithMultipleRoles() {
-        Senha senha = Senha.fromHash("hash", (raw, hash) -> raw.equals("123456"));
+        Credential credential = Credential.fromHash("hash", passwordHasher);
         Cargo cargo = new Cargo(1L, "ADMIN", Set.of(
-                new Role(1L, "ADMIN"),
-                new Role(2L, "USER")
+                Role.create("ADMIN"),
+                Role.create("USER")
         ));
-        Funcionario multiRole = new Funcionario(1L, "Admin", "admin", senha, cargo);
+        Funcionario multiRole = new Funcionario(1L, "Admin", "admin", credential, cargo);
         LoginRequest request = new LoginRequest("admin", "123456");
 
         when(funcionarioRepository.findByUsername("admin")).thenReturn(multiRole);
