@@ -33,6 +33,7 @@ public class ServicoOS {
         setValorMaoDeObra(valorMaoDeObra);
         this.status = StatusServico.PENDENTE;
         this.iniciadoEm = LocalDateTime.now();
+        this.atualizadoEm = LocalDateTime.now();
     }
 
     public ServicoOS(Servico servico, BigDecimal valorMaoDeObra) {
