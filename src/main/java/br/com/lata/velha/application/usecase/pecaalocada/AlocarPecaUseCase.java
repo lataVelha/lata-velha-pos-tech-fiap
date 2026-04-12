@@ -43,7 +43,7 @@ public class AlocarPecaUseCase {
         estoque.remover(request.quantidade());
         pecaEstoqueRepository.save(estoque);
 
-        var pecaAlocada = new PecaAlocada(null, peca.getId(), request.servicoOsId(), request.quantidade());
+        var pecaAlocada = new PecaAlocada( peca.getId(), request.servicoOsId(), request.quantidade());
 
         PecaAlocada saved = pecaAlocadaRepository.save(pecaAlocada);
 

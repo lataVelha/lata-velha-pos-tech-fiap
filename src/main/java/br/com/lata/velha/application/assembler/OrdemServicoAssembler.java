@@ -52,7 +52,7 @@ public class OrdemServicoAssembler {
                 veiculoDescricao,
                 domain.getProprietarioId(),
                 proprietarioNome,
-                domain.getMecanicoFinalId(),
+                domain.getMecanicoResponsavelId(),
                 null, // mecanicoNome
                 domain.getStatus() != null ? domain.getStatus().name() : null,
                 domain.getReclamacaoCliente(),

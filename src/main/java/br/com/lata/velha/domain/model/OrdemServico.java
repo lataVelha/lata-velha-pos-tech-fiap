@@ -2,6 +2,7 @@ package br.com.lata.velha.domain.model;
 
 import br.com.lata.velha.domain.enuns.StatusOrdemServico;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,12 +22,11 @@ public class OrdemServico {
     private LocalDateTime atualizadoEm;
 
     private Long atendenteInicioId;
-    private Long mecanicoFinalId;
+    private Long mecanicoResponsavelId;
 
     private List<ServicoOS> servicos = new ArrayList<>();
 
-    public OrdemServico() {
-    }
+    public OrdemServico() {}
 
     public OrdemServico(Long id,
                         Long proprietarioId,
@@ -39,132 +39,138 @@ public class OrdemServico {
         setVeiculoId(veiculoId);
         setReclamacaoCliente(reclamacaoCliente);
         setAtendenteInicioId(atendenteInicioId);
+
         this.status = StatusOrdemServico.RECEBIDA;
         this.iniciadoEm = LocalDateTime.now();
+        this.atualizadoEm = LocalDateTime.now();
     }
+
+    /* ================== FLUXO ================== */
 
     public void iniciarDiagnostico(Long mecanicoId) {
-        if (this.status != StatusOrdemServico.RECEBIDA) {
-            throw new IllegalStateException("Ordem não pode ser iniciada");
-        }
-        this.mecanicoFinalId = mecanicoId;
+        validarStatus(StatusOrdemServico.RECEBIDA);
+
+        this.mecanicoResponsavelId = mecanicoId;
         this.status = StatusOrdemServico.EM_DIAGNOSTICO;
-        this.atualizadoEm = LocalDateTime.now();
+        touch();
     }
 
-    public void fimDignostico(Long mecanicoId) {
-        if (this.status != StatusOrdemServico.EM_DIAGNOSTICO) {
-            throw new IllegalStateException("O Diagnostico não pode ser finalizado");
-        }
-        this.mecanicoFinalId = mecanicoId;
+    public void finalizarDiagnostico(Long mecanicoId) {
+        validarStatus(StatusOrdemServico.EM_DIAGNOSTICO);
+
+        this.mecanicoResponsavelId = mecanicoId;
         this.status = StatusOrdemServico.AGUARDANDO_APROVACAO;
-        this.atualizadoEm = LocalDateTime.now();
+        touch();
     }
 
-    public void aprovar(Long atendenteInicioId) {
+    public void aprovar(Long atendenteId) {
+        validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
 
-        if (this.status != StatusOrdemServico.AGUARDANDO_APROVACAO) {
-            throw new IllegalStateException("Ordem não está aprovada");
-        }
-
-        this.atendenteInicioId = atendenteInicioId;
+        this.atendenteInicioId = atendenteId;
         this.status = StatusOrdemServico.EM_EXECUCAO;
-        this.atualizadoEm = LocalDateTime.now();
-
+        touch();
     }
 
-    public void reprovar(Long atendenteInicioId) {
+    public void reprovar(Long atendenteId) {
+        validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
 
-        if (this.status != StatusOrdemServico.AGUARDANDO_APROVACAO) {
-            throw new IllegalStateException("Ordem não está aprovada");
-        }
-
-        this.atendenteInicioId = atendenteInicioId;
+        this.atendenteInicioId = atendenteId;
         this.status = StatusOrdemServico.FINALIZADA;
         this.finalizadoEm = LocalDateTime.now();
-
+        touch();
     }
-
 
     public void finalizar(Long mecanicoId) {
-        if (this.status != StatusOrdemServico.EM_EXECUCAO) {
-            throw new IllegalStateException("Ordem não está em andamento");
+        validarStatus(StatusOrdemServico.EM_EXECUCAO);
+
+        boolean possuiServicoNaoFinalizado = servicos.stream()
+                .anyMatch(s -> !s.isFinalizado());
+
+        if (possuiServicoNaoFinalizado) {
+            throw new IllegalStateException(
+                    "Existem serviços não finalizados"
+            );
         }
 
-        this.mecanicoFinalId = mecanicoId;
+        this.mecanicoResponsavelId = mecanicoId;
         this.status = StatusOrdemServico.FINALIZADA;
         this.finalizadoEm = LocalDateTime.now();
-        this.atualizadoEm = LocalDateTime.now();
+        touch();
     }
 
     public void entregar() {
-        if (this.status != StatusOrdemServico.FINALIZADA) {
-            throw new IllegalStateException("Ordem deve estar finalizada");
-        }
+        validarStatus(StatusOrdemServico.FINALIZADA);
 
         this.status = StatusOrdemServico.ENTREGUE;
         this.entregueEm = LocalDateTime.now();
-        this.atualizadoEm = LocalDateTime.now();
+        touch();
     }
 
+    /* ================== SERVIÇOS ================== */
+
     public void adicionarServico(ServicoOS servico) {
-        if (servico == null) {
-            throw new IllegalArgumentException("Serviço não pode ser nulo");
+
+        if (servico == null)
+            throw new IllegalArgumentException("Serviço inválido");
+
+        if (status == StatusOrdemServico.FINALIZADA ||
+                status == StatusOrdemServico.ENTREGUE) {
+            throw new IllegalStateException(
+                    "Não é possível adicionar serviço"
+            );
+        }
+
+        boolean jaExiste = servicos.stream()
+                .anyMatch(s -> s.getServico().getId()
+                        .equals(servico.getServico().getId()));
+
+        if (jaExiste) {
+            throw new IllegalStateException(
+                    "Serviço já adicionado"
+            );
         }
 
         servicos.add(servico);
-        atualizadoEm = LocalDateTime.now();
+        touch();
     }
 
-    public double calcularValorTotal() {
+    public BigDecimal calcularValorTotal() {
         return servicos.stream()
-                .mapToDouble(ServicoOS::calcularTotal)
-                .sum();
+                .map(ServicoOS::calcularTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public Long getId() {
-        return id;
+    /* ================== HELPERS ================== */
+
+    private void validarStatus(StatusOrdemServico esperado) {
+        if (this.status != esperado) {
+            throw new IllegalStateException(
+                    "Status inválido. Atual: " + status +
+                            " esperado: " + esperado
+            );
+        }
     }
 
-    public Long getProprietarioId() {
-        return proprietarioId;
+    private void touch() {
+        this.atualizadoEm = LocalDateTime.now();
     }
 
-    public Long getVeiculoId() {
-        return veiculoId;
-    }
+    /* ================== GETTERS ================== */
 
-    public String getReclamacaoCliente() {
-        return reclamacaoCliente;
-    }
+    public Long getId() { return id; }
+    public Long getProprietarioId() { return proprietarioId; }
+    public Long getVeiculoId() { return veiculoId; }
+    public String getReclamacaoCliente() { return reclamacaoCliente; }
+    public StatusOrdemServico getStatus() { return status; }
+    public LocalDateTime getIniciadoEm() { return iniciadoEm; }
+    public LocalDateTime getFinalizadoEm() { return finalizadoEm; }
+    public LocalDateTime getEntregueEm() { return entregueEm; }
+    public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
+    public Long getAtendenteInicioId() { return atendenteInicioId; }
+    public Long getMecanicoResponsavelId() { return mecanicoResponsavelId; }
+    public List<ServicoOS> getServicos() { return servicos; }
 
-    public StatusOrdemServico getStatus() {
-        return status;
-    }
-
-    public LocalDateTime getIniciadoEm() {
-        return iniciadoEm;
-    }
-
-    public LocalDateTime getFinalizadoEm() {
-        return finalizadoEm;
-    }
-
-    public LocalDateTime getEntregueEm() {
-        return entregueEm;
-    }
-
-    public LocalDateTime getAtualizadoEm() {
-        return atualizadoEm;
-    }
-
-    public Long getAtendenteInicioId() {
-        return atendenteInicioId;
-    }
-
-    public Long getMecanicoFinalId() {
-        return mecanicoFinalId;
-    }
+    /* ================== SETTERS CONTROLADOS ================== */
 
     public void setProprietarioId(Long proprietarioId) {
         if (proprietarioId == null)
@@ -190,9 +196,7 @@ public class OrdemServico {
         this.atendenteInicioId = atendenteInicioId;
     }
 
-    public List<ServicoOS> getServicos() {
-        return servicos;
-    }
+    /* ================== OBJECT ================== */
 
     @Override
     public String toString() {
@@ -214,6 +218,4 @@ public class OrdemServico {
     public int hashCode() {
         return Objects.hash(id);
     }
-
-
 }

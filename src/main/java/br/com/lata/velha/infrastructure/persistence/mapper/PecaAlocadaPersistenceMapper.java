@@ -19,7 +19,11 @@ public class PecaAlocadaPersistenceMapper {
                 entity.getId(),
                 pecaId,
                 servicoOsId,
-                entity.getQuantidadeAlocada()
+                entity.getQuantidadeSolicitada(),
+                entity.getQuantidadeReservada(),
+                entity.getQuantidadeEncomendada(),
+                entity.getStatus(),
+                entity.getAtualizado()
         );
     }
 
@@ -27,8 +31,13 @@ public class PecaAlocadaPersistenceMapper {
         if (model == null) return null;
 
         var entity = new PecaAlocadaEntity();
+
         entity.setId(model.getId());
-        entity.setQuantidadeAlocada(model.getQuantidadeAlocada());
+        entity.setQuantidadeSolicitada(model.getQuantidadeSolicitada());
+        entity.setQuantidadeReservada(model.getQuantidadeReservada());
+        entity.setQuantidadeEncomendada(model.getQuantidadeEncomendada());
+        entity.setStatus(model.getStatus());
+        entity.setAtualizado(model.getAtualizado());
 
         if (model.getPecaId() != null) {
             PecaEntity peca = new PecaEntity();

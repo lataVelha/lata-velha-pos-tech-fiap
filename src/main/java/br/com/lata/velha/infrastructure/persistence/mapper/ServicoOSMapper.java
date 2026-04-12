@@ -36,7 +36,7 @@ public class ServicoOSMapper {
 
         if (entity.getStatusServico() != null) {
             domain.setStatus(
-                    StatusServico.valueOf(entity.getStatusServico())
+                    entity.getStatusServico()
             );
         }
 
@@ -60,7 +60,7 @@ public class ServicoOSMapper {
         entity.setValorMaoDeObra(domain.getValorMaoDeObra());
 
         if (domain.getStatus() != null) {
-            entity.setStatusServico(domain.getStatus().name());
+            entity.setStatusServico(domain.getStatus());
         }
 
         entity.setMecanicoResponsavelId(domain.getMecanicoResponsavelId());
