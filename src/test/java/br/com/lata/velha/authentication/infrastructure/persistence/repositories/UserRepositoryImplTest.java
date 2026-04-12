@@ -79,15 +79,15 @@ class UserRepositoryImplTest {
     }
 
     @Nested
-    @DisplayName("getByUsername")
+    @DisplayName("getByUsernameWithRoles")
     class GetByUsername {
 
         @Test
         @DisplayName("deve retornar User quando username existe")
         void shouldReturnUserByUsername() {
-            when(jpaRepository.findByUsername("joao")).thenReturn(Optional.of(userEntity));
+            when(jpaRepository.findByUsernameWithRoles("joao")).thenReturn(Optional.of(userEntity));
 
-            User result = repository.getByUsername("joao");
+            User result = repository.getByUsernameWithRoles("joao");
 
             assertNotNull(result);
             assertEquals("joao", result.getUsername());
@@ -96,9 +96,9 @@ class UserRepositoryImplTest {
         @Test
         @DisplayName("deve lançar UserNotFoundException quando username não existe")
         void shouldThrowWhenUsernameNotFound() {
-            when(jpaRepository.findByUsername("inexistente")).thenReturn(Optional.empty());
+            when(jpaRepository.findByUsernameWithRoles("inexistente")).thenReturn(Optional.empty());
 
-            assertThrows(UserNotFoundException.class, () -> repository.getByUsername("inexistente"));
+            assertThrows(UserNotFoundException.class, () -> repository.getByUsernameWithRoles("inexistente"));
         }
     }
 

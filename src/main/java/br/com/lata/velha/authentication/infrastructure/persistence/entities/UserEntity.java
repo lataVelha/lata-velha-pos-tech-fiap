@@ -35,7 +35,7 @@ public class UserEntity {
     @Column(name = "CREDENTIAL", nullable = false)
     private String credential;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "USER_ROLES",
             joinColumns = @JoinColumn(name = "USER_ID"),

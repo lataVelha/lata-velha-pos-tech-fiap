@@ -25,8 +25,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User getByUsername(String username) {
-        return jpaRepository.findByUsername(username)
+    public User getByUsernameWithRoles(String username) {
+        return jpaRepository.findByUsernameWithRoles(username)
                 .orElseThrow(() -> UserNotFoundException.fromUsername(username))
                 .toDomain(passwordHasher);
     }

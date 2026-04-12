@@ -16,7 +16,7 @@ public class LoginUseCase {
     private final TokenProvider tokenProvider;
 
     public Output execute(Input input) {
-        var user = userRepository.getByUsername(input.username());
+        var user = userRepository.getByUsernameWithRoles(input.username());
         user.login(input.senha);
 
         String scopes = user.getRoles()

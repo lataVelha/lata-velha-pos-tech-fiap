@@ -6,8 +6,9 @@ import br.com.lata.velha.shared.domain.valueObjects.UserId;
 
 public interface UserRepository {
     User getById(UserId id);
-    User getByUsername(String username);
+    User getByUsernameWithRoles(String username);
     boolean existsByEmail(Email email);
     boolean isAtivoById(UserId id);
     User save(User user);
+
 }

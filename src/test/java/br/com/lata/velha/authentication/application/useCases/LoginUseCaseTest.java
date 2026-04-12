@@ -55,7 +55,7 @@ class LoginUseCaseTest {
     void shouldLoginSuccessfully() {
         LoginUseCase.Input input = new LoginUseCase.Input("admin", "123456");
 
-        when(userRepository.getByUsername("admin")).thenReturn(user);
+        when(userRepository.getByUsernameWithRoles("admin")).thenReturn(user);
         when(tokenProvider.generate(userId, "ADMIN")).thenReturn("jwt-token");
         when(tokenProvider.getExpiresIn()).thenReturn(3600L);
 
@@ -64,7 +64,7 @@ class LoginUseCaseTest {
         assertNotNull(result);
         assertEquals("jwt-token", result.token());
         assertEquals(3600L, result.expiresIn());
-        verify(userRepository).getByUsername("admin");
+        verify(userRepository).getByUsernameWithRoles("admin");
         verify(tokenProvider).generate(userId, "ADMIN");
     }
 
@@ -73,10 +73,10 @@ class LoginUseCaseTest {
     void shouldFailWithWrongPassword() {
         LoginUseCase.Input input = new LoginUseCase.Input("admin", "wrongPassword!1");
 
-        when(userRepository.getByUsername("admin")).thenReturn(user);
+        when(userRepository.getByUsernameWithRoles("admin")).thenReturn(user);
 
         assertThrows(InvalidLoginException.class, () -> useCase.execute(input));
-        verify(userRepository).getByUsername("admin");
+        verify(userRepository).getByUsernameWithRoles("admin");
         verify(tokenProvider, never()).generate(any(), any());
     }
 
@@ -88,7 +88,7 @@ class LoginUseCaseTest {
                 Set.of(Role.create("ADMIN")), false, LocalDateTime.now(), null);
         LoginUseCase.Input input = new LoginUseCase.Input("admin", "123456");
 
-        when(userRepository.getByUsername("admin")).thenReturn(inactiveUser);
+        when(userRepository.getByUsernameWithRoles("admin")).thenReturn(inactiveUser);
 
         assertThrows(InvalidLoginException.class, () -> useCase.execute(input));
         verify(tokenProvider, never()).generate(any(), any());
@@ -104,7 +104,7 @@ class LoginUseCaseTest {
         ), true, LocalDateTime.now(), null);
         LoginUseCase.Input input = new LoginUseCase.Input("admin", "123456");
 
-        when(userRepository.getByUsername("admin")).thenReturn(multiRoleUser);
+        when(userRepository.getByUsernameWithRoles("admin")).thenReturn(multiRoleUser);
         when(tokenProvider.generate(eq(userId), anyString())).thenReturn("jwt-token");
         when(tokenProvider.getExpiresIn()).thenReturn(3600L);
 
