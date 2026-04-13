@@ -1,6 +1,5 @@
 package br.com.lata.velha.authentication.application.useCases;
 
-import br.com.lata.velha.application.dto.request.LoginRequest;
 import br.com.lata.velha.authentication.application.security.TokenProvider;
 import br.com.lata.velha.authentication.domain.entities.Role;
 import br.com.lata.velha.authentication.domain.repositories.UserRepository;
@@ -29,11 +28,6 @@ public class LoginUseCase {
         return new Output(token, tokenProvider.getExpiresIn());
     }
 
-    public record Input(String username, String senha) {
-        public static Input fromRequest(LoginRequest request) {
-            return new Input(request.username(), request.password());
-        }
-    }
-
-    public record Output(String token, Long expiresIn){}
+    public record Input(String username, String senha) {}
+    public record Output(String token, Long expiresIn) {}
 }

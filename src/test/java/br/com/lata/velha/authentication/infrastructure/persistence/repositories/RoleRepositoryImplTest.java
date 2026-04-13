@@ -3,7 +3,7 @@ package br.com.lata.velha.authentication.infrastructure.persistence.repositories
 import br.com.lata.velha.authentication.domain.entities.Role;
 import br.com.lata.velha.authentication.domain.exceptions.notFoundExceptions.RoleNotFoundException;
 import br.com.lata.velha.authentication.infrastructure.persistence.jpa.RoleJpaRepository;
-import br.com.lata.velha.infrastructure.persistence.entity.RoleEntity;
+import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

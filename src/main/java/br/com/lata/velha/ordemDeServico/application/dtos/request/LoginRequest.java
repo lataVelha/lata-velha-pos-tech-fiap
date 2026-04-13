@@ -1,0 +1,10 @@
+package br.com.lata.velha.ordemDeServico.application.dtos.request;
+
+
+import br.com.lata.velha.authentication.application.useCases.LoginUseCase;
+
+public record LoginRequest (String username, String password){
+    public LoginUseCase.Input toLoginInput() {
+        return new LoginUseCase.Input(username, password);
+    }
+}

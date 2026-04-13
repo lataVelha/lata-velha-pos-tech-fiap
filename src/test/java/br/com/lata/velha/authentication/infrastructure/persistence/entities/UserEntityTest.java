@@ -5,7 +5,6 @@ import br.com.lata.velha.authentication.domain.entities.User;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import br.com.lata.velha.authentication.domain.valueObjects.Credential;
 import br.com.lata.velha.authentication.domain.valueObjects.Senha;
-import br.com.lata.velha.infrastructure.persistence.entity.RoleEntity;
 import br.com.lata.velha.shared.domain.valueObjects.Email;
 import br.com.lata.velha.shared.domain.valueObjects.RoleId;
 import br.com.lata.velha.shared.domain.valueObjects.UserId;

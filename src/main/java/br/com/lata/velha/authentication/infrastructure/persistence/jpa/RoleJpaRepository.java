@@ -1,6 +1,6 @@
 package br.com.lata.velha.authentication.infrastructure.persistence.jpa;
 
-import br.com.lata.velha.infrastructure.persistence.entity.RoleEntity;
+import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
