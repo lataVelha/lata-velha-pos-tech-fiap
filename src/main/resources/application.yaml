@@ -1,6 +1,8 @@
 spring:
   application:
     name: Lata-Velha
+  profiles:
+    active: ${ENVIRONMENT:}
 
   datasource:
     url: jdbc:postgresql://localhost:5432/lata_velha
