@@ -1,4 +1,4 @@
-package br.com.lata.velha.api.handlers;
+package br.com.lata.velha.shared.api.handlers;
 
 import br.com.lata.velha.shared.domain.exceptions.DomainException;
 import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;

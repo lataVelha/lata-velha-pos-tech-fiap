@@ -1,4 +1,4 @@
-package br.com.lata.velha.api.controllers;
+package br.com.lata.velha.ordemDeServico.api.controllers;
 
 import br.com.lata.velha.ordemDeServico.application.dtos.request.AddServicoOsRequest;
 import br.com.lata.velha.ordemDeServico.application.dtos.request.AprovarOrdemSevicoRequest;

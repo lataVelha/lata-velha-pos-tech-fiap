@@ -1,7 +1,7 @@
-package br.com.lata.velha.api.controllers;
+package br.com.lata.velha.authentication.api.controllers;
 
-import br.com.lata.velha.ordemDeServico.application.dtos.request.LoginRequest;
-import br.com.lata.velha.ordemDeServico.application.dtos.response.LoginResponse;
+import br.com.lata.velha.authentication.api.dtos.requests.LoginRequest;
+import br.com.lata.velha.authentication.api.dtos.response.LoginResponse;
 import br.com.lata.velha.authentication.application.useCases.LoginUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

@@ -1,4 +1,4 @@
-package br.com.lata.velha.ordemDeServico.application.dtos.response;
+package br.com.lata.velha.authentication.api.dtos.response;
 
 import br.com.lata.velha.authentication.application.useCases.LoginUseCase;
 
