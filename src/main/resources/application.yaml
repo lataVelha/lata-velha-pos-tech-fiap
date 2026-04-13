@@ -35,7 +35,7 @@ jwt:
   private:
     key: classpath:app.key
     jwt:
-  issuer: mybackend
+  issuer: lata-velha
   expires-in: 3600
 
 springdoc:
