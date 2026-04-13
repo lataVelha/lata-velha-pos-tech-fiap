@@ -1,6 +1,6 @@
 package br.com.lata.velha.application.usecase.veiculo;
 
-import br.com.lata.velha.domain.model.Veiculo;
+import br.com.lata.velha.domain.entities.Veiculo;
 import br.com.lata.velha.domain.repository.VeiculoRepository;
 import br.com.lata.velha.domain.valueObject.Placa;
 import org.junit.jupiter.api.DisplayName;

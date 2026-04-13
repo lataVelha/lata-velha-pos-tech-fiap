@@ -2,7 +2,6 @@ package br.com.lata.velha.application.usecase.ordemservico;
 
 import br.com.lata.velha.application.assembler.OrdemServicoAssembler;
 import br.com.lata.velha.application.dto.response.OrdemServicoResponse;
-import br.com.lata.velha.domain.model.OrdemServico;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
 import br.com.lata.velha.domain.repository.OrdemServicoRepository;
 import lombok.RequiredArgsConstructor;

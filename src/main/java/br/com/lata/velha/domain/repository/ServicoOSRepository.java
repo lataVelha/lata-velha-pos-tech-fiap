@@ -1,6 +1,6 @@
 package br.com.lata.velha.domain.repository;
 
-import br.com.lata.velha.domain.model.ServicoOS;
+import br.com.lata.velha.domain.entities.ServicoOS;
 
 public interface ServicoOSRepository {
 

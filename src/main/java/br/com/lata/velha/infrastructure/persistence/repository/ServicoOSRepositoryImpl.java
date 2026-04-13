@@ -1,7 +1,7 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.exception.notFoundExceptions.ServicoOsNotFoundException;
-import br.com.lata.velha.domain.model.ServicoOS;
+import br.com.lata.velha.domain.entities.ServicoOS;
 import br.com.lata.velha.domain.repository.ServicoOSRepository;
 import br.com.lata.velha.infrastructure.persistence.mapper.ServicoOSMapper;
 import lombok.RequiredArgsConstructor;

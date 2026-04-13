@@ -1,7 +1,7 @@
 package br.com.lata.velha.authentication.domain.exceptions;
 
 import br.com.lata.velha.shared.domain.exceptions.DomainException;
-import br.com.lata.velha.domain.model.Funcionario;
+import br.com.lata.velha.domain.entities.Funcionario;
 
 public class InactiveUserException extends DomainException {
     private InactiveUserException(String message) {

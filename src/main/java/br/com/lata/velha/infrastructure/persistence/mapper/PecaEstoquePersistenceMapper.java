@@ -1,6 +1,6 @@
 package br.com.lata.velha.infrastructure.persistence.mapper;
 
-import br.com.lata.velha.domain.model.PecaEstoque;
+import br.com.lata.velha.domain.entities.PecaEstoque;
 import br.com.lata.velha.infrastructure.persistence.entity.PecaEstoqueEntity;
 import org.springframework.stereotype.Component;
 

@@ -1,6 +1,6 @@
 package br.com.lata.velha.domain.exception.notFoundExceptions;
 
-import br.com.lata.velha.domain.model.Funcionario;
+import br.com.lata.velha.domain.entities.Funcionario;
 import br.com.lata.velha.shared.domain.exceptions.NotFoundException;
 
 public class FuncionarioNotFoundException extends NotFoundException {

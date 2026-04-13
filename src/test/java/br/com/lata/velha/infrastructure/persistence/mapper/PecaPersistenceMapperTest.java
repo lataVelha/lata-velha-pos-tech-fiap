@@ -1,6 +1,6 @@
 package br.com.lata.velha.infrastructure.persistence.mapper;
 
-import br.com.lata.velha.domain.model.Peca;
+import br.com.lata.velha.domain.entities.Peca;
 import br.com.lata.velha.infrastructure.persistence.entity.PecaEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

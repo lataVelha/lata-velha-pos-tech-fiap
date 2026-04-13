@@ -1,7 +1,7 @@
 package br.com.lata.velha.application.assembler;
 
 import br.com.lata.velha.application.dto.response.PecaAlocadaResponse;
-import br.com.lata.velha.domain.model.PecaAlocada;
+import br.com.lata.velha.domain.entities.PecaAlocada;
 
 public class PecaAlocadaAssembler {
 

@@ -4,7 +4,7 @@ import br.com.lata.velha.application.assembler.PaginatedAssembler;
 import br.com.lata.velha.application.assembler.PecaAssembler;
 import br.com.lata.velha.application.dto.response.PecaResponse;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
-import br.com.lata.velha.domain.model.Peca;
+import br.com.lata.velha.domain.entities.Peca;
 import br.com.lata.velha.domain.repository.PecaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

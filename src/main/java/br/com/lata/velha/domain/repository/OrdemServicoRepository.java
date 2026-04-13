@@ -1,6 +1,6 @@
 package br.com.lata.velha.domain.repository;
 
-import br.com.lata.velha.domain.model.OrdemServico;
+import br.com.lata.velha.domain.entities.OrdemServico;
 import br.com.lata.velha.infrastructure.repository.projection.OrdemServicoProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,7 +1,7 @@
 package br.com.lata.velha.application.usecase.funcionario;
 
-import br.com.lata.velha.domain.model.Cargo;
-import br.com.lata.velha.domain.model.Funcionario;
+import br.com.lata.velha.domain.entities.Cargo;
+import br.com.lata.velha.domain.entities.Funcionario;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
 import br.com.lata.velha.shared.domain.valueObjects.UserId;
 import org.junit.jupiter.api.DisplayName;

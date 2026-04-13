@@ -1,4 +1,4 @@
-package br.com.lata.velha.domain.model;
+package br.com.lata.velha.domain.entities;
 
 import br.com.lata.velha.shared.domain.valueObjects.UserId;
 import org.junit.jupiter.api.BeforeEach;

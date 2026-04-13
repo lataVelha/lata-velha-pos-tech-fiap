@@ -2,7 +2,7 @@ package br.com.lata.velha.application.usecase.proprietario;
 
 import br.com.lata.velha.application.port.EmailProvider;
 import br.com.lata.velha.application.port.EmailTemplateProvider;
-import br.com.lata.velha.domain.model.Proprietario;
+import br.com.lata.velha.domain.entities.Proprietario;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

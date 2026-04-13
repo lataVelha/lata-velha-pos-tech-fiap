@@ -1,6 +1,6 @@
 package br.com.lata.velha.infrastructure.persistence.mapper;
 
-import br.com.lata.velha.domain.model.PecaAlocada;
+import br.com.lata.velha.domain.entities.PecaAlocada;
 import br.com.lata.velha.infrastructure.persistence.entity.PecaAlocadaEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.PecaEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.ServicoOSEntity;

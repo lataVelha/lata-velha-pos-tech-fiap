@@ -1,6 +1,6 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
-import br.com.lata.velha.domain.model.PecaEstoque;
+import br.com.lata.velha.domain.entities.PecaEstoque;
 import br.com.lata.velha.domain.repository.PecaEstoqueRepository;
 import br.com.lata.velha.infrastructure.persistence.mapper.PecaEstoquePersistenceMapper;
 import lombok.RequiredArgsConstructor;

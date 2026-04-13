@@ -2,11 +2,11 @@ package br.com.lata.velha.application.usecase.pecaalocada;
 
 import br.com.lata.velha.application.dto.request.AlocarPecaRequest;
 import br.com.lata.velha.application.dto.response.PecaAlocadaResponse;
-import br.com.lata.velha.domain.model.Peca;
-import br.com.lata.velha.domain.model.PecaAlocada;
-import br.com.lata.velha.domain.model.PecaEstoque;
-import br.com.lata.velha.domain.model.Servico;
-import br.com.lata.velha.domain.model.ServicoOS;
+import br.com.lata.velha.domain.entities.Peca;
+import br.com.lata.velha.domain.entities.PecaAlocada;
+import br.com.lata.velha.domain.entities.PecaEstoque;
+import br.com.lata.velha.domain.entities.Servico;
+import br.com.lata.velha.domain.entities.ServicoOS;
 import br.com.lata.velha.domain.repository.PecaAlocadaRepository;
 import br.com.lata.velha.domain.repository.PecaEstoqueRepository;
 import br.com.lata.velha.domain.repository.PecaRepository;

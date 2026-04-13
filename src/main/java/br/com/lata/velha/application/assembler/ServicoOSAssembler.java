@@ -2,8 +2,8 @@ package br.com.lata.velha.application.assembler;
 
 import br.com.lata.velha.application.dto.request.ServicoOSRequest;
 import br.com.lata.velha.application.dto.response.ServicoOSResponse;
-import br.com.lata.velha.domain.model.Servico;
-import br.com.lata.velha.domain.model.ServicoOS;
+import br.com.lata.velha.domain.entities.Servico;
+import br.com.lata.velha.domain.entities.ServicoOS;
 
 public class ServicoOSAssembler {
 

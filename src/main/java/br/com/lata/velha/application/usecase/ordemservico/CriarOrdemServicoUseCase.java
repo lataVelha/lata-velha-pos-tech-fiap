@@ -5,7 +5,7 @@ import br.com.lata.velha.application.dto.request.OrdemServicoRequest;
 import br.com.lata.velha.application.dto.response.OrdemServicoResponse;
 import br.com.lata.velha.application.usecase.proprietario.BuscarProprietarioPorIdUseCase;
 import br.com.lata.velha.application.usecase.veiculo.BuscarVeiculoPorIdUseCase;
-import br.com.lata.velha.domain.model.OrdemServico;
+import br.com.lata.velha.domain.entities.OrdemServico;
 import br.com.lata.velha.domain.repository.OrdemServicoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

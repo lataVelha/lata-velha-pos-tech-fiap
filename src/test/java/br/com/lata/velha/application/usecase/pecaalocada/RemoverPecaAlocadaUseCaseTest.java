@@ -1,7 +1,7 @@
 package br.com.lata.velha.application.usecase.pecaalocada;
 
-import br.com.lata.velha.domain.model.PecaAlocada;
-import br.com.lata.velha.domain.model.PecaEstoque;
+import br.com.lata.velha.domain.entities.PecaAlocada;
+import br.com.lata.velha.domain.entities.PecaEstoque;
 import br.com.lata.velha.domain.repository.PecaAlocadaRepository;
 import br.com.lata.velha.domain.repository.PecaEstoqueRepository;
 import org.junit.jupiter.api.Test;

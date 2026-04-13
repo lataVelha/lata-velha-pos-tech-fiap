@@ -6,8 +6,8 @@ import br.com.lata.velha.application.usecase.proprietario.BuscarProprietarioPorI
 import br.com.lata.velha.domain.enuns.StatusOrdemServico;
 import br.com.lata.velha.domain.enuns.StatusServico;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
-import br.com.lata.velha.domain.model.OrdemServico;
-import br.com.lata.velha.domain.model.ServicoOS;
+import br.com.lata.velha.domain.entities.OrdemServico;
+import br.com.lata.velha.domain.entities.ServicoOS;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
 import br.com.lata.velha.domain.repository.OrdemServicoRepository;
 import lombok.RequiredArgsConstructor;

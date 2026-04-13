@@ -2,7 +2,7 @@ package br.com.lata.velha.application.usecase.peca;
 
 import br.com.lata.velha.application.assembler.PecaAssembler;
 import br.com.lata.velha.application.dto.response.PecaResponse;
-import br.com.lata.velha.domain.model.Peca;
+import br.com.lata.velha.domain.entities.Peca;
 import br.com.lata.velha.domain.repository.PecaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

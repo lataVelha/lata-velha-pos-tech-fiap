@@ -1,7 +1,7 @@
 package br.com.lata.velha.application.assembler;
 
 import br.com.lata.velha.application.dto.response.PecaEstoqueResponse;
-import br.com.lata.velha.domain.model.PecaEstoque;
+import br.com.lata.velha.domain.entities.PecaEstoque;
 import org.springframework.stereotype.Component;
 
 @Component

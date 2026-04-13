@@ -3,9 +3,8 @@ package br.com.lata.velha.infrastructure.persistence.mapper;
 
 import org.springframework.stereotype.Component;
 
-import br.com.lata.velha.domain.enuns.StatusServico;
-import br.com.lata.velha.domain.model.Servico;
-import br.com.lata.velha.domain.model.ServicoOS;
+import br.com.lata.velha.domain.entities.Servico;
+import br.com.lata.velha.domain.entities.ServicoOS;
 import br.com.lata.velha.infrastructure.persistence.entity.ServicoEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.ServicoOSEntity;
 

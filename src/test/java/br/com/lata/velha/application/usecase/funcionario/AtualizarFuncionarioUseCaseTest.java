@@ -2,8 +2,8 @@ package br.com.lata.velha.application.usecase.funcionario;
 
 import br.com.lata.velha.application.dto.request.AtualizarFuncionarioRequest;
 import br.com.lata.velha.authentication.domain.repositories.UserRepository;
-import br.com.lata.velha.domain.model.Cargo;
-import br.com.lata.velha.domain.model.Funcionario;
+import br.com.lata.velha.domain.entities.Cargo;
+import br.com.lata.velha.domain.entities.Funcionario;
 import br.com.lata.velha.domain.repository.CargoRepository;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
 import br.com.lata.velha.shared.domain.valueObjects.UserId;

@@ -3,7 +3,7 @@ package br.com.lata.velha.application.usecase.pecaestoque;
 import br.com.lata.velha.application.assembler.PecaEstoqueAssembler;
 import br.com.lata.velha.application.dto.request.AjustarPecaEstoqueRequest;
 import br.com.lata.velha.application.dto.response.PecaEstoqueResponse;
-import br.com.lata.velha.domain.model.PecaEstoque;
+import br.com.lata.velha.domain.entities.PecaEstoque;
 import br.com.lata.velha.domain.repository.PecaEstoqueRepository;
 import br.com.lata.velha.domain.repository.PecaRepository;
 import lombok.RequiredArgsConstructor;

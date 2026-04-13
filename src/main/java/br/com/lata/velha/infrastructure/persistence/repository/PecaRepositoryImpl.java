@@ -1,7 +1,7 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
-import br.com.lata.velha.domain.model.Peca;
+import br.com.lata.velha.domain.entities.Peca;
 import br.com.lata.velha.domain.repository.PecaRepository;
 import br.com.lata.velha.infrastructure.persistence.mapper.PecaPersistenceMapper;
 import lombok.RequiredArgsConstructor;

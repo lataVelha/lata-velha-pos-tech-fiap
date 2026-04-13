@@ -3,7 +3,7 @@ package br.com.lata.velha.infrastructure.persistence.repository;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.domain.exception.notFoundExceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
-import br.com.lata.velha.domain.model.Proprietario;
+import br.com.lata.velha.domain.entities.Proprietario;
 import br.com.lata.velha.domain.valueObject.Documento;
 import br.com.lata.velha.domain.valueObject.Endereco;
 import br.com.lata.velha.domain.valueObject.NumeroCelular;

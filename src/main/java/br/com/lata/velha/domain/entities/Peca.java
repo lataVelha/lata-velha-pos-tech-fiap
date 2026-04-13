@@ -1,4 +1,4 @@
-package br.com.lata.velha.domain.model;
+package br.com.lata.velha.domain.entities;
 
 import java.math.BigDecimal;
 import java.util.Objects;

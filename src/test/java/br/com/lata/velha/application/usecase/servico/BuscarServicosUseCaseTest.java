@@ -4,7 +4,7 @@ import br.com.lata.velha.application.assembler.PaginatedAssembler;
 import br.com.lata.velha.application.assembler.ServicoAssembler;
 import br.com.lata.velha.application.dto.response.ServicoResponse;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
-import br.com.lata.velha.domain.model.Servico;
+import br.com.lata.velha.domain.entities.Servico;
 import br.com.lata.velha.domain.repository.ServicoRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

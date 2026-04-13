@@ -1,7 +1,7 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.exception.notFoundExceptions.OrdemServicoNotFoundException;
-import br.com.lata.velha.domain.model.OrdemServico;
+import br.com.lata.velha.domain.entities.OrdemServico;
 import br.com.lata.velha.domain.repository.OrdemServicoRepository;
 import br.com.lata.velha.infrastructure.persistence.mapper.OrdemServicoMapper;
 import br.com.lata.velha.infrastructure.repository.projection.OrdemServicoProjection;

@@ -1,8 +1,8 @@
 package br.com.lata.velha.application.usecase.pecaalocada;
 
 import br.com.lata.velha.application.dto.response.PecaAlocadaResponse;
-import br.com.lata.velha.domain.model.Peca;
-import br.com.lata.velha.domain.model.PecaAlocada;
+import br.com.lata.velha.domain.entities.Peca;
+import br.com.lata.velha.domain.entities.PecaAlocada;
 import br.com.lata.velha.domain.repository.PecaAlocadaRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,4 +1,4 @@
-package br.com.lata.velha.domain.model;
+package br.com.lata.velha.domain.entities;
 
 import org.junit.jupiter.api.Test;
 

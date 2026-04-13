@@ -1,6 +1,6 @@
 package br.com.lata.velha.domain.repository;
 
-import br.com.lata.velha.domain.model.PecaEstoque;
+import br.com.lata.velha.domain.entities.PecaEstoque;
 
 public interface PecaEstoqueRepository {
 

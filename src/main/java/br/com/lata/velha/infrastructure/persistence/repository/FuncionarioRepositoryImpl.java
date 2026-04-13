@@ -1,7 +1,7 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.exception.notFoundExceptions.FuncionarioNotFoundException;
-import br.com.lata.velha.domain.model.Funcionario;
+import br.com.lata.velha.domain.entities.Funcionario;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
 import br.com.lata.velha.infrastructure.persistence.mapper.FuncionarioPersistenceMapper;
 import lombok.RequiredArgsConstructor;

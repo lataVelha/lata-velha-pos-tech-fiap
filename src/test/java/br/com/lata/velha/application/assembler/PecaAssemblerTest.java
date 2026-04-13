@@ -2,7 +2,7 @@ package br.com.lata.velha.application.assembler;
 
 import br.com.lata.velha.application.dto.request.CadastrarPecaRequest;
 import br.com.lata.velha.application.dto.response.PecaResponse;
-import br.com.lata.velha.domain.model.Peca;
+import br.com.lata.velha.domain.entities.Peca;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

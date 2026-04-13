@@ -1,4 +1,4 @@
-package br.com.lata.velha.domain.model;
+package br.com.lata.velha.domain.entities;
 
 import br.com.lata.velha.domain.enuns.StatusServico;
 

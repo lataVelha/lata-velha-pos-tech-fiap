@@ -2,7 +2,7 @@ package br.com.lata.velha.application.assembler;
 
 import br.com.lata.velha.application.dto.request.VeiculoRequest;
 import br.com.lata.velha.application.dto.response.VeiculoResponse;
-import br.com.lata.velha.domain.model.Veiculo;
+import br.com.lata.velha.domain.entities.Veiculo;
 import br.com.lata.velha.domain.valueObject.Placa;
 import org.springframework.stereotype.Component;
 

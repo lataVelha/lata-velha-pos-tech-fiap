@@ -1,6 +1,6 @@
 package br.com.lata.velha.domain.exception.notFoundExceptions;
 
-import br.com.lata.velha.domain.model.Servico;
+import br.com.lata.velha.domain.entities.Servico;
 import br.com.lata.velha.shared.domain.exceptions.NotFoundException;
 
 public class ServicoNotFoundException extends NotFoundException {

@@ -5,7 +5,7 @@ import br.com.lata.velha.application.dto.response.AprovarOrdemServicoResponse;
 import br.com.lata.velha.application.dto.response.AprovarServicoOsResponse;
 import br.com.lata.velha.application.dto.response.OrdemServicoResponse;
 import br.com.lata.velha.application.dto.response.ServicoOSResponse;
-import br.com.lata.velha.domain.model.OrdemServico;
+import br.com.lata.velha.domain.entities.OrdemServico;
 import br.com.lata.velha.infrastructure.repository.projection.OrdemServicoProjection;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

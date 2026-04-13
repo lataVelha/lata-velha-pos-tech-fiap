@@ -1,6 +1,6 @@
 package br.com.lata.velha.application.usecase.peca;
 
-import br.com.lata.velha.domain.model.Peca;
+import br.com.lata.velha.domain.entities.Peca;
 import br.com.lata.velha.domain.repository.PecaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

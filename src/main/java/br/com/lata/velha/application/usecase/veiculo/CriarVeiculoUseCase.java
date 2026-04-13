@@ -3,7 +3,7 @@ package br.com.lata.velha.application.usecase.veiculo;
 import br.com.lata.velha.application.assembler.VeiculoAssembler;
 import br.com.lata.velha.application.dto.request.VeiculoRequest;
 import br.com.lata.velha.application.dto.response.VeiculoResponse;
-import br.com.lata.velha.domain.model.Veiculo;
+import br.com.lata.velha.domain.entities.Veiculo;
 import br.com.lata.velha.domain.repository.ProprietarioRepository;
 import br.com.lata.velha.domain.repository.VeiculoRepository;
 import lombok.RequiredArgsConstructor;

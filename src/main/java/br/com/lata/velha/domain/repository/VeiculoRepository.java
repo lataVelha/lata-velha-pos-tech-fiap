@@ -1,7 +1,7 @@
 package br.com.lata.velha.domain.repository;
 
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
-import br.com.lata.velha.domain.model.Veiculo;
+import br.com.lata.velha.domain.entities.Veiculo;
 
 import java.util.List;
 

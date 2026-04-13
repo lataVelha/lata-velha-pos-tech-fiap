@@ -4,7 +4,7 @@ import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.domain.exception.notFoundExceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.domain.exception.notFoundExceptions.VeiculoNotFoundException;
-import br.com.lata.velha.domain.model.Veiculo;
+import br.com.lata.velha.domain.entities.Veiculo;
 import br.com.lata.velha.domain.repository.VeiculoRepository;
 import br.com.lata.velha.domain.valueObject.Placa;
 import br.com.lata.velha.infrastructure.persistence.entity.ProprietarioEntity;

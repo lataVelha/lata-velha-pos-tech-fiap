@@ -1,7 +1,7 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.exception.notFoundExceptions.CargoNotFoundException;
-import br.com.lata.velha.domain.model.Cargo;
+import br.com.lata.velha.domain.entities.Cargo;
 import br.com.lata.velha.infrastructure.persistence.entity.CargoEntity;
 import br.com.lata.velha.infrastructure.persistence.mapper.FuncionarioPersistenceMapper;
 import org.junit.jupiter.api.DisplayName;

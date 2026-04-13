@@ -1,6 +1,6 @@
 package br.com.lata.velha.application.dto.response;
 
-import br.com.lata.velha.domain.model.Funcionario;
+import br.com.lata.velha.domain.entities.Funcionario;
 
 public record FuncionarioResponse(
     Long id,

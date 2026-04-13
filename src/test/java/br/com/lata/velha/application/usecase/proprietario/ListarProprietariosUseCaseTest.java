@@ -4,7 +4,7 @@ import br.com.lata.velha.application.assembler.PaginatedAssembler;
 import br.com.lata.velha.application.assembler.ProprietarioAssembler;
 import br.com.lata.velha.application.dto.response.ProprietarioResponse;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
-import br.com.lata.velha.domain.model.Proprietario;
+import br.com.lata.velha.domain.entities.Proprietario;
 import br.com.lata.velha.domain.repository.ProprietarioRepository;
 import br.com.lata.velha.domain.valueObject.Documento;
 import br.com.lata.velha.domain.valueObject.NumeroCelular;

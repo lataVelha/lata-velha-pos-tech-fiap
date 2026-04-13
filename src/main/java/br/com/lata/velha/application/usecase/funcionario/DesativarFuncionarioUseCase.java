@@ -1,7 +1,7 @@
 package br.com.lata.velha.application.usecase.funcionario;
 
 import br.com.lata.velha.authentication.domain.repositories.UserRepository;
-import br.com.lata.velha.domain.model.Funcionario;
+import br.com.lata.velha.domain.entities.Funcionario;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

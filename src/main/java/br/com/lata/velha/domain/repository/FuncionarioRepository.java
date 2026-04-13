@@ -1,6 +1,6 @@
 package br.com.lata.velha.domain.repository;
 
-import br.com.lata.velha.domain.model.Funcionario;
+import br.com.lata.velha.domain.entities.Funcionario;
 
 import java.util.Optional;
 

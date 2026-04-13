@@ -1,6 +1,6 @@
 package br.com.lata.velha.application.usecase.proprietario;
 
-import br.com.lata.velha.domain.model.Proprietario;
+import br.com.lata.velha.domain.entities.Proprietario;
 import br.com.lata.velha.domain.repository.ProprietarioRepository;
 import br.com.lata.velha.domain.valueObject.Documento;
 import br.com.lata.velha.domain.valueObject.NumeroCelular;

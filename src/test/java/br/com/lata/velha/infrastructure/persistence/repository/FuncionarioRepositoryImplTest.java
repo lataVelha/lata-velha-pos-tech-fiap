@@ -1,9 +1,8 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.exception.notFoundExceptions.FuncionarioNotFoundException;
-import br.com.lata.velha.domain.model.Cargo;
-import br.com.lata.velha.domain.model.Funcionario;
-import br.com.lata.velha.infrastructure.persistence.entity.CargoEntity;
+import br.com.lata.velha.domain.entities.Cargo;
+import br.com.lata.velha.domain.entities.Funcionario;
 import br.com.lata.velha.infrastructure.persistence.entity.FuncionarioEntity;
 import br.com.lata.velha.infrastructure.persistence.mapper.FuncionarioPersistenceMapper;
 import br.com.lata.velha.shared.domain.valueObjects.UserId;

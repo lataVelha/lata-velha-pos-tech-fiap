@@ -2,7 +2,7 @@ package br.com.lata.velha.application.assembler;
 
 import br.com.lata.velha.application.dto.request.CadastrarServicoRequest;
 import br.com.lata.velha.application.dto.response.ServicoResponse;
-import br.com.lata.velha.domain.model.Servico;
+import br.com.lata.velha.domain.entities.Servico;
 import org.springframework.stereotype.Component;
 
 @Component

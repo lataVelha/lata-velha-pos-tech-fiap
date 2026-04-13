@@ -1,6 +1,6 @@
 package br.com.lata.velha.infrastructure.persistence.mapper;
 
-import br.com.lata.velha.domain.model.Servico;
+import br.com.lata.velha.domain.entities.Servico;
 import br.com.lata.velha.infrastructure.persistence.entity.ServicoEntity;
 import org.springframework.stereotype.Component;
 
