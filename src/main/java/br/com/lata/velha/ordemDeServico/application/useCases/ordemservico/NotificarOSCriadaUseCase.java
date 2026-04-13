@@ -1,10 +1,8 @@
-// application/usecase/ordemservico/NotificarOSCriadaUseCase.java
+package br.com.lata.velha.ordemDeServico.application.useCases.ordemservico;
 
-package br.com.lata.velha.application.usecase.ordemservico;
-
-import br.com.lata.velha.application.port.EmailProvider;
-import br.com.lata.velha.application.port.EmailTemplateProvider;
-import br.com.lata.velha.domain.model.OrdemServico;
+import br.com.lata.velha.ordemDeServico.application.ports.EmailProvider;
+import br.com.lata.velha.ordemDeServico.application.ports.EmailTemplateProvider;
+import br.com.lata.velha.ordemDeServico.domain.entities.OrdemServico;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
