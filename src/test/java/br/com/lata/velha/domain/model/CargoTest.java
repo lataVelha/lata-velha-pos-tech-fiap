@@ -1,5 +1,6 @@
 package br.com.lata.velha.domain.model;
 
+import br.com.lata.velha.authentication.domain.entities.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,8 +18,8 @@ class CargoTest {
 
     @BeforeEach
     void setUp() {
-        roleAdmin = new Role(1L, "ADMIN");
-        roleUser = new Role(2L, "USER");
+        roleAdmin = Role.create("ADMIN");
+        roleUser = Role.create("USER");
         cargo = new Cargo(1L, "Administrador", Set.of(roleAdmin, roleUser));
     }
 
@@ -99,7 +100,7 @@ class CargoTest {
         @DisplayName("deve adicionar role")
         void shouldAddRole() {
             Cargo newCargo = new Cargo(2L, "Teste", null);
-            Role role = new Role(3L, "MECANICO");
+            Role role = Role.create("MECANICO");
 
             newCargo.addRole(role);
 
@@ -132,7 +133,7 @@ class CargoTest {
         @DisplayName("roles devem ser imutáveis via getRoles")
         void shouldBeImmutableViaGetRoles() {
             assertThrows(UnsupportedOperationException.class,
-                    () -> cargo.getRoles().add(new Role(3L, "MECANICO")));
+                    () -> cargo.getRoles().add(Role.create("MECANICO")));
         }
     }
 

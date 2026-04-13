@@ -1,7 +1,7 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.common.PaginatedResult;
-import br.com.lata.velha.domain.exception.ProprietarioNotFoundException;
+import br.com.lata.velha.domain.exception.notFoundExceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
 import br.com.lata.velha.domain.model.Proprietario;
 import br.com.lata.velha.domain.repository.ProprietarioRepository;
@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -33,21 +34,21 @@ public class ProprietarioRepositoryImpl implements ProprietarioRepository {
     public Proprietario findActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> new ProprietarioNotFoundException(id));
+                .orElseThrow(() -> ProprietarioNotFoundException.fromId(id));
     }
 
     @Override
     public Proprietario findActiveByDocumento(String documento) {
         return jpaRepository.findByDocumentoAndAtivoTrue(documento)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> new ProprietarioNotFoundException(documento));
+                .orElseThrow(() -> ProprietarioNotFoundException.fromDocumento(documento));
     }
 
     @Override
     public Proprietario findInactiveById(Long id) {
         return jpaRepository.findByIdAndAtivoFalse(id)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> new ProprietarioNotFoundException(id));
+                .orElseThrow(() -> ProprietarioNotFoundException.fromId(id));
     }
 
     @Override

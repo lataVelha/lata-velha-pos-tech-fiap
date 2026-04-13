@@ -26,6 +26,15 @@ public class ServicoOS {
     public ServicoOS() {
     }
 
+    //TODO remove this constructor, not having it is breaking tests
+    public ServicoOS(Long id, Servico servico, BigDecimal valorMaoDeObra) {
+        this.id = id;
+        setServico(servico);
+        setValorMaoDeObra(valorMaoDeObra);
+        this.status = StatusServico.PENDENTE;
+        this.iniciadoEm = LocalDateTime.now();
+    }
+
     public ServicoOS(Servico servico, BigDecimal valorMaoDeObra) {
         setServico(servico);
         setValorMaoDeObra(valorMaoDeObra);

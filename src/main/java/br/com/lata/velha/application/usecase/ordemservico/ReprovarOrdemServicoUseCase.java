@@ -23,9 +23,8 @@ public class ReprovarOrdemServicoUseCase {
     private final BuscarProprietarioPorIdUseCase buscarProprietarioPorIdUseCase;
 
     public OrdemServicoResponse execute(Long osId, Long idFunc) {
-
         var os = ordemServicoRepository.findById(osId);
-        var funcionario = funcionarioRepository.findById(idFunc);
+        var funcionario = funcionarioRepository.getById(idFunc);
 
         StatusOrdemServico status = os.getStatus();
         vailidarStatusOrdem(status, os);

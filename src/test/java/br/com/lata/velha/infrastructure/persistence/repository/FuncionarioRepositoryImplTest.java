@@ -1,96 +1,118 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
-import br.com.lata.velha.domain.exception.InvalidLoginException;
+import br.com.lata.velha.domain.exception.notFoundExceptions.FuncionarioNotFoundException;
+import br.com.lata.velha.domain.model.Cargo;
 import br.com.lata.velha.domain.model.Funcionario;
+import br.com.lata.velha.infrastructure.persistence.entity.CargoEntity;
+import br.com.lata.velha.infrastructure.persistence.entity.FuncionarioEntity;
 import br.com.lata.velha.infrastructure.persistence.mapper.FuncionarioPersistenceMapper;
+import br.com.lata.velha.shared.domain.valueObjects.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.*;
+import java.util.Optional;
+import java.util.UUID;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({FuncionarioRepositoryImpl.class, FuncionarioPersistenceMapper.class,
-        FuncionarioRepositoryImplTest.TestConfig.class})
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 class FuncionarioRepositoryImplTest {
 
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        PasswordEncoder passwordEncoder() {
-            return new BCryptPasswordEncoder();
-        }
-    }
+    @Mock
+    private FuncionarioJpaRepository jpaRepository;
 
-    @Autowired
+    @Mock
+    private FuncionarioPersistenceMapper mapper;
+
+    @InjectMocks
     private FuncionarioRepositoryImpl repository;
 
     @Test
-    @DisplayName("deve encontrar funcionário pelo username")
-    void shouldFindByUsername() {
-        Funcionario funcionario = repository.findByUsername("admin");
+    @DisplayName("deve encontrar funcionário por id existente")
+    void shouldFindById() {
+        UUID userId = UUID.randomUUID();
+        FuncionarioEntity entity = new FuncionarioEntity();
+        entity.setId(1L);
+        entity.setNome("Fiap");
+        entity.setUserId(userId);
 
-        assertThat(funcionario).isNotNull();
-        assertThat(funcionario.getUsername()).isEqualTo("admin");
-        assertThat(funcionario.getNome()).isEqualTo("Fiap");
-        assertThat(funcionario.getCargo()).isNotNull();
-        assertThat(funcionario.getCargo().getNome()).isEqualTo("ADMIN");
+        Funcionario funcionario = new Funcionario(1L, "Fiap", new Cargo(1L, "ADMIN", null), UserId.create(userId));
+
+        when(jpaRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(mapper.toDomain(entity)).thenReturn(funcionario);
+
+        Optional<Funcionario> result = repository.findById(1L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getNome()).isEqualTo("Fiap");
     }
 
     @Test
-    @DisplayName("deve encontrar funcionário atendente pelo username")
-    void shouldFindAtendenteByUsername() {
-        Funcionario funcionario = repository.findByUsername("atendente");
+    @DisplayName("deve retornar Optional vazio quando funcionário não existe")
+    void shouldReturnEmptyWhenNotFound() {
+        when(jpaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThat(funcionario).isNotNull();
-        assertThat(funcionario.getUsername()).isEqualTo("atendente");
-        assertThat(funcionario.getCargo().getNome()).isEqualTo("ATENDENTE");
+        Optional<Funcionario> result = repository.findById(99L);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    @DisplayName("deve encontrar funcionário mecânico pelo username")
-    void shouldFindMecanicoByUsername() {
-        Funcionario funcionario = repository.findByUsername("mecanico");
+    @DisplayName("deve retornar funcionário ao usar getById com id existente")
+    void shouldGetById() {
+        UUID userId = UUID.randomUUID();
+        FuncionarioEntity entity = new FuncionarioEntity();
+        entity.setId(1L);
+        entity.setNome("Fiap");
+        entity.setUserId(userId);
 
-        assertThat(funcionario).isNotNull();
-        assertThat(funcionario.getUsername()).isEqualTo("mecanico");
-        assertThat(funcionario.getCargo().getNome()).isEqualTo("MECANICO");
+        Funcionario funcionario = new Funcionario(1L, "Fiap", new Cargo(1L, "ADMIN", null), UserId.create(userId));
+
+        when(jpaRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(mapper.toDomain(entity)).thenReturn(funcionario);
+
+        Funcionario result = repository.getById(1L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getNome()).isEqualTo("Fiap");
     }
 
     @Test
-    @DisplayName("deve lançar exceção ao buscar username inexistente")
+    @DisplayName("deve lançar exceção ao buscar id inexistente com getById")
     void shouldThrowWhenUsernameNotFound() {
-        assertThatThrownBy(() -> repository.findByUsername("naoexiste"))
-                .isInstanceOf(InvalidLoginException.class);
+        when(jpaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> repository.getById(99L))
+                .isInstanceOf(FuncionarioNotFoundException.class);
     }
 
     @Test
-    @DisplayName("deve retornar funcionário com senha que valida corretamente")
-    void shouldReturnFuncionarioWithValidSenha() {
-        Funcionario funcionario = repository.findByUsername("admin");
+    @DisplayName("deve salvar e retornar o funcionário mapeado")
+    void shouldSaveFuncionario() {
+        UUID userId = UUID.randomUUID();
+        Funcionario funcionario = new Funcionario(null, "Carlos", new Cargo(1L, "MECANICO", null), UserId.create(userId));
+        FuncionarioEntity entity = new FuncionarioEntity();
+        entity.setNome("Carlos");
+        entity.setUserId(userId);
 
-        assertThat(funcionario.getSenha().matches("123456")).isTrue();
-        assertThat(funcionario.getSenha().matches("senhaerrada")).isFalse();
-    }
+        Funcionario saved = new Funcionario(10L, "Carlos", new Cargo(1L, "MECANICO", null), UserId.create(userId));
 
-    @Test
-    @DisplayName("deve retornar funcionário admin com todas as roles")
-    void shouldReturnAdminWithAllRoles() {
-        Funcionario funcionario = repository.findByUsername("admin");
+        when(mapper.toEntity(funcionario)).thenReturn(entity);
+        when(jpaRepository.save(entity)).thenReturn(entity);
+        when(mapper.toDomain(entity)).thenReturn(saved);
 
-        assertThat(funcionario.getCargo().getRoles()).isNotEmpty();
-        assertThat(funcionario.hasRole("ADMIN")).isTrue();
-        assertThat(funcionario.hasRole("USER")).isTrue();
-        assertThat(funcionario.hasRole("MECANICO")).isTrue();
+        Funcionario result = repository.save(funcionario);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(10L);
+        assertThat(result.getNome()).isEqualTo("Carlos");
+        verify(jpaRepository).save(entity);
     }
 }

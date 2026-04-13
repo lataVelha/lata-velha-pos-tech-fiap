@@ -1,9 +1,9 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
 import br.com.lata.velha.domain.common.PaginatedResult;
-import br.com.lata.velha.domain.exception.ProprietarioNotFoundException;
 import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
-import br.com.lata.velha.domain.exception.VeiculoNotFoundException;
+import br.com.lata.velha.domain.exception.notFoundExceptions.ProprietarioNotFoundException;
+import br.com.lata.velha.domain.exception.notFoundExceptions.VeiculoNotFoundException;
 import br.com.lata.velha.domain.model.Veiculo;
 import br.com.lata.velha.domain.repository.VeiculoRepository;
 import br.com.lata.velha.domain.valueObject.Placa;
@@ -31,7 +31,7 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
 
         ProprietarioEntity proprietarioEntity = proprietarioJpaRepository
                 .findById(veiculo.getProprietarioId())
-                .orElseThrow(() -> new ProprietarioNotFoundException(veiculo.getProprietarioId()));
+                .orElseThrow(() -> ProprietarioNotFoundException.fromId(veiculo.getProprietarioId()));
 
         var entity = mapper.toEntity(veiculo, proprietarioEntity);
         var saved = jpaRepository.save(entity);
@@ -42,7 +42,7 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     public Veiculo findActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> new VeiculoNotFoundException(id));
+                .orElseThrow(() -> VeiculoNotFoundException.fromId(id));
     }
 
     @Override
@@ -73,7 +73,7 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     public Veiculo findInactiveById(Long id) {
         return jpaRepository.findByIdAndAtivoFalse(id)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> new VeiculoNotFoundException(id));
+                .orElseThrow(() -> VeiculoNotFoundException.fromId(id));
     }
 
     private void validatePlacaAvailability(Placa placa) {

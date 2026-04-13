@@ -1,57 +1,53 @@
 package br.com.lata.velha.infrastructure.persistence.mapper;
 
+import br.com.lata.velha.authentication.domain.entities.Role;
+import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import br.com.lata.velha.domain.model.Cargo;
 import br.com.lata.velha.domain.model.Funcionario;
-import br.com.lata.velha.domain.model.Role;
-import br.com.lata.velha.domain.valueObject.Senha;
 import br.com.lata.velha.infrastructure.persistence.entity.CargoEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.FuncionarioEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.RoleEntity;
+import br.com.lata.velha.shared.domain.valueObjects.RoleId;
+import br.com.lata.velha.shared.domain.valueObjects.UserId;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class FuncionarioPersistenceMapper {
 
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordHasher passwordHasher;
 
     // --- Entity → Domain ---
 
     public Funcionario toDomain(FuncionarioEntity entity) {
         if (entity == null) return null;
 
-        Senha senha = Senha.fromHash(
-                entity.getPassword(),
-                (plana, hash) -> passwordEncoder.matches(plana, hash)
-        );
-
         return new Funcionario(
                 entity.getId(),
                 entity.getNome(),
-                entity.getUsername(),
-                senha,
                 toDomain(entity.getCargo()),
-                entity.isAtivo()
+                UserId.create(entity.getUserId())
         );
     }
 
     public Cargo toDomain(CargoEntity entity) {
         if (entity == null) return null;
 
-        var roles = entity.getRoles().stream()
-                .map(this::toDomain)
-                .collect(Collectors.toSet());
+        Set<Role> roles = entity.getRoles() != null
+                ? entity.getRoles().stream().map(this::toDomain).collect(Collectors.toSet())
+                : Collections.emptySet();
 
         return new Cargo(entity.getId(), entity.getNome(), roles);
     }
 
     public Role toDomain(RoleEntity entity) {
         if (entity == null) return null;
-        return new Role(entity.getId(), entity.getNome());
+        return new Role(RoleId.create(entity.getId()), entity.getNome());
     }
 
     // --- Domain → Entity ---
@@ -62,15 +58,8 @@ public class FuncionarioPersistenceMapper {
         var entity = new FuncionarioEntity();
         entity.setId(model.getId());
         entity.setNome(model.getNome());
-        entity.setUsername(model.getUsername());
-        
-        if (model.getSenha() != null) {
-            entity.setPassword(model.getSenha().getHash());
-        }
-
+        entity.setUserId(model.getUserId().getValue());
         entity.setCargo(toEntity(model.getCargo()));
-        entity.setAtivo(model.isAtivo());
-
         return entity;
     }
 

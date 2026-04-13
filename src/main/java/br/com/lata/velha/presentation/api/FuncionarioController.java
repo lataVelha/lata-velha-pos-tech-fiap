@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 public class FuncionarioController {
 
     private final CadastrarFuncionarioUseCase cadastrarUseCase;
-    private final BuscarFuncionariosUseCase buscarTodosUseCase;
     private final BuscarFuncionarioPorIdUseCase buscarPorIdUseCase;
     private final AtualizarFuncionarioUseCase atualizarUseCase;
     private final DesativarFuncionarioUseCase desativarUseCase;
@@ -33,15 +32,6 @@ public class FuncionarioController {
     @ApiResponse(responseCode = "404", description = "Cargo não encontrado")
     public ResponseEntity<FuncionarioResponse> cadastrar(@Valid @RequestBody CadastrarFuncionarioRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(cadastrarUseCase.execute(request));
-    }
-
-    @GetMapping
-    @Operation(summary = "Listar todos os funcionários ativos", description = "Retorna lista de funcionários ativos no sistema")
-    @ApiResponse(responseCode = "200", description = "Funcionários listados")
-    public ResponseEntity<PaginatedResult<FuncionarioResponse>> listar(
-            @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(buscarTodosUseCase.execute(page, size));
     }
 
     @GetMapping("/{id}")

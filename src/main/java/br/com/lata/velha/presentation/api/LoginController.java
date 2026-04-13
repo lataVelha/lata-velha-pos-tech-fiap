@@ -2,7 +2,7 @@ package br.com.lata.velha.presentation.api;
 
 import br.com.lata.velha.application.dto.request.LoginRequest;
 import br.com.lata.velha.application.dto.response.LoginResponse;
-import br.com.lata.velha.application.usecase.auth.LoginUseCase;
+import br.com.lata.velha.authentication.application.useCases.LoginUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -36,6 +36,9 @@ public class LoginController {
             description = "Credenciais inválidas"
     )
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        return ResponseEntity.ok(loginUseCase.execute(loginRequest));
+        var input = LoginUseCase.Input.fromRequest(loginRequest);
+        var output = loginUseCase.execute(input);
+        var response = LoginResponse.fromLoginOutput(output);
+        return ResponseEntity.ok(response);
     }
 }

@@ -8,7 +8,5 @@ public class LataVelhaApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(LataVelhaApplication.class, args);
-
 	}
-
 }

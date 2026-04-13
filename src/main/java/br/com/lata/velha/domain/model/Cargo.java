@@ -1,12 +1,13 @@
 package br.com.lata.velha.domain.model;
 
+import br.com.lata.velha.authentication.domain.entities.Role;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 public class Cargo {
-
     private Long id;
     private String nome;
     private Set<Role> roles;

@@ -38,6 +38,14 @@ jwt:
   issuer: mybackend
   expires-in: 3600
 
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+
 thymeleaf:
   prefix: classpath:/templates/
   suffix: .html
