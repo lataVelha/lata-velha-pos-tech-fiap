@@ -28,7 +28,7 @@ public class OrdemServicoMapper {
         entity.setProprietarioId(domain.getProprietarioId());
         entity.setVeiculoId(domain.getVeiculoId());
         entity.setReclamacaoCliente(domain.getReclamacaoCliente());
-
+        entity.setAtendenteInicioId(domain.getAtendenteInicioId());
         return entity;
     }
 }
