@@ -17,6 +17,9 @@ public record PecaAlocadaResponse(
         @Schema(example = "3")
         Integer quantidadeSolicitada,
 
+        @Schema(example = "3")
+        Integer quantidadeAlocada,
+
         @Schema(example = "1")
         Integer quantidadeReservada,
 

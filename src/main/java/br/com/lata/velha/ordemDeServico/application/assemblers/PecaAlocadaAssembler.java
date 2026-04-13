@@ -11,6 +11,7 @@ public class PecaAlocadaAssembler {
                 domain.getPecaId(),
                 null, // pecaNome (buscar depois se precisar)
                 domain.getQuantidadeSolicitada(),
+                domain.getQuantidadeSolicitada(),
                 domain.getQuantidadeReservada(),
                 domain.getQuantidadeEncomendada(),
                 domain.getStatus(),

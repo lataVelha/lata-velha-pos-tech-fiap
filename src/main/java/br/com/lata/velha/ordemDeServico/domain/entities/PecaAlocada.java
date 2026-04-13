@@ -31,7 +31,26 @@ public class PecaAlocada {
         this.atualizado = LocalDateTime.now();
     }
 
+    public PecaAlocada(Long id, Long pecaId, Long servicoOsId, Integer quantidadeSolicitada) {
+        this.id = id;
+        setPecaId(pecaId);
+        setServicoOsId(servicoOsId);
+        setQuantidadeSolicitada(quantidadeSolicitada);
+        this.quantidadeReservada = 0;
+        this.quantidadeEncomendada = 0;
+        this.status = StatusPecaAlocada.ORCAMENTO;
+        this.atualizado = LocalDateTime.now();
+    }
+
     public PecaAlocada(Long id, Long pecaId, Long servicoOsId, Integer quantidadeSolicitada, Integer quantidadeReservada, Integer quantidadeEncomendada, StatusPecaAlocada status, LocalDateTime atualizado) {
+        this.id = id;
+        this.pecaId = pecaId;
+        this.servicoOsId = servicoOsId;
+        this.quantidadeSolicitada = quantidadeSolicitada;
+        this.quantidadeReservada = quantidadeReservada;
+        this.quantidadeEncomendada = quantidadeEncomendada;
+        this.status = status;
+        this.atualizado = atualizado;
     }
 
     /* ================= REGRAS ================= */

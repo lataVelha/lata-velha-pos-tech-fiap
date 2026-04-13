@@ -59,7 +59,7 @@ class AlocarPecaUseCaseTest {
         when(pecaEstoqueRepository.findByPecaId(2L)).thenReturn(estoque);
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
 
-        PecaAlocada pecaAlocadaSalva = new PecaAlocada(10L, 2L,  3);
+        PecaAlocada pecaAlocadaSalva = new PecaAlocada(10L, 2L, 1L, 3);
         when(pecaAlocadaRepository.save(any(PecaAlocada.class))).thenReturn(pecaAlocadaSalva);
 
         // Act
