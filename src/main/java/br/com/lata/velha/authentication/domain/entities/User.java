@@ -1,7 +1,7 @@
 package br.com.lata.velha.authentication.domain.entities;
 
 import br.com.lata.velha.authentication.domain.valueObjects.Credential;
-import br.com.lata.velha.domain.exception.InvalidLoginException;
+import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
 import br.com.lata.velha.shared.domain.valueObjects.Email;
 import br.com.lata.velha.shared.domain.valueObjects.UserId;
 

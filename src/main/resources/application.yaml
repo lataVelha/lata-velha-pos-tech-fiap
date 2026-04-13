@@ -1,6 +1,8 @@
 spring:
   application:
     name: Lata-Velha
+  profiles:
+    active: ${ENVIRONMENT:}
 
   datasource:
     url: jdbc:postgresql://localhost:5432/lata_velha
@@ -35,7 +37,7 @@ jwt:
   private:
     key: classpath:app.key
     jwt:
-  issuer: mybackend
+  issuer: lata-velha
   expires-in: 3600
 
 springdoc:

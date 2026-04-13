@@ -1,13 +1,12 @@
 package br.com.lata.velha.authentication.application.useCases;
 
 import br.com.lata.velha.authentication.application.security.TokenProvider;
-import br.com.lata.velha.authentication.application.useCases.LoginUseCase;
 import br.com.lata.velha.authentication.domain.entities.Role;
 import br.com.lata.velha.authentication.domain.entities.User;
 import br.com.lata.velha.authentication.domain.repositories.UserRepository;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import br.com.lata.velha.authentication.domain.valueObjects.Credential;
-import br.com.lata.velha.domain.exception.InvalidLoginException;
+import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
 import br.com.lata.velha.shared.domain.valueObjects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
