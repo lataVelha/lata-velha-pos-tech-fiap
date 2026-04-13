@@ -2,7 +2,7 @@ package br.com.lata.velha.application.usecase.funcionario;
 
 import br.com.lata.velha.application.dto.request.CadastrarFuncionarioRequest;
 import br.com.lata.velha.application.dto.response.FuncionarioResponse;
-import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
+import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.domain.exception.notFoundExceptions.CargoNotFoundException;
 import br.com.lata.velha.infrastructure.persistence.entity.CargoEntity;
 import br.com.lata.velha.infrastructure.persistence.entity.RoleEntity;

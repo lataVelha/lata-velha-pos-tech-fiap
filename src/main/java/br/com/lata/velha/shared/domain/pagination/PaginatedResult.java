@@ -1,4 +1,4 @@
-package br.com.lata.velha.domain.common;
+package br.com.lata.velha.shared.domain.pagination;
 
 import java.util.List;
 

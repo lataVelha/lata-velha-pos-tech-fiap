@@ -1,4 +1,4 @@
-package br.com.lata.velha.domain.exception;
+package br.com.lata.velha.shared.domain.exceptions;
 
 public abstract class DomainException extends RuntimeException {
 

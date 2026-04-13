@@ -1,6 +1,6 @@
 package br.com.lata.velha.application.assembler;
 
-import br.com.lata.velha.domain.common.PaginatedResult;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

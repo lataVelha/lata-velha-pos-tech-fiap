@@ -6,7 +6,7 @@ import br.com.lata.velha.application.dto.request.OrdemServicoRequest;
 import br.com.lata.velha.application.dto.response.AprovarOrdemServicoResponse;
 import br.com.lata.velha.application.dto.response.OrdemServicoResponse;
 import br.com.lata.velha.application.usecase.ordemservico.*;
-import br.com.lata.velha.domain.common.PaginatedResult;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.domain.enuns.StatusOrdemServico;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

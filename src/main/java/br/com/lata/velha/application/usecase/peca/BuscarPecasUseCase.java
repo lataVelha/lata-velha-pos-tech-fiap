@@ -3,7 +3,7 @@ package br.com.lata.velha.application.usecase.peca;
 import br.com.lata.velha.application.assembler.PaginatedAssembler;
 import br.com.lata.velha.application.assembler.PecaAssembler;
 import br.com.lata.velha.application.dto.response.PecaResponse;
-import br.com.lata.velha.domain.common.PaginatedResult;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.domain.repository.PecaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

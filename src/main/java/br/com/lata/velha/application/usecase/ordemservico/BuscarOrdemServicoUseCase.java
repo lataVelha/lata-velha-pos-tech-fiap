@@ -2,7 +2,7 @@ package br.com.lata.velha.application.usecase.ordemservico;
 
 import br.com.lata.velha.application.assembler.OrdemServicoAssembler;
 import br.com.lata.velha.application.dto.response.OrdemServicoResponse;
-import br.com.lata.velha.domain.common.PaginatedResult;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.domain.enuns.StatusOrdemServico;
 import br.com.lata.velha.domain.repository.OrdemServicoRepository;
 import br.com.lata.velha.infrastructure.repository.projection.OrdemServicoProjection;

@@ -1,7 +1,7 @@
 package br.com.lata.velha.application.usecase.pecaalocada;
 
 import br.com.lata.velha.application.dto.response.PecaAlocadaResponse;
-import br.com.lata.velha.domain.common.PaginatedResult;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.domain.model.Peca;
 import br.com.lata.velha.domain.model.PecaAlocada;
 import br.com.lata.velha.domain.repository.PecaAlocadaRepository;

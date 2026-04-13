@@ -1,5 +1,6 @@
 package br.com.lata.velha.authentication.domain.entities;
 
+import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import br.com.lata.velha.authentication.domain.valueObjects.Credential;
 import br.com.lata.velha.authentication.domain.valueObjects.Senha;
@@ -65,7 +66,7 @@ class UserTest {
         @Test
         @DisplayName("deve lançar InvalidLoginException com senha errada")
         void shouldReturnFalseAndNotUpdateLoginDateOnWrongPassword() {
-            assertThrows(br.com.lata.velha.domain.exception.InvalidLoginException.class,
+            assertThrows(InvalidLoginException.class,
                     () -> user.login("Errada123@"));
             assertNull(user.getUltimoLoginDate());
         }

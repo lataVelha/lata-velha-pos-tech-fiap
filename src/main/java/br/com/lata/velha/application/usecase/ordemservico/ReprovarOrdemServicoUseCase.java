@@ -5,7 +5,7 @@ import br.com.lata.velha.application.dto.response.OrdemServicoResponse;
 import br.com.lata.velha.application.usecase.proprietario.BuscarProprietarioPorIdUseCase;
 import br.com.lata.velha.domain.enuns.StatusOrdemServico;
 import br.com.lata.velha.domain.enuns.StatusServico;
-import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
+import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.domain.model.OrdemServico;
 import br.com.lata.velha.domain.model.ServicoOS;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;

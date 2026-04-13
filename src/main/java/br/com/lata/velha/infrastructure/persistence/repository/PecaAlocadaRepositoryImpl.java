@@ -1,6 +1,6 @@
 package br.com.lata.velha.infrastructure.persistence.repository;
 
-import br.com.lata.velha.domain.common.PaginatedResult;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.domain.model.PecaAlocada;
 import br.com.lata.velha.domain.repository.PecaAlocadaRepository;
 import br.com.lata.velha.infrastructure.persistence.mapper.PecaAlocadaPersistenceMapper;

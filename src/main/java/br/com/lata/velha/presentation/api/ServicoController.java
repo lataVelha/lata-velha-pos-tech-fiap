@@ -8,7 +8,7 @@ import br.com.lata.velha.application.usecase.servico.BuscarServicoPorIdUseCase;
 import br.com.lata.velha.application.usecase.servico.BuscarServicosUseCase;
 import br.com.lata.velha.application.usecase.servico.CadastrarServicoUseCase;
 import br.com.lata.velha.application.usecase.servico.DesativarServicoUseCase;
-import br.com.lata.velha.domain.common.PaginatedResult;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

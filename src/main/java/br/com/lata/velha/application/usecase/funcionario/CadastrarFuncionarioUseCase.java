@@ -7,7 +7,7 @@ import br.com.lata.velha.authentication.domain.repositories.UserRepository;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import br.com.lata.velha.authentication.domain.valueObjects.Credential;
 import br.com.lata.velha.authentication.domain.valueObjects.Senha;
-import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
+import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.domain.model.Cargo;
 import br.com.lata.velha.domain.model.Funcionario;
 import br.com.lata.velha.domain.repository.CargoRepository;

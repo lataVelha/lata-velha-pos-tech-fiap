@@ -3,7 +3,7 @@ package br.com.lata.velha.application.usecase.funcionario;
 import br.com.lata.velha.application.dto.request.AtualizarFuncionarioRequest;
 import br.com.lata.velha.application.dto.response.FuncionarioResponse;
 import br.com.lata.velha.authentication.domain.repositories.UserRepository;
-import br.com.lata.velha.domain.exception.InactiveUserException;
+import br.com.lata.velha.authentication.domain.exceptions.InactiveUserException;
 import br.com.lata.velha.domain.model.Cargo;
 import br.com.lata.velha.domain.model.Funcionario;
 import br.com.lata.velha.domain.repository.CargoRepository;

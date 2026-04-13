@@ -3,7 +3,7 @@ package br.com.lata.velha.presentation.api;
 import br.com.lata.velha.application.dto.request.ProprietarioRequest;
 import br.com.lata.velha.application.dto.response.ProprietarioResponse;
 import br.com.lata.velha.application.usecase.proprietario.*;
-import br.com.lata.velha.domain.common.PaginatedResult;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -1,9 +1,9 @@
 package br.com.lata.velha.presentation.handler;
 
-import br.com.lata.velha.domain.exception.DomainException;
-import br.com.lata.velha.domain.exception.InvalidLoginException;
+import br.com.lata.velha.shared.domain.exceptions.DomainException;
+import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
 import br.com.lata.velha.domain.exception.notFoundExceptions.ProprietarioNotFoundException;
-import br.com.lata.velha.domain.exception.ResourceAlreadyExistsException;
+import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.domain.exception.notFoundExceptions.ServicoNotFoundException;
 import br.com.lata.velha.domain.exception.notFoundExceptions.VeiculoNotFoundException;
 

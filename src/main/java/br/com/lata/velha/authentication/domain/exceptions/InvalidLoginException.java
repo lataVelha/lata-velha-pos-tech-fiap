@@ -1,5 +1,7 @@
-package br.com.lata.velha.domain.exception;
+package br.com.lata.velha.authentication.domain.exceptions;
 
+
+import br.com.lata.velha.shared.domain.exceptions.DomainException;
 
 public  class InvalidLoginException extends DomainException {
 

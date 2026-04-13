@@ -1,7 +1,5 @@
 package br.com.lata.velha.shared.domain.exceptions;
 
-import br.com.lata.velha.domain.exception.DomainException;
-
 import java.lang.reflect.Type;
 
 public class NotFoundException extends DomainException {
