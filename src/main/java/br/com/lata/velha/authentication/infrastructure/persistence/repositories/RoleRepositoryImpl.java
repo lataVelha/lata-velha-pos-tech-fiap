@@ -1,7 +1,7 @@
 package br.com.lata.velha.authentication.infrastructure.persistence.repositories;
 
 import br.com.lata.velha.authentication.domain.entities.Role;
-import br.com.lata.velha.authentication.domain.exceptions.notFoundExceptions.RoleNotFoundException;
+import br.com.lata.velha.authentication.domain.exceptions.not_found_exceptions.RoleNotFoundException;
 import br.com.lata.velha.authentication.domain.repositories.RoleRepository;
 import br.com.lata.velha.authentication.infrastructure.persistence.jpa.RoleJpaRepository;
 import lombok.RequiredArgsConstructor;

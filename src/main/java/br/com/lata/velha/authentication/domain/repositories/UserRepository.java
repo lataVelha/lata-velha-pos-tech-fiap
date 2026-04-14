@@ -1,8 +1,8 @@
 package br.com.lata.velha.authentication.domain.repositories;
 
 import br.com.lata.velha.authentication.domain.entities.User;
-import br.com.lata.velha.shared.domain.valueObjects.Email;
-import br.com.lata.velha.shared.domain.valueObjects.UserId;
+import br.com.lata.velha.shared.domain.value_objects.Email;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 
 public interface UserRepository {
     User getById(UserId id);

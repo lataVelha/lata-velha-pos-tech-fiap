@@ -1,6 +1,6 @@
 package br.com.lata.velha.authentication.application.security;
 
-import br.com.lata.velha.shared.domain.valueObjects.UserId;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 
 /**
  * Contrato para geração de tokens.

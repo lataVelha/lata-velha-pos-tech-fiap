@@ -1,6 +1,6 @@
 package br.com.lata.velha.authentication.domain.entities;
 
-import br.com.lata.velha.shared.domain.valueObjects.RoleId;
+import br.com.lata.velha.shared.domain.value_objects.RoleId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -109,7 +109,10 @@ class RoleTest {
         @DisplayName("não deve ser igual a null")
         void shouldNotBeEqualToNull() {
             Role role = new Role(ROLE_ID, "ADMIN");
-            assertNotEquals(null, role);
+
+            var result = role.equals(null);
+
+            assertFalse(result);
         }
 
         @Test

@@ -1,13 +1,14 @@
 package br.com.lata.velha.authentication.infrastructure.persistence.repositories;
 
 import br.com.lata.velha.authentication.domain.entities.User;
-import br.com.lata.velha.authentication.domain.exceptions.notFoundExceptions.UserNotFoundException;
+import br.com.lata.velha.authentication.domain.exceptions.not_found_exceptions.UserNotFoundException;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
-import br.com.lata.velha.authentication.domain.valueObjects.Credential;
+import br.com.lata.velha.authentication.domain.value_objects.Credential;
+import br.com.lata.velha.authentication.domain.value_objects.UserData;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.UserEntity;
 import br.com.lata.velha.authentication.infrastructure.persistence.jpa.UserJpaRepository;
-import br.com.lata.velha.shared.domain.valueObjects.Email;
-import br.com.lata.velha.shared.domain.valueObjects.UserId;
+import br.com.lata.velha.shared.domain.value_objects.Email;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -50,8 +51,8 @@ class UserRepositoryImplTest {
         userEntity = new UserEntity(rawUuid, "joao", "joao@example.com", "hash", Set.of(), true,
                 LocalDateTime.now(), null);
         Credential credential = Credential.fromHash("hash", passwordHasher);
-        domainUser = new User(userId, "joao", Email.fromString("joao@example.com"),
-                credential, Set.of(), true, LocalDateTime.now(), null);
+        var userData = new UserData(userId, "joao", Email.fromString("joao@example.com"), true);
+        domainUser = new User(userData, credential, Set.of(), LocalDateTime.now(), null);
     }
 
     @Nested

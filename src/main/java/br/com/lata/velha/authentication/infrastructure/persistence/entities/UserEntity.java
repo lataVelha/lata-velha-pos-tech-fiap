@@ -2,9 +2,10 @@ package br.com.lata.velha.authentication.infrastructure.persistence.entities;
 
 import br.com.lata.velha.authentication.domain.entities.User;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
-import br.com.lata.velha.authentication.domain.valueObjects.Credential;
-import br.com.lata.velha.shared.domain.valueObjects.Email;
-import br.com.lata.velha.shared.domain.valueObjects.UserId;
+import br.com.lata.velha.authentication.domain.value_objects.Credential;
+import br.com.lata.velha.authentication.domain.value_objects.UserData;
+import br.com.lata.velha.shared.domain.value_objects.Email;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -71,13 +72,11 @@ public class UserEntity {
         var roles = this.roles.stream()
                 .map(RoleEntity::toDomain)
                 .collect(Collectors.toSet());
+        var userData = new UserData(UserId.create(this.id), this.username, Email.fromString(this.email), this.isAtivo());
         return new User(
-            UserId.create(this.id),
-            this.username,
-            Email.fromString(this.email),
+            userData,
             Credential.fromHash(this.credential, passwordHasher),
             roles,
-            this.isAtivo(),
             this.criacaoDate,
             this.ultimoLoginDate
         );

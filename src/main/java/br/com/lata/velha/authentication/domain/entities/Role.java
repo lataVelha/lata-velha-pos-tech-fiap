@@ -1,6 +1,6 @@
 package br.com.lata.velha.authentication.domain.entities;
 
-import br.com.lata.velha.shared.domain.valueObjects.RoleId;
+import br.com.lata.velha.shared.domain.value_objects.RoleId;
 
 import java.util.Objects;
 
