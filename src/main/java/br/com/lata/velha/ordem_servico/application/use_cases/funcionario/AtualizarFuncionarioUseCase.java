@@ -8,6 +8,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Cargo;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.repositories.CargoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,17 +19,28 @@ public class AtualizarFuncionarioUseCase {
     private final UserRepository userRepository;
     private final CargoRepository cargoRepository;
 
-    public FuncionarioResponse execute(Long id, AtualizarFuncionarioRequest request) {
-        var funcionario = funcionarioRepository.getById(id);
+    public Output execute(Input input) {
+        var funcionario = funcionarioRepository.getById(input.id());
         if(!userRepository.isAtivoById(funcionario.getUserId()))
             throw InactiveUserException.fromEntityName("Funcionário");
 
-        Cargo cargo = cargoRepository.getById(request.cargoId());
+        Cargo cargo = cargoRepository.getById(input.cargoId());
+        funcionario.update(input.nome(), cargo);
 
-        funcionario.setNome(request.nome());
-        funcionario.setCargo(cargo);
+        var saved = funcionarioRepository.save(funcionario);
+        return Output.fromEntity(saved);
+    }
 
-        Funcionario saved = funcionarioRepository.save(funcionario);
-        return FuncionarioResponse.fromEntity(saved);
+    public record Input(Long id, String nome, Long cargoId) {}
+
+    public record Output(Long id, String nome, String cargo, UserId userId) {
+        public static Output fromEntity(Funcionario funcionario) {
+            return new Output(
+                    funcionario.getId(),
+                    funcionario.getNome(),
+                    funcionario.getCargo().getNome(),
+                    funcionario.getUserId()
+            );
+        }
     }
 }

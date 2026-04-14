@@ -50,7 +50,10 @@ public class FuncionarioController {
     public ResponseEntity<FuncionarioResponse> atualizar(
             @PathVariable Long id,
             @Valid @RequestBody AtualizarFuncionarioRequest request) {
-        return ResponseEntity.ok(atualizarUseCase.execute(id, request));
+        var input = request.toUpdateUseCaseInput(id);
+        var output = atualizarUseCase.execute(input);
+        var response = FuncionarioResponse.fromUpdateOutput(output);
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}/desativar")

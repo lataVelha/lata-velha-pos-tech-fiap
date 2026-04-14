@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,32 +24,42 @@ class FuncionarioTest {
     }
 
     @Nested
-    @DisplayName("Validações")
-    class Validations {
-
+    @DisplayName("update")
+    class UpdateTests {
         @Test
-        @DisplayName("deve rejeitar nome nulo")
-        void shouldRejectNullNome() {
-            assertThrows(IllegalArgumentException.class, () -> funcionario.setNome(null));
+        @DisplayName("deve atualizar dados")
+        public void shouldUpdateData() {
+            var novoNome = "Novo nome";
+            var novoCargo = new Cargo(2L, "NOVO", null);
+
+            funcionario.update(novoNome, novoCargo);
+
+            assertEquals(novoNome, funcionario.getNome());
+            assertEquals(novoCargo, funcionario.getCargo());
         }
 
         @Test
-        @DisplayName("deve rejeitar nome vazio")
-        void shouldRejectEmptyNome() {
-            assertThrows(IllegalArgumentException.class, () -> funcionario.setNome(""));
+        @DisplayName("deve lançar IllegalArgumentException quando nome for null")
+        public void shouldThrowIllegalArgumentExceptionWhenNomeIsNull() {
+            var novoCargo = new Cargo(2L, "NOVO", null);
+
+            assertThrows(IllegalArgumentException.class, () -> funcionario.update(null, novoCargo));
+        }
+
+        @ParameterizedTest
+        @DisplayName("deve lançar IllegalArgumentException quando nome for invalido")
+        @ValueSource(strings = {"", "   "})
+        public void shouldThrowIllegalArgumentExceptionWhenNomeIsInvalid(String novoNome) {
+            var novoCargo = new Cargo(2L, "NOVO", null);
+
+            assertThrows(IllegalArgumentException.class, () -> funcionario.update(novoNome, novoCargo));
         }
 
         @Test
-        @DisplayName("deve rejeitar nome em branco")
-        void shouldRejectBlankNome() {
-            assertThrows(IllegalArgumentException.class, () -> funcionario.setNome("   "));
-        }
-
-        @Test
-        @DisplayName("deve aceitar nome válido")
-        void shouldAcceptValidNome() {
-            funcionario.setNome("Maria");
-            assertEquals("Maria", funcionario.getNome());
+        @DisplayName("deve lançar IllegalArgumentException quando cargo for null")
+        public void shouldThrowIllegalArgumentExceptionWhenCargoIsNull() {
+            var novoNome = "Novo nome";
+            assertThrows(IllegalArgumentException.class, () -> funcionario.update(novoNome, null));
         }
     }
 
@@ -65,14 +77,6 @@ class FuncionarioTest {
         @DisplayName("deve retornar nome correto")
         void shouldGetNome() {
             assertEquals("João", funcionario.getNome());
-        }
-
-        @Test
-        @DisplayName("deve setar e obter cargo")
-        void shouldSetAndGetCargo() {
-            Cargo newCargo = new Cargo(2L, "USER", null);
-            funcionario.setCargo(newCargo);
-            assertEquals(newCargo, funcionario.getCargo());
         }
 
         @Test
