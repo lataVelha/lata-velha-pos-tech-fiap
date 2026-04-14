@@ -47,13 +47,13 @@ public class OrdemServicoAssembler {
         return new OrdemServicoResponse(
                 domain.getId(),
                 domain.getAtendenteInicioId(),
-                null, // atendenteNome
+                null,
                 domain.getVeiculoId(),
                 veiculoDescricao,
                 domain.getProprietarioId(),
                 proprietarioNome,
                 domain.getMecanicoResponsavelId(),
-                null, // mecanicoNome
+                null,
                 domain.getStatus() != null ? domain.getStatus().name() : null,
                 domain.getReclamacaoCliente(),
                 domain.getIniciadoEm(),
@@ -69,7 +69,7 @@ public class OrdemServicoAssembler {
         List<ServicoOSResponse> servicos = Collections.emptyList();
 
         try {
-            if (p.getServicos() != null) {
+            if (p.getServicos() != null && !p.getServicos().isBlank()) {
                 servicos = mapper.readValue(
                         p.getServicos(),
                         new TypeReference<List<ServicoOSResponse>>() {}

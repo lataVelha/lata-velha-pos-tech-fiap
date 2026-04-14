@@ -69,7 +69,7 @@ public class PecaAlocada {
         touch();
     }
 
-    public void chegadaEstoque(Integer quantidade) {
+    public void movimentarParaReservado(Integer quantidade) {
 
         if (quantidade == null || quantidade <= 0)
             throw new IllegalArgumentException("Quantidade inválida");

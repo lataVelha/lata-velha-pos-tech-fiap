@@ -7,6 +7,7 @@ import br.com.lata.velha.application.dto.response.AprovarOrdemServicoResponse;
 import br.com.lata.velha.domain.enuns.StatusServico;
 import br.com.lata.velha.domain.repository.FuncionarioRepository;
 import br.com.lata.velha.domain.repository.OrdemServicoRepository;
+import br.com.lata.velha.domain.repository.PecaAlocadaRepository;
 import br.com.lata.velha.domain.repository.PecaEstoqueRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class AprovarOrdemServicoUseCase {
     private final FuncionarioRepository funcionarioRepository;
     private final OrdemServicoAssembler ordemServicoAssembler;
     private final PecaEstoqueRepository pecaEstoqueRepository;
+    private final PecaAlocadaRepository pecaAlocadaRepository;
 
     @Transactional
     public AprovarOrdemServicoResponse execute(AprovarOrdemSevicoRequest request) {
@@ -60,11 +62,22 @@ public class AprovarOrdemServicoUseCase {
 
                         if (estoque != null &&
                                 estoque.getQuantidadeArmazenada() != null) {
+
+                            Integer jaReservado =
+                                    pecaAlocadaRepository
+                                            .somarQuantidadeReservadaPorPeca(
+                                                    peca.getPecaId());
+
                             quantidadeDisponivel =
-                                    estoque.getQuantidadeArmazenada();
+                                    estoque.getQuantidadeArmazenada() - jaReservado;
+
+                            if (quantidadeDisponivel < 0) {
+                                quantidadeDisponivel = 0;
+                            }
                         }
 
                         peca.reservar(quantidadeDisponivel);
+
                         if (peca.getQuantidadeEncomendada() != null &&
                                 peca.getQuantidadeEncomendada() > 0) {
 

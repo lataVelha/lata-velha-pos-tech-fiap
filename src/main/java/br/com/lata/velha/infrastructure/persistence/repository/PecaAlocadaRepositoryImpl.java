@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
@@ -46,5 +48,16 @@ public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
     @Override
     public void delete(Long id) {
         jpaRepository.deleteById(id);
+    }
+
+    @Override
+    public Integer somarQuantidadeReservadaPorPeca(Long pecaId) {
+        return jpaRepository.somarQuantidadeReservadaPorPeca(pecaId);
+    }
+
+    @Override
+    public List<PecaAlocada> buscarPendentesPorPecaOrdenado(Long pecaId) {
+        return jpaRepository.buscarPendentesPorPecaOrdenado(pecaId)
+                .stream().map(mapper::toDomain).toList();
     }
 }
