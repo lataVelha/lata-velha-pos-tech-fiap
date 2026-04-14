@@ -1,8 +1,8 @@
 package br.com.lata.velha.authentication.infrastructure.security;
 
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
-import br.com.lata.velha.authentication.domain.valueObjects.Credential;
-import br.com.lata.velha.authentication.domain.valueObjects.Senha;
+import br.com.lata.velha.authentication.domain.value_objects.Credential;
+import br.com.lata.velha.authentication.domain.value_objects.Senha;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;

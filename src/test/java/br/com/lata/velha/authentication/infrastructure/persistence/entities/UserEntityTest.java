@@ -3,12 +3,12 @@ package br.com.lata.velha.authentication.infrastructure.persistence.entities;
 import br.com.lata.velha.authentication.domain.entities.Role;
 import br.com.lata.velha.authentication.domain.entities.User;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
-import br.com.lata.velha.authentication.domain.valueObjects.Credential;
-import br.com.lata.velha.authentication.domain.valueObjects.Senha;
-import br.com.lata.velha.infrastructure.persistence.entity.RoleEntity;
-import br.com.lata.velha.shared.domain.valueObjects.Email;
-import br.com.lata.velha.shared.domain.valueObjects.RoleId;
-import br.com.lata.velha.shared.domain.valueObjects.UserId;
+import br.com.lata.velha.authentication.domain.value_objects.Credential;
+import br.com.lata.velha.authentication.domain.value_objects.Senha;
+import br.com.lata.velha.authentication.domain.value_objects.UserData;
+import br.com.lata.velha.shared.domain.value_objects.Email;
+import br.com.lata.velha.shared.domain.value_objects.RoleId;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -41,7 +41,8 @@ class UserEntityTest {
         credential = Credential.fromHash("hashed-password", PLAIN_HASHER);
         role = new Role(RoleId.create(UUID.randomUUID()), "ADMIN");
         criacaoDate = LocalDateTime.of(2025, 1, 1, 12, 0);
-        user = new User(userId, "joao", email, credential, Set.of(role), true, criacaoDate, null);
+        var userData = new UserData(userId, "joao", email, true);
+        user = new User(userData, credential, Set.of(role), criacaoDate, null);
     }
 
     @Nested

@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
-import br.com.lata.velha.domain.repository.PecaAlocadaRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 
 @SpringBootTest
 @ActiveProfiles("test")

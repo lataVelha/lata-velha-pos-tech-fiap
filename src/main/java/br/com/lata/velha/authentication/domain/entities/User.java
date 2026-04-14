@@ -1,9 +1,10 @@
 package br.com.lata.velha.authentication.domain.entities;
 
-import br.com.lata.velha.authentication.domain.valueObjects.Credential;
-import br.com.lata.velha.domain.exception.InvalidLoginException;
-import br.com.lata.velha.shared.domain.valueObjects.Email;
-import br.com.lata.velha.shared.domain.valueObjects.UserId;
+import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
+import br.com.lata.velha.authentication.domain.value_objects.Credential;
+import br.com.lata.velha.authentication.domain.value_objects.UserData;
+import br.com.lata.velha.shared.domain.value_objects.Email;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -18,21 +19,22 @@ public final class User {
     private final LocalDateTime criacaoDate;
     private LocalDateTime ultimoLoginDate;
 
-    public User(UserId id, String username, Email email, Credential credential, Set<Role> roles, boolean isActive, LocalDateTime criacaoDate, LocalDateTime ultimoLoginDate) {
-        this.id = id;
-        this.username = username;
-        this.email = email;
+    public User(UserData userData, Credential credential, Set<Role> roles, LocalDateTime criacaoDate, LocalDateTime ultimoLoginDate) {
+        this.id = userData.id();
+        this.username = userData.username();
+        this.email = userData.email();
+        this.ativo = userData.isActive();
         this.credential = credential;
         this.roles = roles;
-        this.ativo = isActive;
         this.criacaoDate = criacaoDate;
         this.ultimoLoginDate = ultimoLoginDate;
     }
 
     public static User create(Email email, Credential credential, Set<Role> roles) {
         var id = UserId.random();
-        var creationDate = LocalDateTime.now();
-        return new User(id, email.getValor(), email, credential, roles, true, creationDate, null);
+        var username = email.toString();
+        var userData = new UserData(id, username, email, true);
+        return new User(userData, credential, roles, LocalDateTime.now(), null);
     }
 
     public boolean login(String senha) {

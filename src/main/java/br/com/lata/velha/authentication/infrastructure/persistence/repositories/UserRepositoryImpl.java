@@ -1,13 +1,13 @@
 package br.com.lata.velha.authentication.infrastructure.persistence.repositories;
 
 import br.com.lata.velha.authentication.domain.entities.User;
-import br.com.lata.velha.authentication.domain.exceptions.notFoundExceptions.UserNotFoundException;
+import br.com.lata.velha.authentication.domain.exceptions.not_found_exceptions.UserNotFoundException;
 import br.com.lata.velha.authentication.domain.repositories.UserRepository;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.UserEntity;
 import br.com.lata.velha.authentication.infrastructure.persistence.jpa.UserJpaRepository;
-import br.com.lata.velha.shared.domain.valueObjects.Email;
-import br.com.lata.velha.shared.domain.valueObjects.UserId;
+import br.com.lata.velha.shared.domain.value_objects.Email;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

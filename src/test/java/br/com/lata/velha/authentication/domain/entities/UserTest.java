@@ -1,10 +1,12 @@
 package br.com.lata.velha.authentication.domain.entities;
 
+import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
-import br.com.lata.velha.authentication.domain.valueObjects.Credential;
-import br.com.lata.velha.authentication.domain.valueObjects.Senha;
-import br.com.lata.velha.shared.domain.valueObjects.Email;
-import br.com.lata.velha.shared.domain.valueObjects.UserId;
+import br.com.lata.velha.authentication.domain.value_objects.Credential;
+import br.com.lata.velha.authentication.domain.value_objects.Senha;
+import br.com.lata.velha.authentication.domain.value_objects.UserData;
+import br.com.lata.velha.shared.domain.value_objects.Email;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -35,16 +37,8 @@ class UserTest {
         credential = Credential.fromHash(VALID_SENHA_VALUE, PLAIN_HASHER);
         criacaoDate = LocalDateTime.now().minusDays(1);
 
-        user = new User(
-                userId,
-                "joao",
-                Email.fromString("joao@email.com"),
-                credential,
-                new HashSet<>(),
-                true,
-                criacaoDate,
-                null
-        );
+        var userData = new UserData(userId,"joao", Email.fromString("joao@email.com"), true);
+        user = new User(userData, credential, new HashSet<>(), criacaoDate, null);
     }
 
     // ==================== LOGIN ====================
@@ -65,7 +59,7 @@ class UserTest {
         @Test
         @DisplayName("deve lançar InvalidLoginException com senha errada")
         void shouldReturnFalseAndNotUpdateLoginDateOnWrongPassword() {
-            assertThrows(br.com.lata.velha.domain.exception.InvalidLoginException.class,
+            assertThrows(InvalidLoginException.class,
                     () -> user.login("Errada123@"));
             assertNull(user.getUltimoLoginDate());
         }

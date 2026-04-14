@@ -1,0 +1,36 @@
+package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
+
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.FuncionarioNotFoundException;
+import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
+import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.FuncionarioPersistenceMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+@RequiredArgsConstructor
+public class FuncionarioRepositoryImpl implements FuncionarioRepository {
+    private final FuncionarioJpaRepository jpaRepository;
+    private final FuncionarioPersistenceMapper mapper;
+
+    @Override
+    public Funcionario save(Funcionario funcionario) {
+        var entity = mapper.toEntity(funcionario);
+        var saved = jpaRepository.save(entity);
+        return mapper.toDomain(saved);
+    }
+
+    @Override
+    public Optional<Funcionario> findById(Long id) {
+        return jpaRepository.findById(id)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public Funcionario getById(Long id) {
+        return findById(id)
+                .orElseThrow(() -> FuncionarioNotFoundException.fromId(id));
+    }
+}

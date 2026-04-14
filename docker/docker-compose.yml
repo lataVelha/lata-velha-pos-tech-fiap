@@ -1,6 +1,19 @@
 version: "3.8"
 
 services:
+  app:
+    container_name: lata-velha
+    hostname: lata-velha
+    build: "../"
+    environment:
+      - ENVIRONMENT=docker
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - app_network
+
   postgres:
     image: postgres:15
     container_name: postgres-lata-velha
@@ -12,29 +25,14 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: pgadmin-lata-velha
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-      - ./pgadmin/servers.json:/pgadmin4/servers.json
-    depends_on:
-      - postgres
-
-  sonarqube:
-    image: sonarqube:community
-    container_name: lata-velha-sonar
-    environment:
-      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
-    ports:
-      - "9000:9000"
+    networks:
+      - app_network
+      - db_network
 
 volumes:
   postgres_data:
   pgadmin_data:
+
+networks:
+  app_network:
+  db_network:
