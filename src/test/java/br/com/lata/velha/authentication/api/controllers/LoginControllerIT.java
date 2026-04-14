@@ -1,8 +1,8 @@
 package br.com.lata.velha.authentication.api.controllers;
 
-import br.com.lata.velha.ordemDeServico.application.dtos.request.CadastrarFuncionarioRequest;
-import br.com.lata.velha.ordemDeServico.application.useCases.funcionario.CadastrarFuncionarioUseCase;
-import br.com.lata.velha.ordemDeServico.infrastructure.persistence.entities.CargoEntity;
+import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarFuncionarioRequest;
+import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioUseCase;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;

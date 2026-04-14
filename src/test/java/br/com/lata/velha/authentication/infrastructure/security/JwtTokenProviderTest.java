@@ -1,7 +1,6 @@
 package br.com.lata.velha.authentication.infrastructure.security;
 
-import br.com.lata.velha.authentication.infrastructure.security.JwtTokenProvider;
-import br.com.lata.velha.shared.domain.valueObjects.UserId;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

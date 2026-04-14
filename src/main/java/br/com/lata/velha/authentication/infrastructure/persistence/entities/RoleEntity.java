@@ -1,7 +1,7 @@
 package br.com.lata.velha.authentication.infrastructure.persistence.entities;
 
 import br.com.lata.velha.authentication.domain.entities.Role;
-import br.com.lata.velha.shared.domain.valueObjects.RoleId;
+import br.com.lata.velha.shared.domain.value_objects.RoleId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

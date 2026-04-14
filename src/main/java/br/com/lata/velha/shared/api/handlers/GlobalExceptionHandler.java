@@ -2,10 +2,10 @@ package br.com.lata.velha.shared.api.handlers;
 
 import br.com.lata.velha.shared.domain.exceptions.DomainException;
 import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
-import br.com.lata.velha.ordemDeServico.domain.exceptions.notFoundExceptions.ProprietarioNotFoundException;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
-import br.com.lata.velha.ordemDeServico.domain.exceptions.notFoundExceptions.ServicoNotFoundException;
-import br.com.lata.velha.ordemDeServico.domain.exceptions.notFoundExceptions.VeiculoNotFoundException;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ServicoNotFoundException;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.VeiculoNotFoundException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

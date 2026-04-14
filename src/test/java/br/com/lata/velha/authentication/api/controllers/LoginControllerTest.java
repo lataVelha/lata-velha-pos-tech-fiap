@@ -1,6 +1,6 @@
 package br.com.lata.velha.authentication.api.controllers;
 
-import br.com.lata.velha.authentication.application.useCases.LoginUseCase;
+import br.com.lata.velha.authentication.application.use_cases.LoginUseCase;
 import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;

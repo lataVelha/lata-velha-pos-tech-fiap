@@ -1,7 +1,7 @@
 package br.com.lata.velha.shared.domain.exceptions;
 
-import br.com.lata.velha.ordemDeServico.domain.exceptions.notFoundExceptions.FuncionarioNotFoundException;
-import br.com.lata.velha.ordemDeServico.domain.exceptions.notFoundExceptions.CargoNotFoundException;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.FuncionarioNotFoundException;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.CargoNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
