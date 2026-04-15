@@ -61,17 +61,14 @@ class FuncionarioControllerTest {
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
 
-    private FuncionarioResponse buildResponse() {
-        return new FuncionarioResponse(1L, "Carlos Técnico", "MECANICO", UUID.randomUUID());
-    }
-
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("POST /funcionarios deve retornar 201 e o funcionário criado")
     void shouldReturn201OnCreate() throws Exception {
         var request = new CadastrarFuncionarioRequest("Carlos Técnico", "carlos@example.com", "Senha1@!", 1L);
 
-        when(cadastrarUseCase.execute(any())).thenReturn(buildResponse());
+        var output = new CadastrarFuncionarioUseCase.Output(1L, "Carlos Técnico", "MECANICO", UUID.randomUUID());
+        when(cadastrarUseCase.execute(any())).thenReturn(output);
 
         mockMvc.perform(post("/funcionarios")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -113,7 +110,8 @@ class FuncionarioControllerTest {
     @WithMockUser(roles = "ADMIN")
     @DisplayName("GET /funcionarios/{id} deve retornar 200 com o funcionário")
     void shouldReturn200OnFindById() throws Exception {
-        when(buscarPorIdUseCase.execute(1L)).thenReturn(buildResponse());
+        var response = new FuncionarioResponse(1L, "Carlos Técnico", "MECANICO", UUID.randomUUID());
+        when(buscarPorIdUseCase.execute(1L)).thenReturn(response);
 
         mockMvc.perform(get("/funcionarios/1"))
                 .andExpect(status().isOk())

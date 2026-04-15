@@ -1,6 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.dtos.response;
 
 import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.AtualizarFuncionarioUseCase;
+import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioUseCase;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 
 import java.util.UUID;
@@ -26,6 +27,15 @@ public record FuncionarioResponse(
                 funcionario.getNome(),
                 funcionario.getCargo().getNome(),
                 funcionario.getUserId().getValue()
+        );
+    }
+
+    public static FuncionarioResponse fromCadastrarOutput(CadastrarFuncionarioUseCase.Output output) {
+        return new FuncionarioResponse(
+                output.id(),
+                output.nome(),
+                output.cargo(),
+                output.userId()
         );
     }
 }
