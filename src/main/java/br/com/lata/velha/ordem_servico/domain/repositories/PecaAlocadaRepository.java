@@ -18,4 +18,6 @@ public interface PecaAlocadaRepository {
     Integer somarQuantidadeReservadaPorPeca(Long pecaId);
 
     List<PecaAlocada> buscarPendentesPorPecaOrdenado(Long pecaId);
+
+    PecaAlocada findByPecaIdAndServicoOsId(Long pecaId, Long servicoOsId);
 }

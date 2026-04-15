@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PecaAlocadaJpaRepository extends JpaRepository<PecaAlocadaEntity, Long> {
@@ -29,4 +30,6 @@ public interface PecaAlocadaJpaRepository extends JpaRepository<PecaAlocadaEntit
                 order by p.atualizado asc
             """)
     List<PecaAlocadaEntity> buscarPendentesPorPecaOrdenado(Long pecaId);
+
+    Optional<PecaAlocadaEntity> findByPecaIdAndServicoOsId(Long pecaId, Long servicoOsId);
 }

@@ -60,4 +60,11 @@ public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
         return jpaRepository.buscarPendentesPorPecaOrdenado(pecaId)
                 .stream().map(mapper::toDomain).toList();
     }
+
+    @Override
+    public PecaAlocada findByPecaIdAndServicoOsId(Long pecaId, Long servicoOsId) {
+        return  jpaRepository.findByPecaIdAndServicoOsId(pecaId,servicoOsId)
+                .map(mapper::toDomain)
+                .orElseThrow(() -> new IllegalArgumentException("Peça alocada não encontrada"));
+    }
 }

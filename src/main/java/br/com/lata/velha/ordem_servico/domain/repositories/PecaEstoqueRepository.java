@@ -7,4 +7,6 @@ public interface PecaEstoqueRepository {
     PecaEstoque save(PecaEstoque pecaEstoque);
 
     PecaEstoque findByPecaId(Long pecaId);
+
+    void baixarEstoque(Long pecaId, Integer quantidade);
 }

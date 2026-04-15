@@ -36,6 +36,6 @@ public class AdicionarServicoUseCase {
             os.adicionarServico(servicoOs);
         });
 
-        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null, null);
+        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null, null,null,null,null);
     }
 }

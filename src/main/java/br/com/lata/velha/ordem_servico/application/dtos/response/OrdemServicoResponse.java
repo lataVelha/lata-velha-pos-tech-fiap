@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.dtos.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -59,6 +60,15 @@ public record OrdemServicoResponse(
         LocalDateTime atualizadoEm,
 
         @Schema(description = "Lista de serviços da OS")
-        List<ServicoOSResponse> servicos
+        List<ServicoOSResponse> servicos,
+
+        @Schema(description = "Total dos Serviços",example = "150.00")
+        BigDecimal totalServicos,
+
+        @Schema(description = "Total das Peças", example = "150.00")
+        BigDecimal totalPeças,
+
+        @Schema(description = "Total da Ordem de Serviço",example = "150.00")
+        BigDecimal totalOrdemServico
 
 ) {}

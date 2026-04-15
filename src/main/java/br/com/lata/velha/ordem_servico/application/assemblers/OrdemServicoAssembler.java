@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +34,10 @@ public class OrdemServicoAssembler {
     public OrdemServicoResponse toResponse(
             OrdemServico domain,
             String proprietarioNome,
-            String veiculoDescricao
+            String veiculoDescricao,
+            BigDecimal totalServicos,
+            BigDecimal totalPeças,
+            BigDecimal totalOrdemServico
     ) {
 
         List<ServicoOSResponse> servicos =
@@ -60,7 +64,10 @@ public class OrdemServicoAssembler {
                 domain.getFinalizadoEm(),
                 domain.getEntregueEm(),
                 domain.getAtualizadoEm(),
-                servicos
+                servicos,
+                totalServicos,
+                totalPeças,
+                totalOrdemServico
         );
     }
 
@@ -95,7 +102,10 @@ public class OrdemServicoAssembler {
                 p.getFinalizadoEm(),
                 p.getEntregueEm(),
                 p.getAtualizadoEm(),
-                servicos
+                servicos,
+                null,
+                null,
+                null
         );
     }
 

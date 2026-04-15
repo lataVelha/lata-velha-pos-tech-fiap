@@ -26,7 +26,7 @@ public class FinalizarDiagnosticoUseCase {
         os.finalizarDiagnostico(mecanico.getId());
         enviarNotificao(os);
 
-        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null,null);
+        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null,null,null,null,null);
     }
 
     private void enviarNotificao(OrdemServico ordemServico){

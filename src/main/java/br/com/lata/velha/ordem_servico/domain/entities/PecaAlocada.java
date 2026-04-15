@@ -106,7 +106,7 @@ public class PecaAlocada {
         touch();
     }
 
-    public void instalar(Integer quantidade) {
+    public void instalada(Integer quantidade) {
 
         if (quantidade == null || quantidade <= 0)
             throw new IllegalArgumentException("Quantidade inválida");
@@ -121,8 +121,8 @@ public class PecaAlocada {
 
         if (quantidadeReservada == 0 && quantidadeEncomendada == 0) {
             this.status = StatusPecaAlocada.INSTALADA;
-        } else if (quantidadeReservada > 0) {
-            this.status = StatusPecaAlocada.PARCIAL;
+        } else {
+            throw new IllegalStateException("Peça não totalmente instalada");
         }
 
         touch();

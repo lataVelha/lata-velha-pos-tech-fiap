@@ -27,6 +27,6 @@ public class IniciarDiagnosticoUseCase {
 
         var osIniciada = repository.save(os);
 
-        return ordemServicoAssembler.toResponse(osIniciada,null, null);
+        return ordemServicoAssembler.toResponse(osIniciada,null, null,null,null,null);
     }
 }
