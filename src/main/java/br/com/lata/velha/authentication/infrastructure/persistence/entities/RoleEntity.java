@@ -21,7 +21,7 @@ public class RoleEntity {
     @Column(name = "ID", nullable = false)
     private UUID id;
 
-    @Column(name = "NOME", nullable = false)
+    @Column(name = "NOME", nullable = false, unique = true)
     private String nome;
 
     public static RoleEntity fromDomain(Role role) {

@@ -54,9 +54,8 @@ class LoginUseCaseIT {
 
         em.flush();
 
-        cadastrarUseCase.execute(
-                new CadastrarFuncionarioRequest("Técnico", USERNAME, SENHA, cargo.getId())
-        );
+        var input = new CadastrarFuncionarioUseCase.Input("Técnico", USERNAME, SENHA, cargo.getId());
+        cadastrarUseCase.execute(input);
 
         em.flush();
     }

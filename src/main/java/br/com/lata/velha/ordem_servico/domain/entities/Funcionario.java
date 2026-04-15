@@ -21,13 +21,22 @@ public final class Funcionario {
         return new Funcionario(null, nome, cargo, userId);
     }
 
-    public void setNome(String nome) {
+    public void update(String nome, Cargo cargo) {
+        setNome(nome);
+        setCargo(cargo);
+    }
+
+    private void setNome(String nome) {
         if (nome == null || nome.isBlank())
             throw new IllegalArgumentException("Nome do funcionário não pode ser vazio");
         this.nome = nome;
     }
 
-    public void setCargo(Cargo cargo) { this.cargo = cargo; }
+    private void setCargo(Cargo cargo) {
+        if(cargo == null)
+            throw new IllegalArgumentException("Cargo do funcionário não pode ser nulo");
+        this.cargo = cargo;
+    }
 
     @Override
     public boolean equals(Object o) {

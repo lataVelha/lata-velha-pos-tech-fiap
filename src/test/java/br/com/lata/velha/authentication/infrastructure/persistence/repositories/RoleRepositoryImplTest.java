@@ -2,8 +2,8 @@ package br.com.lata.velha.authentication.infrastructure.persistence.repositories
 
 import br.com.lata.velha.authentication.domain.entities.Role;
 import br.com.lata.velha.authentication.domain.exceptions.not_found_exceptions.RoleNotFoundException;
-import br.com.lata.velha.authentication.infrastructure.persistence.jpa.RoleJpaRepository;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
+import br.com.lata.velha.authentication.infrastructure.persistence.jpa.RoleJpaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,10 +12,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RoleRepositoryImplTest {
@@ -57,5 +59,30 @@ class RoleRepositoryImplTest {
 
         assertEquals("MECANICO", result.getNome());
         assertNotNull(result.getRoleId());
+    }
+
+    @Test
+    @DisplayName("getByNomes deve retornar conjunto de roles correspondentes aos nomes informados")
+    void shouldReturnRolesForGivenNames() {
+        var entity1 = new RoleEntity(UUID.randomUUID(), "MECANICO");
+        var entity2 = new RoleEntity(UUID.randomUUID(), "ADMIN");
+        when(jpaRepository.findAllByNomeIn(Set.of("MECANICO", "ADMIN"))).thenReturn(Set.of(entity1, entity2));
+
+        Set<Role> result = repository.getByNomes(Set.of("MECANICO", "ADMIN"));
+
+        assertEquals(2, result.size());
+        assertTrue(result.stream().anyMatch(r -> "MECANICO".equals(r.getNome())));
+        assertTrue(result.stream().anyMatch(r -> "ADMIN".equals(r.getNome())));
+        verify(jpaRepository).findAllByNomeIn(Set.of("MECANICO", "ADMIN"));
+    }
+
+    @Test
+    @DisplayName("getByNomes deve retornar conjunto vazio quando nenhuma role for encontrada")
+    void shouldReturnEmptySetWhenNoRolesFound() {
+        when(jpaRepository.findAllByNomeIn(Set.of("INEXISTENTE"))).thenReturn(Set.of());
+
+        Set<Role> result = repository.getByNomes(Set.of("INEXISTENTE"));
+
+        assertTrue(result.isEmpty());
     }
 }

@@ -22,7 +22,7 @@ DROP TABLE IF EXISTS ROLE;
 -- ---------------------------------------------------------------------------
 CREATE TABLE ROLE (
     ID   UUID        NOT NULL,
-    NOME VARCHAR(50) NOT NULL,
+    NOME VARCHAR(50) NOT NULL UNIQUE,
     CONSTRAINT PK_ROLE PRIMARY KEY (ID)
 );
 

@@ -32,7 +32,10 @@ public class FuncionarioController {
     @ApiResponse(responseCode = "201", description = "Funcionário criado")
     @ApiResponse(responseCode = "404", description = "Cargo não encontrado")
     public ResponseEntity<FuncionarioResponse> cadastrar(@Valid @RequestBody CadastrarFuncionarioRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(cadastrarUseCase.execute(request));
+        var input = request.toCadastrarInput();
+        var output = cadastrarUseCase.execute(input);
+        var response = FuncionarioResponse.fromCadastrarOutput(output);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{id}")
@@ -50,7 +53,10 @@ public class FuncionarioController {
     public ResponseEntity<FuncionarioResponse> atualizar(
             @PathVariable Long id,
             @Valid @RequestBody AtualizarFuncionarioRequest request) {
-        return ResponseEntity.ok(atualizarUseCase.execute(id, request));
+        var input = request.toUpdateUseCaseInput(id);
+        var output = atualizarUseCase.execute(input);
+        var response = FuncionarioResponse.fromUpdateOutput(output);
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}/desativar")

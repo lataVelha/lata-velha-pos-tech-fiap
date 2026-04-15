@@ -1,45 +1,48 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.funcionario;
 
-import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarFuncionarioRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResponse;
-import br.com.lata.velha.authentication.domain.entities.User;
-import br.com.lata.velha.authentication.domain.repositories.UserRepository;
-import br.com.lata.velha.authentication.domain.services.PasswordHasher;
-import br.com.lata.velha.authentication.domain.value_objects.Credential;
-import br.com.lata.velha.authentication.domain.value_objects.Senha;
-import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
-import br.com.lata.velha.ordem_servico.domain.entities.Cargo;
+import br.com.lata.velha.ordem_servico.application.ports.authentication.AuthenticationService;
+import br.com.lata.velha.ordem_servico.application.ports.authentication.dtos.CreateAuthUserDto;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.repositories.CargoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
-import br.com.lata.velha.shared.domain.value_objects.Email;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class CadastrarFuncionarioUseCase {
     private final FuncionarioRepository funcionarioRepository;
-    private final UserRepository userRepository;
     private final CargoRepository cargoRepository;
-    private final PasswordHasher passwordHasher;
+    private final AuthenticationService authService;
 
-    public FuncionarioResponse execute(CadastrarFuncionarioRequest request) {
-        //TODO user creation should be responsibility of a shared User Service
-        var email = Email.fromString(request.username());
-        if(userRepository.existsByEmail(email))
-            throw new ResourceAlreadyExistsException("Usuário já existe com o email: " + email);
-
-        var senha = Senha.fromString(request.senha());
-        var credential = Credential.fromSenha(senha, passwordHasher);
-
-        Cargo cargo = cargoRepository.getByIdWithRoles(request.cargoId());
-        User user = User.create(email, credential, cargo.getRoles());
-        userRepository.save(user);
-
-        var funcionario = Funcionario.create(request.nome(), cargo, user.getId());
+    public Output execute(Input input) {
+        var cargo = cargoRepository.getById(input.cargoId());
+        var userId = createUser(input);
+        var funcionario = Funcionario.create(input.nome(), cargo, userId);
         var saved = funcionarioRepository.save(funcionario);
+        return Output.fromDomain(saved);
+    }
 
-        return FuncionarioResponse.fromEntity(saved);
+    private UserId createUser(Input input) {
+        var roles = authService.getRolesForCargo(input.cargoId());
+        var createUserDto = new CreateAuthUserDto(input.username, input.senha, roles);
+        var userResponse = authService.createUser(createUserDto);
+        return UserId.create(userResponse.userId());
+    }
+
+    public record Input(String nome, String username, String senha, Long cargoId) {};
+
+    public record Output(Long id, String nome, String cargo, UUID userId) {
+        public static Output fromDomain(Funcionario entity) {
+            return new Output(
+                    entity.getId(),
+                    entity.getNome(),
+                    entity.getCargo().getNome(),
+                    entity.getUserId().getValue()
+            );
+        }
     }
 }
