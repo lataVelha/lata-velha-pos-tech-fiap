@@ -26,15 +26,6 @@ public class ServicoOS {
     public ServicoOS() {
     }
 
-    //TODO remove this constructor, not having it is breaking tests
-    public ServicoOS(Long id, Servico servico, BigDecimal valorMaoDeObra) {
-        this.id = id;
-        setServico(servico);
-        setValorMaoDeObra(valorMaoDeObra);
-        this.status = StatusServico.PENDENTE;
-        this.iniciadoEm = LocalDateTime.now();
-    }
-
     public ServicoOS(Servico servico, BigDecimal valorMaoDeObra) {
         setServico(servico);
         setValorMaoDeObra(valorMaoDeObra);
@@ -70,7 +61,7 @@ public class ServicoOS {
         touch();
     }
 
-    public void instalarPeca(Long pecaId, int quantidade) {
+    public void instalarPeca(int quantidade, Long mecanicoResponsavelId) {
 
         if (status != StatusServico.APROVADO) {
             throw new IllegalStateException("Serviço deve estar aprovado para instalar peças");
@@ -80,21 +71,24 @@ public class ServicoOS {
             throw new IllegalArgumentException("Quantidade inválida");
         }
 
-        PecaAlocada peca = pecas.stream()
-                .filter(p -> pecaId.equals(p.getPecaId()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Peça não encontrada"));
 
-        peca.instalar(quantidade);
+        this.mecanicoResponsavelId = mecanicoResponsavelId;
+        this.status = StatusServico.EM_EXECUCAO;
+        touch();
+    }
 
+    public void aguardandoPeca(Long mecanicoResponsavelId) {
+
+        this.status = StatusServico.AGUARDANDO_PECA;
+        this.mecanicoResponsavelId = mecanicoResponsavelId;
         touch();
     }
 
     public void finalizado(Long mecanicoId) {
 
-        if (status != StatusServico.APROVADO) {
+        if (status != StatusServico.EM_EXECUCAO) {
             throw new IllegalStateException(
-                    "Serviço só pode ser finalizado se estiver aprovado"
+                    "Serviço só pode ser finalizado se estiver Em Execução"
             );
         }
 
@@ -152,16 +146,45 @@ public class ServicoOS {
 
     /* ===================== GETTERS ===================== */
 
-    public Long getId() { return id; }
-    public StatusServico getStatus() { return status; }
-    public Servico getServico() { return servico; }
-    public LocalDateTime getIniciadoEm() { return iniciadoEm; }
-    public LocalDateTime getTerminadoEm() { return terminadoEm; }
-    public Long getMecanicoResponsavelId() { return mecanicoResponsavelId; }
-    public List<PecaAlocada> getPecas() { return pecas; }
-    public BigDecimal getValorMaoDeObra() { return valorMaoDeObra; }
-    public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
-    public Long getAtendenteId() { return atendenteId; }
+    public Long getId() {
+        return id;
+    }
+
+    public StatusServico getStatus() {
+        return status;
+    }
+
+    public Servico getServico() {
+        return servico;
+    }
+
+    public LocalDateTime getIniciadoEm() {
+        return iniciadoEm;
+    }
+
+    public LocalDateTime getTerminadoEm() {
+        return terminadoEm;
+    }
+
+    public Long getMecanicoResponsavelId() {
+        return mecanicoResponsavelId;
+    }
+
+    public List<PecaAlocada> getPecas() {
+        return pecas;
+    }
+
+    public BigDecimal getValorMaoDeObra() {
+        return valorMaoDeObra;
+    }
+
+    public LocalDateTime getAtualizadoEm() {
+        return atualizadoEm;
+    }
+
+    public Long getAtendenteId() {
+        return atendenteId;
+    }
 
     /* ===================== SETTERS CONTROLADOS ===================== */
 

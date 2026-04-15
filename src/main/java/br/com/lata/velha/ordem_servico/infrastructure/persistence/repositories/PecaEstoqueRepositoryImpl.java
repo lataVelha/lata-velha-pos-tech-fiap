@@ -26,4 +26,9 @@ public class PecaEstoqueRepositoryImpl implements PecaEstoqueRepository {
                 .map(mapper::toDomain)
                 .orElse(null);
     }
+
+    @Override
+    public void baixarEstoque(Long pecaId, Integer quantidade) {
+        jpaRepository.baixarEstoque(pecaId, quantidade);
+    }
 }

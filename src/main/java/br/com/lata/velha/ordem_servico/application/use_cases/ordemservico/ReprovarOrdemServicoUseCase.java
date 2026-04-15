@@ -40,7 +40,7 @@ public class ReprovarOrdemServicoUseCase {
 
         os.reprovar(funcionario.getId());
         enviarNotificao(os);
-        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null, null);
+        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null, null,null,null,null);
     }
 
     private void vailidarStatusOrdem(StatusOrdemServico status, OrdemServico os) {

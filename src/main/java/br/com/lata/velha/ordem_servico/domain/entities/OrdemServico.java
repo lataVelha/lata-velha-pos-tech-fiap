@@ -98,9 +98,10 @@ public class OrdemServico {
         touch();
     }
 
-    public void entregar() {
+    public void entregar(Long atendenteId) {
         validarStatus(StatusOrdemServico.FINALIZADA);
 
+        this.atendenteInicioId =atendenteId;
         this.status = StatusOrdemServico.ENTREGUE;
         this.entregueEm = LocalDateTime.now();
         touch();
