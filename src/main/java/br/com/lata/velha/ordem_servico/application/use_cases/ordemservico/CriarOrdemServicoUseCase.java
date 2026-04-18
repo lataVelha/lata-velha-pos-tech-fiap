@@ -15,20 +15,14 @@ import org.springframework.stereotype.Component;
 public class CriarOrdemServicoUseCase {
 
     private final OrdemServicoRepository repository;
-
     private final OrdemServicoAssembler ordemServicoAssembler;
-
     private final BuscarVeiculoPorIdUseCase buscarVeiculoPorIdUseCase;
-
     private final BuscarProprietarioPorIdUseCase buscarProprietarioPorIdUseCase;
-
-    private final NotificarOSCriadaUseCase notificarUseCase;
-
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(OrdemServicoRequest request) {
 
         var veiculo = buscarVeiculoPorIdUseCase.execute(request.veiculoId());
-
         var proprietario = buscarProprietarioPorIdUseCase.execute(request.proprietarioId());
 
         OrdemServico os = new OrdemServico(
@@ -41,9 +35,8 @@ public class CriarOrdemServicoUseCase {
 
         OrdemServico saved = repository.save(os);
 
-        notificarUseCase.execute(saved, proprietario.nome(), proprietario.email(),
-                        veiculo.marca() + " - " + veiculo.modelo());
+        notificarUseCase.execute(saved);
 
-        return ordemServicoAssembler.toResponse(os, proprietario.nome(), veiculo.modelo(),null,null,null);
+        return ordemServicoAssembler.toResponse(saved, proprietario.nome(), veiculo.modelo(), null, null, null);
     }
 }

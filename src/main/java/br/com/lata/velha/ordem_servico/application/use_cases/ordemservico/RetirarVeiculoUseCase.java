@@ -22,6 +22,7 @@ public class RetirarVeiculoUseCase {
     private final PecaAlocadaRepository pecaAlocadaRepository;
     private final PecaEstoqueRepository pecaEstoqueRepository;
     private final PecaRepository pecaRepository;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(Long idOs, Long idFuncionario) {
 
@@ -51,7 +52,7 @@ public class RetirarVeiculoUseCase {
                         .map(p -> {
 
                             var pecaAlocada = pecaAlocadaRepository
-                                    .findByPecaIdAndServicoOsId(p.getPecaId(), sos.getId());
+                                    .findByPecaIdAndServicoOS_Id(p.getPecaId(), sos.getId());
 
                             if (!StatusPecaAlocada.INSTALADA.equals(pecaAlocada.getStatus())) {
                                 throw new ResourceAlreadyExistsException("Peça não instalada!");
@@ -78,6 +79,7 @@ public class RetirarVeiculoUseCase {
 
         BigDecimal totalOrdemServico = totalServicos.add(totalPecas);
         os.entregar(funcionario.getId());
+        notificarUseCase.execute(os);
 
         return ordemServicoAssembler.toResponse(
                 ordemServicoRepository.save(os),

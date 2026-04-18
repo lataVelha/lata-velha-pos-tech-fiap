@@ -2,7 +2,6 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusServico;
@@ -23,7 +22,7 @@ public class FinalizarServicoUseCase {
     private final FuncionarioRepository funcionarioRepository;
     private final PecaAlocadaRepository pecaAlocadaRepository;
     private final ProprietarioRepository proprietarioRepository;
-    private final NotificarOSCriadaUseCase notificarOSCriadaUseCase;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
@@ -46,7 +45,7 @@ public class FinalizarServicoUseCase {
             sos.getPecas().forEach(p -> {
 
                 var peca = pecaAlocadaRepository
-                        .findByPecaIdAndServicoOsId(p.getPecaId(), sos.getId());
+                        .findByPecaIdAndServicoOS_Id(p.getPecaId(), sos.getId());
 
                 if (!StatusPecaAlocada.RESERVADA.equals(peca.getStatus())) {
                     throw new ResourceAlreadyExistsException(
@@ -62,7 +61,7 @@ public class FinalizarServicoUseCase {
         });
 
         os.finalizar(mecanico.getId());
-        enviarNotificacao(os);
+        notificarUseCase.execute(os);
 
         return ordemServicoAssembler.toResponse(
                 ordemServicoRepository.save(os),
@@ -74,22 +73,5 @@ public class FinalizarServicoUseCase {
         );
     }
 
-    private void enviarNotificacao(OrdemServico ordemServico) {
 
-        var proprietario = proprietarioRepository
-                .findActiveById(ordemServico.getProprietarioId());
-
-        String descricao = proprietario.getVeiculos().stream()
-                .filter(v -> v.getId().equals(ordemServico.getVeiculoId()))
-                .map(v -> v.getMarca() + " " + v.getModelo())
-                .findFirst()
-                .orElseThrow(() -> new ResourceAlreadyExistsException("Veículo não encontrado"));
-
-        notificarOSCriadaUseCase.execute(
-                ordemServico,
-                proprietario.getNome(),
-                proprietario.getEmail(),
-                descricao
-        );
-    }
 }
