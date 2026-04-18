@@ -37,6 +37,6 @@ public class CriarOrdemServicoUseCase {
 
         notificarUseCase.execute(saved);
 
-        return ordemServicoAssembler.toResponse(saved, proprietario.nome(), veiculo.modelo(), null, null, null);
+        return ordemServicoAssembler.toResponse(os, proprietario.nome(), veiculo.modelo(),null,null,null);
     }
 }
