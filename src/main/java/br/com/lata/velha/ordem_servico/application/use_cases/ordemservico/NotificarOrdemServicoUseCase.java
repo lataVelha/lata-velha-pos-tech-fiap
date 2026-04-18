@@ -2,8 +2,8 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.ports.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import br.com.lata.velha.ordem_servico.domain.enums.StatusServico;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
@@ -103,8 +103,9 @@ public class NotificarOrdemServicoUseCase {
         }
 
         // Serviços do diagnóstico (AGUARDANDO_APROVACAO)
-        if (os.getStatus() == StatusOrdemServico.AGUARDANDO_APROVACAO && !os.getServicos().isEmpty()) {
-            List<Map<String, Object>> servicos = os.getServicos().stream()
+        if (os.getStatus() == StatusOrdemServico.AGUARDANDO_APROVACAO
+                && !os.getExecucaoServicos().isEmpty()) {
+            List<Map<String, Object>> servicos = os.getExecucaoServicos().stream()
                     .map(s -> {
                         Map<String, Object> map = new HashMap<>();
                         map.put("nome", s.getServico().getNome());
@@ -118,9 +119,10 @@ public class NotificarOrdemServicoUseCase {
         }
 
         // Serviços aprovados/recusados (EM_EXECUCAO)
-        if (os.getStatus() == StatusOrdemServico.EM_EXECUCAO && !os.getServicos().isEmpty()) {
-            List<Map<String, Object>> aprovados = os.getServicos().stream()
-                    .filter(s -> s.getStatus() == StatusServico.APROVADO)
+        if (os.getStatus() == StatusOrdemServico.EM_EXECUCAO
+                && !os.getExecucaoServicos().isEmpty()) {
+            List<Map<String, Object>> aprovados = os.getExecucaoServicos().stream()
+                    .filter(s -> s.getStatus() == StatusExecucaoServico.APROVADO)
                     .map(s -> {
                         Map<String, Object> map = new HashMap<>();
                         map.put("nome", s.getServico().getNome());
@@ -129,8 +131,8 @@ public class NotificarOrdemServicoUseCase {
                     })
                     .toList();
 
-            List<Map<String, Object>> recusados = os.getServicos().stream()
-                    .filter(s -> s.getStatus() == StatusServico.RECUSADO)
+            List<Map<String, Object>> recusados = os.getExecucaoServicos().stream()
+                    .filter(s -> s.getStatus() == StatusExecucaoServico.RECUSADO)
                     .map(s -> {
                         Map<String, Object> map = new HashMap<>();
                         map.put("nome", s.getServico().getNome());
@@ -139,13 +141,13 @@ public class NotificarOrdemServicoUseCase {
                     })
                     .toList();
 
-            BigDecimal valorAprovado = os.getServicos().stream()
-                    .filter(s -> s.getStatus() == StatusServico.APROVADO)
+            BigDecimal valorAprovado = os.getExecucaoServicos().stream()
+                    .filter(s -> s.getStatus() == StatusExecucaoServico.APROVADO)
                     .map(s -> s.calcularTotal())
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            BigDecimal valorRecusado = os.getServicos().stream()
-                    .filter(s -> s.getStatus() == StatusServico.RECUSADO)
+            BigDecimal valorRecusado = os.getExecucaoServicos().stream()
+                    .filter(s -> s.getStatus() == StatusExecucaoServico.RECUSADO)
                     .map(s -> s.calcularTotal())
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
