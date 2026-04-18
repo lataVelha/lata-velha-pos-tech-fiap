@@ -33,7 +33,8 @@ class AtualizarPecaAlocadaUseCaseTest {
     void deveAtualizarPecaComSucesso() {
         // Arrange
         AtualizarPecaAlocadaRequest request = new AtualizarPecaAlocadaRequest(5);
-        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 99L, 2);
+        PecaAlocada pecaAlocada = new PecaAlocada(2L, 99L, 2);
+        pecaAlocada.setId(1L);
         PecaEstoque estoque = new PecaEstoque(2L, 10);
         
         when(pecaAlocadaRepository.findById(1L)).thenReturn(pecaAlocada);

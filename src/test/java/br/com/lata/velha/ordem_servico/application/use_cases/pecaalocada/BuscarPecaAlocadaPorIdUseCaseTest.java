@@ -1,7 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada;
 
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaAlocadaResponse;
-import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import org.junit.jupiter.api.Test;
@@ -9,8 +8,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -28,8 +25,8 @@ class BuscarPecaAlocadaPorIdUseCaseTest {
     @Test
     void deveBuscarPecaAlocadaComSucesso() {
         // Arrange
-        Peca peca = new Peca(2L, "Pastilha", "Desc", new BigDecimal("50.0"));
-        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 99L, 2);
+        PecaAlocada pecaAlocada = new PecaAlocada(2L, 99L, 2);
+        pecaAlocada.setId(1L);
         
         when(pecaAlocadaRepository.findById(1L)).thenReturn(pecaAlocada);
 

@@ -1,11 +1,8 @@
 package br.com.lata.velha.ordem_servico.application.assemblers;
 
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaAlocadaResponse;
-import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -14,8 +11,8 @@ class PecaAlocadaAssemblerTest {
     @Test
     void deveConverterParaResponse() {
         // Arrange
-        Peca peca = new Peca(10L, "Filtro de Óleo", "Filtro Bosh", new BigDecimal("50.0"));
-        PecaAlocada pecaAlocada = new PecaAlocada(1L, 10L, 99L, 2);
+        PecaAlocada pecaAlocada = new PecaAlocada(10L, 99L, 2);
+        pecaAlocada.setId(1L);
 
         // Act
         PecaAlocadaResponse response = PecaAlocadaAssembler.toResponse(pecaAlocada);

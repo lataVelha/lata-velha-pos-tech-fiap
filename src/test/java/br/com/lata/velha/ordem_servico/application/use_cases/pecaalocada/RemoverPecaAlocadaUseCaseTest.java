@@ -28,7 +28,8 @@ class RemoverPecaAlocadaUseCaseTest {
 
     @Test
     void deveRemoverPecaComSucesso() {
-        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 10L, 3);
+        PecaAlocada pecaAlocada = new PecaAlocada(2L, 10L, 3);
+        pecaAlocada.setId(1L);
         PecaEstoque estoque = new PecaEstoque(2L, 7);
 
         when(pecaAlocadaRepository.findById(1L)).thenReturn(pecaAlocada);
