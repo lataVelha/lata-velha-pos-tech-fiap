@@ -45,7 +45,7 @@ public class FinalizarServicoUseCase {
             sos.getPecas().forEach(p -> {
 
                 var peca = pecaAlocadaRepository
-                        .findByPecaIdAndServicoOS_Id(p.getPecaId(), sos.getId());
+                        .findByPecaIdAndServicoOsId(p.getPecaId(), sos.getId());
 
                 if (!StatusPecaAlocada.RESERVADA.equals(peca.getStatus())) {
                     throw new ResourceAlreadyExistsException(

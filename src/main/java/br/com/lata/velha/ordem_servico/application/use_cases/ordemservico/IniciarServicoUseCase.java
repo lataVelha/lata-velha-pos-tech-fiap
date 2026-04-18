@@ -32,7 +32,7 @@ public class IniciarServicoUseCase {
         os.getServicos().forEach(sos -> {
 
             sos.getPecas().forEach(p -> {
-                var temPeca = pecaAlocadaRepository.findByPecaIdAndServicoOsId(p.getPecaId(), sos.getId());
+                var temPeca = pecaAlocadaRepository.findByPecaIdAndServicoOsIdp.getPecaId(), sos.getId());
 
                 if (temPeca.getStatus() == StatusPecaAlocada.RESERVADA) {
 

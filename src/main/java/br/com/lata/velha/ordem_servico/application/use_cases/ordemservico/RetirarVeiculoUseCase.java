@@ -52,7 +52,7 @@ public class RetirarVeiculoUseCase {
                         .map(p -> {
 
                             var pecaAlocada = pecaAlocadaRepository
-                                    .findByPecaIdAndServicoOS_Id(p.getPecaId(), sos.getId());
+                                    .findByPecaIdAndServicoOsId(p.getPecaId(), sos.getId());
 
                             if (!StatusPecaAlocada.INSTALADA.equals(pecaAlocada.getStatus())) {
                                 throw new ResourceAlreadyExistsException("Peça não instalada!");
