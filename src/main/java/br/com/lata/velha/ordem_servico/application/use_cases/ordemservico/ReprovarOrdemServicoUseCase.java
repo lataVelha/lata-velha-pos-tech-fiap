@@ -21,6 +21,7 @@ public class ReprovarOrdemServicoUseCase {
     private final FuncionarioRepository funcionarioRepository;
     private final OrdemServicoAssembler ordemServicoAssembler;
     private final BuscarProprietarioPorIdUseCase buscarProprietarioPorIdUseCase;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(Long osId, Long idFunc) {
         var ordemServico = ordemServicoRepository.findById(osId);
@@ -39,7 +40,7 @@ public class ReprovarOrdemServicoUseCase {
         });
 
         ordemServico.reprovar(funcionario.getId());
-        enviarNotificao(ordemServico);
+        notificarUseCase.execute(ordemServico);
         return ordemServicoAssembler.toResponse(ordemServicoRepository.save(ordemServico), null, null,null,null,null);
     }
 
@@ -73,10 +74,4 @@ public class ReprovarOrdemServicoUseCase {
         }
     }
 
-    private void enviarNotificao(OrdemServico ordemServico){
-
-        var proprietario = buscarProprietarioPorIdUseCase.execute(ordemServico.getProprietarioId());
-
-        // chamar o email
-    }
 }

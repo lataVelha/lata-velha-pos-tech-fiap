@@ -19,14 +19,13 @@ public class CriarOrdemServicoUseCase {
     private final OrdemServicoAssembler ordemServicoAssembler;
     private final BuscarVeiculoPorIdUseCase buscarVeiculoPorIdUseCase;
     private final BuscarProprietarioPorIdUseCase buscarProprietarioPorIdUseCase;
-    private final NotificarOSCriadaUseCase notificarUseCase;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
     private final FuncionarioRepository funcionarioRepository;
 
 
     public OrdemServicoResponse execute(OrdemServicoRequest request) {
 
         var veiculo = buscarVeiculoPorIdUseCase.execute(request.veiculoId());
-
         var proprietario = buscarProprietarioPorIdUseCase.execute(request.proprietarioId());
         var funcionario = funcionarioRepository.getById(request.atendenteInicioId());
 
@@ -40,8 +39,7 @@ public class CriarOrdemServicoUseCase {
 
         OrdemServico ordemServicoSalva = repository.save(ordemServico);
 
-        notificarUseCase.execute(ordemServicoSalva, proprietario.nome(), proprietario.email(),
-                        veiculo.marca() + " - " + veiculo.modelo());
+        notificarUseCase.execute(ordemServicoSalva);
 
         return ordemServicoAssembler.toResponse(ordemServicoSalva, proprietario.nome(), veiculo.modelo(),null,null,null);
     }

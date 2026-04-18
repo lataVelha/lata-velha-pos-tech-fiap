@@ -22,6 +22,7 @@ public class RetirarVeiculoUseCase {
     private final FuncionarioRepository funcionarioRepository;
     private final PecaEstoqueRepository pecaEstoqueRepository;
     private final PecaRepository pecaRepository;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(Long idOs, Long idFuncionario) {
 
@@ -39,6 +40,7 @@ public class RetirarVeiculoUseCase {
         BigDecimal totalOrdemServico = totalServicos.add(totalPecas);
 
         ordemServico.entregar(funcionario.getId());
+        notificarUseCase.execute(ordemServico);
 
         return ordemServicoAssembler.toResponse(
                 ordemServicoRepository.save(ordemServico),

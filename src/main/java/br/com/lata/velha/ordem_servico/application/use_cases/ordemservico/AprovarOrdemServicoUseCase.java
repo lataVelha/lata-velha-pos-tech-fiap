@@ -27,6 +27,7 @@ public class AprovarOrdemServicoUseCase {
     private final OrdemServicoAssembler ordemServicoAssembler;
     private final PecaEstoqueRepository pecaEstoqueRepository;
     private final PecaAlocadaRepository pecaAlocadaRepository;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
     @Transactional
     public AprovarOrdemServicoResponse execute(AprovarOrdemSevicoRequest request) {
@@ -100,6 +101,7 @@ public class AprovarOrdemServicoUseCase {
         });
 
         ordemServico.aprovar(funcionario.getId());
+        notificarUseCase.execute(ordemServico);
 
         return ordemServicoAssembler
                 .toAprovarResponse(ordemServicoRepository.save(ordemServico));

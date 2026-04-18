@@ -18,7 +18,7 @@ public class FinalizarServicoUseCase {
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final ProprietarioRepository proprietarioRepository;
-    private final NotificarOSCriadaUseCase notificarOSCriadaUseCase;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
     @Transactional
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
@@ -54,6 +54,7 @@ public class FinalizarServicoUseCase {
         ordemServico.finalizar(mecanico.getId());
 
         ordemServicoRepository.save(ordemServico);
+        notificarUseCase.execute(ordemServico);
 
         return ordemServicoAssembler.toResponse(
                 ordemServico,

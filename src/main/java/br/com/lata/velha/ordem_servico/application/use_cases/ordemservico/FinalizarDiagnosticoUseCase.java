@@ -17,6 +17,7 @@ public class FinalizarDiagnosticoUseCase {
     private final FuncionarioRepository funcionarioRepository;
     private final OrdemServicoAssembler ordemServicoAssembler;
     private final BuscarProprietarioPorIdUseCase buscarProprietarioPorIdUseCase;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico){
 
@@ -24,15 +25,8 @@ public class FinalizarDiagnosticoUseCase {
         var mecanico = funcionarioRepository.getById(idMecanico);
 
         ordemServico.finalizarDiagnostico(mecanico.getId());
-        enviarNotificao(ordemServico);
+        notificarUseCase.execute(ordemServico);
 
         return ordemServicoAssembler.toResponse(ordemServicoRepository.save(ordemServico), null,null,null,null,null);
-    }
-
-    private void enviarNotificao(OrdemServico ordemServico){
-
-        var proprietario = buscarProprietarioPorIdUseCase.execute(ordemServico.getProprietarioId());
-
-        // chamar o email
     }
 }
