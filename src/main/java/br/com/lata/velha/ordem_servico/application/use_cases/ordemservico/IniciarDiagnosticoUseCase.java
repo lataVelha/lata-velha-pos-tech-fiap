@@ -14,6 +14,7 @@ public class IniciarDiagnosticoUseCase {
     private final OrdemServicoRepository repository;
     private final FuncionarioRepository funcionarioRepository;
     private final OrdemServicoAssembler ordemServicoAssembler;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
 
@@ -24,6 +25,7 @@ public class IniciarDiagnosticoUseCase {
         ordemServico.iniciarDiagnostico(mecanico.getId());
 
         var ordemServicoIniciada = repository.save(ordemServico);
+        notificarUseCase.execute(ordemServicoIniciada);
 
         return ordemServicoAssembler.toResponse(ordemServicoIniciada,null, null,null,null,null);
     }

@@ -162,12 +162,12 @@ public class NotificarOrdemServicoUseCase {
 
     private List<Map<String, Object>> buildTimeline(StatusOrdemServico statusAtual) {
         List<TimelineStep> steps = List.of(
-                new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
-                new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliando o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
-                new TimelineStep(3, "Aguardando Aprovação", "Aprovação dos serviços identificados", StatusOrdemServico.AGUARDANDO_APROVACAO),
-                new TimelineStep(4, "Em Execução", "Próximo passo: mecânico irá executar os serviços", StatusOrdemServico.EM_EXECUCAO),
-                new TimelineStep(5, "Finalizada", "Serviços concluídos", StatusOrdemServico.FINALIZADA),
-                new TimelineStep(6, "Entregue", "Veículo pronto para retirada", StatusOrdemServico.ENTREGUE)
+            new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
+            new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliando o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
+            new TimelineStep(3, "Aguardando Aprovação", "Aguardando aprovação dos serviços identificados", StatusOrdemServico.AGUARDANDO_APROVACAO),
+            new TimelineStep(4, "Em Execução", "Próximo passo: mecânico irá executar os serviços", StatusOrdemServico.EM_EXECUCAO),
+            new TimelineStep(5, "Finalizada", "Serviços concluídos e veículo pronto para retirada", StatusOrdemServico.FINALIZADA),
+            new TimelineStep(6, "Entregue", "Veículo entregue ao cliente", StatusOrdemServico.ENTREGUE)
         );
 
         int currentIndex = steps.stream()
