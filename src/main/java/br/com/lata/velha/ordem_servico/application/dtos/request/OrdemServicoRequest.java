@@ -8,15 +8,15 @@ import jakarta.validation.constraints.Size;
 public record OrdemServicoRequest(
 
         @NotNull(message = "Veículo Id é obrigatório!")
-        @Schema(description = "Id do veículo", example = "1")
+        @Schema(description = "Id do veículo", example = "4")
         Long veiculoId,
 
         @NotNull(message = "Proprietário Id é obrigatório!")
-        @Schema(description = "Id do proprietário", example = "10")
+        @Schema(description = "Id do proprietário", example = "3")
         Long proprietarioId,
 
         @NotNull(message = "Atendente Id é obrigatório!")
-        @Schema(description = "Id do atendente", example = "10")
+        @Schema(description = "Id do atendente", example = "1")
         Long atendenteInicioId,
 
         @Size(max = 500, message = "Observações deve ter no máximo 500 caracteres")

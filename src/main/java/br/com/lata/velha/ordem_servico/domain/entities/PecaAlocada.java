@@ -9,7 +9,7 @@ public class PecaAlocada {
 
     private Long id;
     private Long pecaId;
-    private Long servicoOsId;
+    private Long execucaoServicoId;
 
     private Integer quantidadeSolicitada;
     private Integer quantidadeReservada;
@@ -20,9 +20,9 @@ public class PecaAlocada {
 
     public PecaAlocada() {}
 
-    public PecaAlocada(Long pecaId, Long servicoOsId, Integer quantidadeSolicitada) {
+    public PecaAlocada(Long pecaId, Long execucaoServicoId, Integer quantidadeSolicitada) {
         setPecaId(pecaId);
-        setServicoOsId(servicoOsId);
+        setExecucaoServicoId(execucaoServicoId);
         setQuantidadeSolicitada(quantidadeSolicitada);
 
         this.quantidadeReservada = 0;
@@ -31,21 +31,20 @@ public class PecaAlocada {
         this.atualizado = LocalDateTime.now();
     }
 
-    public PecaAlocada(Long id, Long pecaId, Long servicoOsId, Integer quantidadeSolicitada) {
-        this.id = id;
+    public PecaAlocada(Long pecaId, Integer quantidadeSolicitada) {
         setPecaId(pecaId);
-        setServicoOsId(servicoOsId);
         setQuantidadeSolicitada(quantidadeSolicitada);
+
         this.quantidadeReservada = 0;
         this.quantidadeEncomendada = 0;
         this.status = StatusPecaAlocada.ORCAMENTO;
         this.atualizado = LocalDateTime.now();
     }
 
-    public PecaAlocada(Long id, Long pecaId, Long servicoOsId, Integer quantidadeSolicitada, Integer quantidadeReservada, Integer quantidadeEncomendada, StatusPecaAlocada status, LocalDateTime atualizado) {
+    public PecaAlocada(Long id, Long pecaId, Long execucaoServicoId, Integer quantidadeSolicitada, Integer quantidadeReservada, Integer quantidadeEncomendada, StatusPecaAlocada status, LocalDateTime atualizado) {
         this.id = id;
         this.pecaId = pecaId;
-        this.servicoOsId = servicoOsId;
+        this.execucaoServicoId = execucaoServicoId;
         this.quantidadeSolicitada = quantidadeSolicitada;
         this.quantidadeReservada = quantidadeReservada;
         this.quantidadeEncomendada = quantidadeEncomendada;
@@ -119,15 +118,20 @@ public class PecaAlocada {
 
         this.quantidadeReservada -= quantidade;
 
-        if (quantidadeReservada == 0 && quantidadeEncomendada == 0) {
+        if (this.quantidadeReservada < 0) {
+            throw new IllegalStateException("Quantidade inconsistente");
+        }
+
+        if (this.quantidadeReservada == 0 && this.quantidadeEncomendada == 0) {
             this.status = StatusPecaAlocada.INSTALADA;
-        } else {
-            throw new IllegalStateException("Peça não totalmente instalada");
         }
 
         touch();
     }
 
+    public boolean isProcessada() {
+        return quantidadeSolicitada >= quantidadeReservada;
+    }
     /* ================= HELPERS ================= */
 
     public boolean totalmenteReservada() {
@@ -155,7 +159,7 @@ public class PecaAlocada {
 
     public Long getId() { return id; }
     public Long getPecaId() { return pecaId; }
-    public Long getServicoOsId() { return servicoOsId; }
+    public Long getExecucaoServicoId() { return execucaoServicoId; }
     public Integer getQuantidadeSolicitada() { return quantidadeSolicitada; }
     public Integer getQuantidadeReservada() { return quantidadeReservada; }
     public Integer getQuantidadeEncomendada() { return quantidadeEncomendada; }
@@ -174,10 +178,10 @@ public class PecaAlocada {
         this.pecaId = pecaId;
     }
 
-    public void setServicoOsId(Long servicoOsId) {
-        if (servicoOsId == null)
+    public void setExecucaoServicoId(Long execucaoServicoId) {
+        if (execucaoServicoId == null)
             throw new IllegalArgumentException("Serviço obrigatório");
-        this.servicoOsId = servicoOsId;
+        this.execucaoServicoId = execucaoServicoId;
     }
 
     public void setQuantidadeSolicitada(Integer quantidadeSolicitada) {
@@ -215,5 +219,9 @@ public class PecaAlocada {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public boolean isReservada() {
+        return StatusPecaAlocada.RESERVADA.equals(this.status);
     }
 }

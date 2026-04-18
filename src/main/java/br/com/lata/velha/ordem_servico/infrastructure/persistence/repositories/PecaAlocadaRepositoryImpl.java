@@ -17,13 +17,13 @@ public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
     private final PecaAlocadaJpaRepository jpaRepository;
     private final PecaAlocadaPersistenceMapper mapper;
 
+
     @Override
     public PecaAlocada save(PecaAlocada pecaAlocada) {
         var entity = mapper.toEntity(pecaAlocada);
         var saved = jpaRepository.save(entity);
         return mapper.toDomain(saved);
     }
-
     @Override
     public PecaAlocada findById(Long id) {
         return jpaRepository.findById(id)
@@ -33,7 +33,7 @@ public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
 
     @Override
     public PaginatedResult<PecaAlocada> findByServicoOsId(Long servicoOsId, int page, int size) {
-        var result = jpaRepository.findByServicoOSId(servicoOsId, PageRequest.of(page, size));
+        var result = jpaRepository.findByExecucaoServico_Id(servicoOsId, PageRequest.of(page, size));
         var content = result.getContent().stream().map(mapper::toDomain).toList();
 
         return new PaginatedResult<>(
@@ -63,7 +63,7 @@ public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
 
     @Override
     public PecaAlocada findByPecaIdAndServicoOsId(Long pecaId, Long servicoOsId) {
-        return  jpaRepository.findByPecaIdAndServicoOsId(pecaId,servicoOsId)
+        return  jpaRepository.findByPeca_IdAndExecucaoServico_Id(pecaId,servicoOsId)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> new IllegalArgumentException("Peça alocada não encontrada"));
     }

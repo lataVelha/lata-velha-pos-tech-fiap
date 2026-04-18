@@ -60,7 +60,7 @@ public record OrdemServicoResponse(
         LocalDateTime atualizadoEm,
 
         @Schema(description = "Lista de serviços da OS")
-        List<ServicoOSResponse> servicos,
+        List<ExecucaoServicoResponse> servicos,
 
         @Schema(description = "Total dos Serviços",example = "150.00")
         BigDecimal totalServicos,

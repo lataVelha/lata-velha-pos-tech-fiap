@@ -1,17 +1,18 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.entities;
 
-import br.com.lata.velha.ordem_servico.domain.enums.StatusServico;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "SERVICO_OS")
+@Table(name = "EXECUCAO_SERVICO")
 @Data
-public class ServicoOSEntity {
+public class ExecucaoServicoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +24,7 @@ public class ServicoOSEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS_SERVICO", length = 30)
-    private StatusServico statusServico;
+    private StatusExecucaoServico statusExecucaoServico;
 
     @ManyToOne
     @JoinColumn(name = "SERVICO_ID", nullable = false)
@@ -48,6 +49,6 @@ public class ServicoOSEntity {
     @Column(name = "ATUALIZADO_EM")
     private LocalDateTime atualizadoEm;
 
-    @OneToMany(mappedBy = "servicoOS", cascade = CascadeType.ALL)
-    private List<PecaAlocadaEntity> pecas;
+    @OneToMany(mappedBy = "execucaoServico", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PecaAlocadaEntity> pecas = new ArrayList<>();
 }

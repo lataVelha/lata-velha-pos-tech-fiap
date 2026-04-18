@@ -55,6 +55,6 @@ public class OrdemServicoEntity {
     @Column(name = "VALOR_TOTAL", precision = 10, scale = 2)
     private BigDecimal valorTotal;
 
-    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL)
-    private List<ServicoOSEntity> servicos;
+    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ExecucaoServicoEntity> servicos;
 }

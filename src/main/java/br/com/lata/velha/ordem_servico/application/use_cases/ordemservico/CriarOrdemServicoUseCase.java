@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoRes
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.BuscarProprietarioPorIdUseCase;
 import br.com.lata.velha.ordem_servico.application.use_cases.veiculo.BuscarVeiculoPorIdUseCase;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
+import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,14 +16,11 @@ import org.springframework.stereotype.Component;
 public class CriarOrdemServicoUseCase {
 
     private final OrdemServicoRepository repository;
-
     private final OrdemServicoAssembler ordemServicoAssembler;
-
     private final BuscarVeiculoPorIdUseCase buscarVeiculoPorIdUseCase;
-
     private final BuscarProprietarioPorIdUseCase buscarProprietarioPorIdUseCase;
-
     private final NotificarOSCriadaUseCase notificarUseCase;
+    private final FuncionarioRepository funcionarioRepository;
 
 
     public OrdemServicoResponse execute(OrdemServicoRequest request) {
@@ -30,20 +28,21 @@ public class CriarOrdemServicoUseCase {
         var veiculo = buscarVeiculoPorIdUseCase.execute(request.veiculoId());
 
         var proprietario = buscarProprietarioPorIdUseCase.execute(request.proprietarioId());
+        var funcionario = funcionarioRepository.getById(request.atendenteInicioId());
 
-        OrdemServico os = new OrdemServico(
+        OrdemServico ordemServico = new OrdemServico(
                 null,
-                request.proprietarioId(),
-                request.veiculoId(),
+                proprietario.id(),
+                veiculo.id(),
                 request.reclamacaoCliente(),
-                request.atendenteInicioId()
+                funcionario.getId()
         );
 
-        OrdemServico saved = repository.save(os);
+        OrdemServico ordemServicoSalva = repository.save(ordemServico);
 
-        notificarUseCase.execute(saved, proprietario.nome(), proprietario.email(),
+        notificarUseCase.execute(ordemServicoSalva, proprietario.nome(), proprietario.email(),
                         veiculo.marca() + " - " + veiculo.modelo());
 
-        return ordemServicoAssembler.toResponse(os, proprietario.nome(), veiculo.modelo(),null,null,null);
+        return ordemServicoAssembler.toResponse(ordemServicoSalva, proprietario.nome(), veiculo.modelo(),null,null,null);
     }
 }

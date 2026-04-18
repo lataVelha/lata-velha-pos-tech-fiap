@@ -18,10 +18,20 @@ public class ProprietarioAssembler {
 
     public Proprietario toDomain(ProprietarioRequest req) {
         Endereco endereco = req.endereco() != null
-                ? new Endereco(req.endereco().rua(), req.endereco().cep(), req.endereco().numeroCasa())
+                ? new Endereco(
+                req.endereco().rua(),
+                req.endereco().cep(),
+                req.endereco().numeroCasa())
                 : null;
-        return new Proprietario(null, req.nome(), req.email(),
-                Documento.of(req.documento()), NumeroCelular.of(req.numeroCelular()), endereco);
+
+        return new Proprietario(
+                null,
+                req.nome(),
+                req.email(),
+                Documento.of(req.documento()),
+                NumeroCelular.of(req.numeroCelular()),
+                endereco
+        );
     }
 
     public void updateDomain(Proprietario existente, ProprietarioRequest req) {
@@ -29,23 +39,57 @@ public class ProprietarioAssembler {
         existente.setEmail(req.email());
         existente.setDocumento(Documento.of(req.documento()));
         existente.setNumeroCelular(NumeroCelular.of(req.numeroCelular()));
+
         if (req.endereco() != null) {
-            existente.setEndereco(new Endereco(
-                    req.endereco().rua(), req.endereco().cep(), req.endereco().numeroCasa()));
+            existente.setEndereco(
+                    new Endereco(
+                            req.endereco().rua(),
+                            req.endereco().cep(),
+                            req.endereco().numeroCasa()
+                    )
+            );
+        } else {
+            existente.setEndereco(null);
         }
     }
 
     public ProprietarioResponse toResponse(Proprietario p) {
         EnderecoResponse endResp = p.getEndereco() != null
-                ? new EnderecoResponse(p.getEndereco().getRua(), p.getEndereco().getCep(), p.getEndereco().getNumeroCasa())
+                ? new EnderecoResponse(
+                p.getEndereco().getRua(),
+                p.getEndereco().getCep(),
+                p.getEndereco().getNumeroCasa()
+        )
                 : null;
-        List<VeiculoResponse> veicResp = p.getVeiculos().stream().map(this::toVeiculoResponse).toList();
-        return new ProprietarioResponse(p.getId(), p.getNome(), p.getEmail(),
-                p.getDocumento().getFormatted(), p.getNumeroCelular().getFormatted(), endResp, veicResp);
+
+        List<VeiculoResponse> veicResp =
+                p.getVeiculos() == null
+                        ? List.of()
+                        : p.getVeiculos()
+                        .stream()
+                        .map(this::toVeiculoResponse)
+                        .toList();
+
+        return new ProprietarioResponse(
+                p.getId(),
+                p.getNome(),
+                p.getEmail(),
+                p.getDocumento().getFormatted(),
+                p.getNumeroCelular().getFormatted(),
+                endResp,
+                veicResp
+        );
     }
 
     private VeiculoResponse toVeiculoResponse(Veiculo v) {
-        return new VeiculoResponse(v.getId(), v.getProprietarioId(), v.getPlaca().getFormatted(),
-                v.getMarca(), v.getModelo(), v.getAno(), v.getCor());
+        return new VeiculoResponse(
+                v.getId(),
+                v.getProprietarioId(),
+                v.getPlaca().getFormatted(),
+                v.getMarca(),
+                v.getModelo(),
+                v.getAno(),
+                v.getCor()
+        );
     }
 }

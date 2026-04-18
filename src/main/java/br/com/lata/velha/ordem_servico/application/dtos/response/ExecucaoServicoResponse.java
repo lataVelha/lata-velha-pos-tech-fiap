@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record ServicoOSResponse(
+public record ExecucaoServicoResponse(
 
         @Schema(example = "189")
         Long id,

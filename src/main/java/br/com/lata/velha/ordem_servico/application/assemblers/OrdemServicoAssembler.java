@@ -4,7 +4,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.OrdemServicoRequ
 import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarServicoOsResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.ServicoOSResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.ExecucaoServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.infrastructure.repositories.projection.OrdemServicoProjection;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -40,9 +40,9 @@ public class OrdemServicoAssembler {
             BigDecimal totalOrdemServico
     ) {
 
-        List<ServicoOSResponse> servicos =
-                domain.getServicos() != null
-                        ? domain.getServicos()
+        List<ExecucaoServicoResponse> servicos =
+                domain.getExecucaoServicos() != null
+                        ? domain.getExecucaoServicos()
                         .stream()
                         .map(ServicoOSAssembler::toResponse)
                         .collect(Collectors.toList())
@@ -73,13 +73,13 @@ public class OrdemServicoAssembler {
 
     public OrdemServicoResponse map(OrdemServicoProjection p) {
 
-        List<ServicoOSResponse> servicos = Collections.emptyList();
+        List<ExecucaoServicoResponse> servicos = Collections.emptyList();
 
         try {
             if (p.getServicos() != null && !p.getServicos().isBlank()) {
                 servicos = mapper.readValue(
                         p.getServicos(),
-                        new TypeReference<List<ServicoOSResponse>>() {}
+                        new TypeReference<List<ExecucaoServicoResponse>>() {}
                 );
             }
         } catch (Exception e) {
@@ -112,7 +112,7 @@ public class OrdemServicoAssembler {
     public AprovarOrdemServicoResponse toAprovarResponse(OrdemServico domain) {
 
         List<AprovarServicoOsResponse> servicos =
-                domain.getServicos()
+                domain.getExecucaoServicos()
                         .stream()
                         .map(s -> new AprovarServicoOsResponse(
                                 s.getId(),

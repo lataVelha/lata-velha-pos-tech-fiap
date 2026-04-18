@@ -2,12 +2,13 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
+import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
-import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,30 +23,64 @@ public class IniciarServicoUseCase {
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
 
-        var os = ordemServicoRepository.findById(idOs);
+        var ordemServico = ordemServicoRepository.findById(idOs);
         var mecanico = funcionarioRepository.getById(idMecanico);
 
-        if (!StatusOrdemServico.EM_EXECUCAO.equals(os.getStatus())) {
-            throw new ResourceAlreadyExistsException(
-                    "Esta Ordem de Serviço não pode ser Iniciada: " + os.getId());
+        if (!StatusOrdemServico.EM_EXECUCAO.equals(ordemServico.getStatus())) {
+            throw new IllegalStateException(
+                    "Esta Ordem de Serviço não pode ser iniciada: " + ordemServico.getId()
+            );
         }
-        os.getServicos().forEach(sos -> {
 
-            sos.getPecas().forEach(p -> {
-                var temPeca = pecaAlocadaRepository.findByPecaIdAndServicoOsId(p.getPecaId(), sos.getId());
+        ordemServico.getExecucaoServicos()
+                .forEach(execucao -> processarPecas(execucao, mecanico.getId()));
 
-                if (temPeca.getStatus() == StatusPecaAlocada.RESERVADA) {
+        return ordemServicoAssembler.toResponse(
+                ordemServicoRepository.save(ordemServico),
+                null, null, null, null, null
+        );
+    }
 
-                    sos.instalarPeca(p.getQuantidadeReservada(), mecanico.getId());
-                } else if (temPeca.getStatus() == StatusPecaAlocada.ENCOMENDA || temPeca.getStatus() == StatusPecaAlocada.PARCIAL) {
+    private void processarPecas(ExecucaoServico execucaoServico, Long mecanicoId) {
 
-                    sos.aguardandoPeca(mecanico.getId());
+        boolean temReservada = false;
+        boolean temNaoReservada = false;
+
+        for (var peca : execucaoServico.getPecas()) {
+
+            var alocada = pecaAlocadaRepository
+                    .findByPecaIdAndServicoOsId(peca.getPecaId(), execucaoServico.getId());
+
+            if (alocada == null) continue;
+
+            switch (alocada.getStatus()) {
+
+                case RESERVADA -> {
+                    temReservada = true;
+
+                    execucaoServico.processarPeca(
+                            peca,
+                            peca.getQuantidadeReservada(),
+                            mecanicoId
+                    );
                 }
 
-            });
+                case ENCOMENDA, PARCIAL -> {
+                    temNaoReservada = true;
 
-        });
+                    execucaoServico.processarPeca(
+                            peca,
+                            peca.getQuantidadeReservada(),
+                            mecanicoId
+                    );
+                }
+            }
+        }
 
-        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null, null,null,null,null);
+        if (temNaoReservada) {
+            execucaoServico.setStatus(StatusExecucaoServico.AGUARDANDO_PECA);
+        } else if (temReservada) {
+            execucaoServico.setStatus(StatusExecucaoServico.EM_EXECUCAO);
+        }
     }
 }

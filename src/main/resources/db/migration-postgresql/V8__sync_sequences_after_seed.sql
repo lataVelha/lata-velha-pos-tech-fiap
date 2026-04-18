@@ -9,5 +9,5 @@ SELECT setval('veiculo_id_seq', COALESCE((SELECT MAX(id) FROM veiculo), 1), true
 SELECT setval('servico_id_seq', COALESCE((SELECT MAX(id) FROM servico), 1), true);
 SELECT setval('peca_id_seq', COALESCE((SELECT MAX(id) FROM peca), 1), true);
 SELECT setval('ordem_servico_id_seq', COALESCE((SELECT MAX(id) FROM ordem_servico), 1), true);
-SELECT setval('servico_os_id_seq', COALESCE((SELECT MAX(id) FROM servico_os), 1), true);
+SELECT setval('EXECUCAO_SERVICO_id_seq', COALESCE((SELECT MAX(id) FROM EXECUCAO_SERVICO), 1), true);
 SELECT setval('peca_alocada_id_seq', COALESCE((SELECT MAX(id) FROM peca_alocada), 1), true);

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface PecaAlocadaJpaRepository extends JpaRepository<PecaAlocadaEntity, Long> {
-    Page<PecaAlocadaEntity> findByServicoOSId(Long servicoOsId, Pageable pageable);
+    Page<PecaAlocadaEntity> findByExecucaoServico_Id(Long servicoOsId, Pageable pageable);
 
     @Query("""
                 select coalesce(sum(p.quantidadeReservada),0)
@@ -20,7 +21,7 @@ public interface PecaAlocadaJpaRepository extends JpaRepository<PecaAlocadaEntit
                 where p.peca.id = :pecaId
                   and p.status in ('RESERVADA','PARCIAL')
             """)
-    Integer somarQuantidadeReservadaPorPeca(Long pecaId);
+    Integer somarQuantidadeReservadaPorPeca(@Param("pecaId") Long pecaId);
 
     @Query("""
                 select p
@@ -29,7 +30,8 @@ public interface PecaAlocadaJpaRepository extends JpaRepository<PecaAlocadaEntit
                   and p.status in ('PARCIAL','ENCOMENDADA')
                 order by p.atualizado asc
             """)
-    List<PecaAlocadaEntity> buscarPendentesPorPecaOrdenado(Long pecaId);
+    List<PecaAlocadaEntity> buscarPendentesPorPecaOrdenado(@Param("pecaId") Long pecaId);
 
-    Optional<PecaAlocadaEntity> findByPecaIdAndServicoOsId(Long pecaId, Long servicoOsId);
+    Optional<PecaAlocadaEntity> findByPeca_IdAndExecucaoServico_Id(Long pecaId, Long servicoId);
+
 }

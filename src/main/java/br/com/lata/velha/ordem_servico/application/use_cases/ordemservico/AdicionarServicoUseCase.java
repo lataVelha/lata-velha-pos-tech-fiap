@@ -1,11 +1,11 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
-import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoOsRequest;
+import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.peca.BuscarPecaPorIdUseCase;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
-import br.com.lata.velha.ordem_servico.domain.entities.ServicoOS;
+import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,21 +21,36 @@ public class AdicionarServicoUseCase {
     private final BuscarPecaPorIdUseCase buscarPecaPorIdUseCase;
     private final ServicoRepository servicoRepository;
 
-    public OrdemServicoResponse execute(AddServicoOsRequest request) {
+    public OrdemServicoResponse execute(AddServicoRequest request) {
 
-        var os = ordemServicoRepository.findById(request.idOs());
-        request.servicoOSRequests().stream().forEach(so -> {
-            var servico = servicoRepository.findActiveById(so.servicoId());
-            var servicoOs = new ServicoOS(servico, so.valorMaoDeObra());
-            so.pecas().forEach(p -> {
-                var peca = buscarPecaPorIdUseCase.execute(p.pecaId());
-                var pecaAlocada = new PecaAlocada( peca.id(), servicoOs.getId(), p.quantidade());
-                servicoOs.adicionarPeca(pecaAlocada);
+        var ordemServico = ordemServicoRepository.findById(request.idOs());
 
+        request.servicoRequests().forEach(servicoRequest -> {
+
+            var servico = servicoRepository.findActiveById(servicoRequest.servicoId());
+
+            var execucaoServico =
+                    new ExecucaoServico(servico, servicoRequest.valorMaoDeObra());
+
+            servicoRequest.pecas().forEach(pecaRequest -> {
+
+                var peca = buscarPecaPorIdUseCase.execute(pecaRequest.pecaId());
+
+                var pecaAlocada =
+                        new PecaAlocada(
+                                peca.id(),
+                                pecaRequest.quantidade()
+                        );
+
+                execucaoServico.adicionarPeca(pecaAlocada);
             });
-            os.adicionarServico(servicoOs);
+
+            ordemServico.adicionarServico(execucaoServico);
         });
 
-        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null, null,null,null,null);
+        return ordemServicoAssembler.toResponse(
+                ordemServicoRepository.save(ordemServico),
+                null, null, null, null, null
+        );
     }
 }
