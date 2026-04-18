@@ -6,17 +6,17 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
 
-public record ServicoOSRequest(
+public record ServicoRequest(
 
         @NotNull(message = "Serviço Id é obrigatório!")
-        @Schema(example = "1")
+        @Schema(example = "1", description = "servicos")
         Long servicoId,
 
-        @Schema(example = "[1,2,3]")
+        @Schema(description = "Lista de peças utilizadas no serviço")
         List<PecaRequest> pecas,
 
         @NotNull(message = "Valor de Mão de Obra é obrigatório!")
-        @Schema(example = "150.00")
+        @Schema(example = "150.00", description = "valor serviço")
         BigDecimal valorMaoDeObra
 
 ) {}

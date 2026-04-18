@@ -1,6 +1,6 @@
 package br.com.lata.velha.ordem_servico.domain.enums;
 
-public enum StatusServico {
+public enum StatusExecucaoServico {
     PENDENTE,
     APROVADO,
     EM_EXECUCAO,

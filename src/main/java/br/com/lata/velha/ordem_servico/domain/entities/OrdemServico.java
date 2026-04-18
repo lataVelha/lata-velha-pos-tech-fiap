@@ -24,7 +24,7 @@ public class OrdemServico {
     private Long atendenteInicioId;
     private Long mecanicoResponsavelId;
 
-    private List<ServicoOS> servicos = new ArrayList<>();
+    private List<ExecucaoServico> ExecucaoServicos = new ArrayList<>();
 
     public OrdemServico() {}
 
@@ -41,7 +41,6 @@ public class OrdemServico {
         setAtendenteInicioId(atendenteInicioId);
 
         this.status = StatusOrdemServico.RECEBIDA;
-        this.iniciadoEm = LocalDateTime.now();
         this.atualizadoEm = LocalDateTime.now();
     }
 
@@ -71,6 +70,8 @@ public class OrdemServico {
         touch();
     }
 
+
+
     public void reprovar(Long atendenteId) {
         validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
 
@@ -81,20 +82,32 @@ public class OrdemServico {
     }
 
     public void finalizar(Long mecanicoId) {
+
         validarStatus(StatusOrdemServico.EM_EXECUCAO);
 
-        boolean possuiServicoNaoFinalizado = servicos.stream()
-                .anyMatch(s -> !s.isFinalizado());
+        boolean existeExecucaoEmAndamento = ExecucaoServicos.stream()
+                .anyMatch(s -> s.isEmExecucao());
 
-        if (possuiServicoNaoFinalizado) {
+        if (existeExecucaoEmAndamento) {
             throw new IllegalStateException(
-                    "Existem serviços não finalizados"
+                    "Existem serviços em execução"
+            );
+        }
+
+        boolean existeExecucaoComPecaNaoProcessada = ExecucaoServicos.stream()
+                .filter(s -> !s.isRecusado())
+                .anyMatch(s -> s.getPecas().stream().anyMatch(p -> !p.isProcessada()));
+
+        if (existeExecucaoComPecaNaoProcessada) {
+            throw new IllegalStateException(
+                    "Existem peças não processadas em serviços ativos"
             );
         }
 
         this.mecanicoResponsavelId = mecanicoId;
         this.status = StatusOrdemServico.FINALIZADA;
         this.finalizadoEm = LocalDateTime.now();
+
         touch();
     }
 
@@ -107,9 +120,8 @@ public class OrdemServico {
         touch();
     }
 
-    /* ================== SERVIÇOS ================== */
 
-    public void adicionarServico(ServicoOS servico) {
+    public void adicionarServico(ExecucaoServico servico) {
 
         if (servico == null)
             throw new IllegalArgumentException("Serviço inválido");
@@ -121,7 +133,7 @@ public class OrdemServico {
             );
         }
 
-        boolean jaExiste = servicos.stream()
+        boolean jaExiste = ExecucaoServicos.stream()
                 .anyMatch(s -> s.getServico().getId()
                         .equals(servico.getServico().getId()));
 
@@ -131,13 +143,13 @@ public class OrdemServico {
             );
         }
 
-        servicos.add(servico);
+        ExecucaoServicos.add(servico);
         touch();
     }
 
     public BigDecimal calcularValorTotal() {
-        return servicos.stream()
-                .map(ServicoOS::calcularTotal)
+        return ExecucaoServicos.stream()
+                .map(ExecucaoServico::calcularTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -169,7 +181,7 @@ public class OrdemServico {
     public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
     public Long getAtendenteInicioId() { return atendenteInicioId; }
     public Long getMecanicoResponsavelId() { return mecanicoResponsavelId; }
-    public List<ServicoOS> getServicos() { return servicos; }
+    public List<ExecucaoServico> getExecucaoServicos() { return ExecucaoServicos; }
 
     /* ================== SETTERS CONTROLADOS ================== */
 
@@ -218,5 +230,29 @@ public class OrdemServico {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public void setStatus(StatusOrdemServico status) {
+        this.status = status;
+    }
+
+    public void setIniciadoEm(LocalDateTime iniciadoEm) {
+        this.iniciadoEm = iniciadoEm;
+    }
+
+    public void setAtualizadoEm(LocalDateTime atualizadoEm) {
+        this.atualizadoEm = atualizadoEm;
+    }
+
+    public void setFinalizadoEm(LocalDateTime finalizadoEm) {
+        this.finalizadoEm = finalizadoEm;
+    }
+
+    public void setEntregueEm(LocalDateTime entregueEm) {
+        this.entregueEm = entregueEm;
+    }
+
+    public void setMecanicoResponsavelId(Long mecanicoResponsavelId) {
+        this.mecanicoResponsavelId = mecanicoResponsavelId;
     }
 }

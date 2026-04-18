@@ -5,7 +5,7 @@ import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssemb
 import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarOrdemSevicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarServicoOsRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarOrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.domain.enums.StatusServico;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 
@@ -31,30 +31,30 @@ public class AprovarOrdemServicoUseCase {
     @Transactional
     public AprovarOrdemServicoResponse execute(AprovarOrdemSevicoRequest request) {
 
-        var os = ordemServicoRepository.findById(request.idOs());
+        var ordemServico = ordemServicoRepository.findById(request.idOs());
 
         var funcionario = funcionarioRepository.getById(request.idFunc());
 
 
-        Map<Long, StatusServico> statusPorId =
+        Map<Long, StatusExecucaoServico> statusPorId =
                 request.idServicoOsAprovar().stream()
                         .collect(Collectors.toMap(
                                 AprovarServicoOsRequest::idServicoOs,
-                                AprovarServicoOsRequest::statusServico
+                                AprovarServicoOsRequest::statusExecucaoServico
                         ));
 
-        os.getServicos().forEach(sOs -> {
+        ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
 
-            StatusServico novoStatus = statusPorId.get(sOs.getId());
+            StatusExecucaoServico novoStatus = statusPorId.get(execucaoServico.getId());
             if (novoStatus == null) return;
 
             switch (novoStatus) {
 
                 case APROVADO -> {
 
-                    sOs.aprovado(funcionario.getId());
+                    execucaoServico.aprovar(funcionario.getId());
 
-                    sOs.getPecas().forEach(peca -> {
+                    execucaoServico.getPecas().forEach(peca -> {
 
                         var estoque =
                                 pecaEstoqueRepository
@@ -84,8 +84,8 @@ public class AprovarOrdemServicoUseCase {
                                 peca.getQuantidadeEncomendada() > 0) {
 
                             gerarEncomendaPeca(
-                                    os.getId(),
-                                    sOs.getId(),
+                                    ordemServico.getId(),
+                                    execucaoServico.getId(),
                                     peca.getPecaId(),
                                     peca.getQuantidadeEncomendada()
                             );
@@ -94,15 +94,15 @@ public class AprovarOrdemServicoUseCase {
                 }
 
                 case RECUSADO -> {
-                    sOs.recusado(funcionario.getId());
+                    execucaoServico.recusar(funcionario.getId());
                 }
             }
         });
 
-        os.aprovar(funcionario.getId());
+        ordemServico.aprovar(funcionario.getId());
 
         return ordemServicoAssembler
-                .toAprovarResponse(ordemServicoRepository.save(os));
+                .toAprovarResponse(ordemServicoRepository.save(ordemServico));
     }
 
     private void gerarEncomendaPeca(Long osId,

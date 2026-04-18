@@ -1,11 +1,15 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "VEICULO")
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class VeiculoEntity {
 
     @Id
@@ -33,5 +37,5 @@ public class VeiculoEntity {
     private String cor;
 
     @Column(name = "ATIVO", nullable = false)
-    private boolean ativo = true;   
+    private boolean ativo = true;
 }

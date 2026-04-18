@@ -8,7 +8,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ServicoOSRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.ExecucaoServicoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +20,12 @@ public class AlocarPecaUseCase {
     private final PecaAlocadaRepository pecaAlocadaRepository;
     private final PecaEstoqueRepository pecaEstoqueRepository;
     private final PecaRepository pecaRepository;
-    private final ServicoOSRepository servicoOSRepository;
+    private final ExecucaoServicoRepository execucaoServicoRepository;
 
     @Transactional
     public PecaAlocadaResponse execute(AlocarPecaRequest request) {
         
-        var servicoOS = servicoOSRepository.findById(request.servicoOsId());
+        var servicoOS = execucaoServicoRepository.findById(request.servicoOsId());
         if (servicoOS == null) {
             throw new IllegalArgumentException("Serviço OS não encontrado");
         }

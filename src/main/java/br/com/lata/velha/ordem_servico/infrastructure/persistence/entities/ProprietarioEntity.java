@@ -1,14 +1,18 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "PROPRIETARIO")
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class ProprietarioEntity {
 
     @Id

@@ -12,21 +12,19 @@ import org.springframework.stereotype.Component;
 public class IniciarDiagnosticoUseCase {
 
     private final OrdemServicoRepository repository;
-
     private final FuncionarioRepository funcionarioRepository;
-
     private final OrdemServicoAssembler ordemServicoAssembler;
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
 
-        var os = repository.findById(idOs);
+        var ordemServico = repository.findById(idOs);
 
         var mecanico = funcionarioRepository.getById(idMecanico);
 
-        os.iniciarDiagnostico(mecanico.getId());
+        ordemServico.iniciarDiagnostico(mecanico.getId());
 
-        var osIniciada = repository.save(os);
+        var ordemServicoIniciada = repository.save(ordemServico);
 
-        return ordemServicoAssembler.toResponse(osIniciada,null, null,null,null,null);
+        return ordemServicoAssembler.toResponse(ordemServicoIniciada,null, null,null,null,null);
     }
 }
