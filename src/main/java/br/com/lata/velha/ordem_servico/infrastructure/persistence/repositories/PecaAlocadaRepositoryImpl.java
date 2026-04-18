@@ -62,8 +62,8 @@ public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
     }
 
     @Override
-    public PecaAlocada findByPecaIdAndServicoOsIdLong pecaId, Long servicoOsId) {
-        return  jpaRepository.findByPecaIdAndServicoOsIdpecaId,servicoOsId)
+    public PecaAlocada findByPecaIdAndServicoOsId(Long pecaId, Long servicoOsId) {
+        return  jpaRepository.findByPecaIdAndServicoOsId(pecaId,servicoOsId)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> new IllegalArgumentException("Peça alocada não encontrada"));
     }
