@@ -20,4 +20,5 @@ public interface PecaAlocadaRepository {
     List<PecaAlocada> buscarPendentesPorPecaOrdenado(Long pecaId);
 
     PecaAlocada findByPecaIdAndServicoOsId(Long pecaId, Long servicoOsId);
+
 }

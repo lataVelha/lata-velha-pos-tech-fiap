@@ -51,15 +51,15 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
                                                'quantidadeReservada', sp.qtd_reservada,
                                                'quantidadeEncomendada', sp.qtd_encomendada,
                                                'status', sp.status,
-                                               'atualizado', sp.atualizado
+                                               'atualizado', sp.atualizado_em
                                            )
-                                           ORDER BY sp.atualizado ASC
+                                           ORDER BY sp.atualizado_em ASC
                                        ),
                                        '[]'
                                    )
                                    FROM peca_alocada sp
                                    JOIN peca peca ON peca.id = sp.peca_id
-                                   WHERE sp.servico_os_id = so.id
+                                   WHERE sp.execucao_servico_id = so.id
                                )
                            )
                        ) FILTER (WHERE so.id IS NOT NULL),
@@ -75,7 +75,7 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
                    ON v.id = os.veiculo_id
                LEFT JOIN proprietario p
                    ON p.id = os.proprietario_id
-               LEFT JOIN servico_os so
+               LEFT JOIN execucao_servico so
                     ON so.os_id = os.id
                LEFT JOIN servico srv
                    ON srv.id = so.servico_id

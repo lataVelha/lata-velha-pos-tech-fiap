@@ -1,26 +1,26 @@
 package br.com.lata.velha.ordem_servico.application.assemblers;
 
-import br.com.lata.velha.ordem_servico.application.dtos.request.ServicoOSRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.ServicoOSResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.request.ServicoRequest;
+import br.com.lata.velha.ordem_servico.application.dtos.response.ExecucaoServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
-import br.com.lata.velha.ordem_servico.domain.entities.ServicoOS;
+import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 
 public class ServicoOSAssembler {
 
-    public static ServicoOS toDomain(ServicoOSRequest request) {
+    public static ExecucaoServico toDomain(ServicoRequest request) {
 
         Servico servico = new Servico();
         servico.setId(request.servicoId());
 
-        return new ServicoOS(
+        return new ExecucaoServico(
                 servico,
                 request.valorMaoDeObra()
         );
     }
 
-    public static ServicoOSResponse toResponse(ServicoOS domain) {
+    public static ExecucaoServicoResponse toResponse(ExecucaoServico domain) {
 
-        return new ServicoOSResponse(
+        return new ExecucaoServicoResponse(
                 domain.getId(),
                 domain.getServico().getId(),
                 domain.getServico().getNome(),

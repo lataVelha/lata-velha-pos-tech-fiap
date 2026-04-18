@@ -29,12 +29,12 @@ public class PecaAlocadaEntity {
     @Column(name = "STATUS", length = 30, nullable = false)
     private StatusPecaAlocada status;
 
-    @Column(name = "ATUALIZADO")
+    @Column(name = "ATUALIZADO_EM")
     private LocalDateTime atualizado;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SERVICO_OS_ID", nullable = false)
-    private ServicoOSEntity servicoOS;
+    @JoinColumn(name = "EXECUCAO_SERVICO_ID", nullable = false)
+    private ExecucaoServicoEntity execucaoServico;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PECA_ID", nullable = false)

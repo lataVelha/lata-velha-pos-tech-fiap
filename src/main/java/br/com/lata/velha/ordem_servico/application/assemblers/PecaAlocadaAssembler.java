@@ -15,7 +15,7 @@ public class PecaAlocadaAssembler {
                 domain.getQuantidadeReservada(),
                 domain.getQuantidadeEncomendada(),
                 domain.getStatus(),
-                domain.getServicoOsId()
+                domain.getExecucaoServicoId()
         );
     }
 }

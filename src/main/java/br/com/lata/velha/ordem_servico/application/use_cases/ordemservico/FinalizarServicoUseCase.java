@@ -3,13 +3,10 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
-import br.com.lata.velha.ordem_servico.domain.enums.StatusServico;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
+import br.com.lata.velha.ordem_servico.domain.repositories.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,51 +17,47 @@ public class FinalizarServicoUseCase {
     private final OrdemServicoAssembler ordemServicoAssembler;
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
-    private final PecaAlocadaRepository pecaAlocadaRepository;
     private final ProprietarioRepository proprietarioRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
-
+    @Transactional
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
 
-        var os = ordemServicoRepository.findById(idOs);
+        var ordemServico = ordemServicoRepository.findById(idOs);
         var mecanico = funcionarioRepository.getById(idMecanico);
 
-        if (!StatusOrdemServico.EM_EXECUCAO.equals(os.getStatus())) {
-            throw new ResourceAlreadyExistsException(
-                    "Esta Ordem de Serviço não pode ser Finalizada: " + os.getId());
+        if (!StatusOrdemServico.EM_EXECUCAO.equals(ordemServico.getStatus())) {
+            throw new IllegalStateException(
+                    "Esta Ordem de Serviço não está em execução: " + ordemServico.getId()
+            );
         }
 
-        os.getServicos().forEach(sos -> {
+        ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
 
-            if (!StatusServico.EM_EXECUCAO.equals(sos.getStatus())) {
-                throw new ResourceAlreadyExistsException(
-                        "Este Serviço não pode ser Finalizado: " + sos.getId());
+            if (!StatusExecucaoServico.EM_EXECUCAO.equals(execucaoServico.getStatus())) {
+                return;
             }
 
-            sos.getPecas().forEach(p -> {
+            execucaoServico.getPecas().forEach(peca -> {
 
-                var peca = pecaAlocadaRepository
-                        .findByPecaIdAndServicoOsId(p.getPecaId(), sos.getId());
+                if (peca.getId() == null) return;
 
-                if (!StatusPecaAlocada.RESERVADA.equals(peca.getStatus())) {
-                    throw new ResourceAlreadyExistsException(
-                            "Peça não reservada para finalizar serviço");
-                }
+                if (!peca.getStatus().equals(StatusPecaAlocada.RESERVADA)) return;
 
-                peca.instalada(peca.getQuantidadeReservada());
-
+                peca.instalada(peca.getQuantidadeSolicitada());
+                execucaoServico.atualizarPeca(peca);
             });
 
-            sos.finalizado(mecanico.getId());
-
+            execucaoServico.finalizar(mecanico.getId());
         });
 
-        os.finalizar(mecanico.getId());
-        notificarUseCase.execute(os);
+        ordemServico.finalizar(mecanico.getId());
+
+        ordemServicoRepository.save(ordemServico);
+        notificarUseCase.execute(ordemServico);
 
         return ordemServicoAssembler.toResponse(
-                ordemServicoRepository.save(os),
+                ordemServico,
                 null,
                 null,
                 null,
@@ -72,6 +65,4 @@ public class FinalizarServicoUseCase {
                 null
         );
     }
-
-
 }

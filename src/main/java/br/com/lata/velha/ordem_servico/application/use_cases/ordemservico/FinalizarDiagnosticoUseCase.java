@@ -21,12 +21,12 @@ public class FinalizarDiagnosticoUseCase {
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico){
 
-        var os = ordemServicoRepository.findById(idOs);
+        var ordemServico = ordemServicoRepository.findById(idOs);
         var mecanico = funcionarioRepository.getById(idMecanico);
 
-        os.finalizarDiagnostico(mecanico.getId());
-        notificarUseCase.execute(os);
+        ordemServico.finalizarDiagnostico(mecanico.getId());
+        notificarUseCase.execute(ordemServico);
 
-        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(os), null,null,null,null,null);
+        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(ordemServico), null,null,null,null,null);
     }
 }

@@ -6,9 +6,9 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-public record AddServicoOsRequest(
+public record AddServicoRequest(
         @NotNull(message = "ID Os é obrigatório") Long idOs,
         @NotEmpty(message = "Lista servicoOSId é obrigatória")
-        List<@Valid ServicoOSRequest> servicoOSRequests){
+        List<@Valid ServicoRequest> servicoRequests){
 
 }

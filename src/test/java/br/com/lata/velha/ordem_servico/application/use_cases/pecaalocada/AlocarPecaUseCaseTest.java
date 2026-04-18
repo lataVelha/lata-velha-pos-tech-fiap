@@ -6,11 +6,11 @@ import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
-import br.com.lata.velha.ordem_servico.domain.entities.ServicoOS;
+import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ServicoOSRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.ExecucaoServicoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,7 +37,7 @@ class AlocarPecaUseCaseTest {
     private PecaEstoqueRepository pecaEstoqueRepository;
 
     @Mock
-    private ServicoOSRepository servicoOSRepository;
+    private ExecucaoServicoRepository execucaoServicoRepository;
 
     @InjectMocks
     private AlocarPecaUseCase alocarPecaUseCase;
@@ -49,8 +49,8 @@ class AlocarPecaUseCaseTest {
         
         Servico servicoBase = new Servico();
         servicoBase.setId(100L);
-        ServicoOS servicoOS = new ServicoOS( servicoBase, new BigDecimal("100.0"));
-        when(servicoOSRepository.findById(1L)).thenReturn(servicoOS);
+        ExecucaoServico execucaoServico = new ExecucaoServico( servicoBase, new BigDecimal("100.0"));
+        when(execucaoServicoRepository.findById(1L)).thenReturn(execucaoServico);
 
         Peca peca = new Peca(2L, "Pastilha", "Desc", new BigDecimal("50.0"));
         when(pecaRepository.findActiveById(2L)).thenReturn(peca);
@@ -80,7 +80,7 @@ class AlocarPecaUseCaseTest {
     void deveLancarExcecaoQuandoServicoNaoEncontrado() {
         // Arrange
         AlocarPecaRequest request = new AlocarPecaRequest(1L, 2L, 3);
-        when(servicoOSRepository.findById(1L)).thenReturn(null);
+        when(execucaoServicoRepository.findById(1L)).thenReturn(null);
 
         // Act & Assert
         assertThatThrownBy(() -> alocarPecaUseCase.execute(request))
@@ -97,8 +97,8 @@ class AlocarPecaUseCaseTest {
         // Arrange
         AlocarPecaRequest request = new AlocarPecaRequest(1L, 2L, 3);
         
-        ServicoOS servicoOS = new ServicoOS();
-        when(servicoOSRepository.findById(1L)).thenReturn(servicoOS);
+        ExecucaoServico execucaoServico = new ExecucaoServico();
+        when(execucaoServicoRepository.findById(1L)).thenReturn(execucaoServico);
         when(pecaRepository.findActiveById(2L)).thenReturn(null);
 
         // Act & Assert

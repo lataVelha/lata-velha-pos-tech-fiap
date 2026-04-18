@@ -3,7 +3,7 @@ package br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaAlocadaEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaEntity;
-import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ServicoOSEntity;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ExecucaoServicoEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,7 +13,7 @@ public class PecaAlocadaPersistenceMapper {
         if (entity == null) return null;
 
         Long pecaId = entity.getPeca() != null ? entity.getPeca().getId() : null;
-        Long servicoOsId = entity.getServicoOS() != null ? entity.getServicoOS().getId() : null;
+        Long servicoOsId = entity.getExecucaoServico() != null ? entity.getExecucaoServico().getId() : null;
 
         return new PecaAlocada(
                 entity.getId(),
@@ -45,10 +45,11 @@ public class PecaAlocadaPersistenceMapper {
             entity.setPeca(peca);
         }
 
-        if (model.getServicoOsId() != null) {
-            ServicoOSEntity servicoOs = new ServicoOSEntity();
-            servicoOs.setId(model.getServicoOsId());
-            entity.setServicoOS(servicoOs);
+        if (model.getExecucaoServicoId() != null) {
+            ExecucaoServicoEntity servicoOs = new ExecucaoServicoEntity();
+            servicoOs.setId(model.getExecucaoServicoId());
+
+            entity.setExecucaoServico(servicoOs);
         }
 
         return entity;

@@ -7,7 +7,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarServicoO
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import br.com.lata.velha.ordem_servico.domain.enums.StatusServico;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -75,7 +75,9 @@ class OrdemServicoControllerTest {
                 1L, 2L, "Maria Atendente", 3L, "Fiat Uno 2020",
                 4L, "João Proprietário", null, null,
                 "RECEBIDA", "Barulho ao frear",
-                LocalDateTime.now(), null, null, LocalDateTime.now(), List.of()
+                LocalDateTime.now(), null, null, LocalDateTime.now(), List.of(),BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO
         );
     }
 
@@ -148,7 +150,9 @@ class OrdemServicoControllerTest {
         var response = new OrdemServicoResponse(
                 1L, 2L, "Maria", 3L, "Fiat Uno", 4L, "João",
                 5L, "Carlos Mecânico", "EM_DIAGNOSTICO",
-                "Barulho", LocalDateTime.now(), null, null, LocalDateTime.now(), List.of()
+                "Barulho", LocalDateTime.now(), null, null, LocalDateTime.now(), List.of(),BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO
         );
 
         when(iniciarDiagnosticoUseCase.execute(1L, 5L)).thenReturn(response);
@@ -162,8 +166,8 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "MECANICO")
     @DisplayName("PATCH /ordens-servico/adiciona-servico deve retornar 200")
     void shouldReturn200OnAdicionarServico() throws Exception {
-        var servicoRequest = new ServicoOSRequest(10L, List.of(), new BigDecimal("150.00"));
-        var request = new AddServicoOsRequest(1L, List.of(servicoRequest));
+        var servicoRequest = new ServicoRequest(10L, List.of(), new BigDecimal("150.00"));
+        var request = new AddServicoRequest(1L, List.of(servicoRequest));
 
         when(adicionarServicoUseCase.execute(any())).thenReturn(buildOrdemResponse());
 
@@ -178,7 +182,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "MECANICO")
     @DisplayName("PATCH /ordens-servico/adiciona-servico com body inválido deve retornar 400")
     void shouldReturn400OnAdicionarServicoWithInvalidRequest() throws Exception {
-        var invalid = new AddServicoOsRequest(null, List.of());
+        var invalid = new AddServicoRequest(null, List.of());
 
         mockMvc.perform(patch("/ordens-servico/adiciona-servico")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -193,7 +197,9 @@ class OrdemServicoControllerTest {
         var response = new OrdemServicoResponse(
                 1L, 2L, "Maria", 3L, "Fiat Uno", 4L, "João",
                 5L, "Carlos", "AGUARDANDO_APROVACAO",
-                "Barulho", LocalDateTime.now(), LocalDateTime.now(), null, LocalDateTime.now(), List.of()
+                "Barulho", LocalDateTime.now(), LocalDateTime.now(), null, LocalDateTime.now(), List.of(),BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO
         );
 
         when(finalizarDiagnosticoUseCase.execute(1L, 5L)).thenReturn(response);
@@ -207,7 +213,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /ordens-servico/aprovar deve retornar 200")
     void shouldReturn200OnAprovar() throws Exception {
-        var aprovacaoRequest = new AprovarServicoOsRequest(10L, StatusServico.APROVADO);
+        var aprovacaoRequest = new AprovarServicoOsRequest(10L, StatusExecucaoServico.APROVADO);
         var request = new AprovarOrdemSevicoRequest(1L, 2L, List.of(aprovacaoRequest));
         var response = new AprovarOrdemServicoResponse(1L, "EM_EXECUCAO",
                 List.of(new AprovarServicoOsResponse(10L, "APROVADO")));
@@ -241,7 +247,9 @@ class OrdemServicoControllerTest {
         var response = new OrdemServicoResponse(
                 1L, 2L, "Maria", 3L, "Fiat Uno", 4L, "João",
                 null, null, "REPROVADA",
-                "Barulho", LocalDateTime.now(), null, null, LocalDateTime.now(), List.of()
+                "Barulho", LocalDateTime.now(), null, null, LocalDateTime.now(), List.of(),BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO
         );
 
         when(reprovarOrdemServicoUseCase.execute(1L, 2L)).thenReturn(response);

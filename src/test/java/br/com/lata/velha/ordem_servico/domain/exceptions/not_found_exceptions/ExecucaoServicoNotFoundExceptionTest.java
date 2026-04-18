@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ServicoOsNotFoundExceptionTest {
+class ExecucaoServicoNotFoundExceptionTest {
 
     @Test
     @DisplayName("fromId deve criar instância com id na mensagem")
     void fromIdShouldCreateExceptionWithIdInMessage() {
-        ServicoOsNotFoundException ex = ServicoOsNotFoundException.fromId(6L);
+        ExecucaoServicoNotFoundException ex = ExecucaoServicoNotFoundException.fromId(6L);
 
         assertNotNull(ex);
         assertInstanceOf(NotFoundException.class, ex);

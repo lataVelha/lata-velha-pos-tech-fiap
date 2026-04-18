@@ -18,7 +18,6 @@ import java.util.List;
 public class BuscarOrdemServicoUseCase {
 
     private final OrdemServicoRepository ordemServicoRepository;
-
     private final OrdemServicoAssembler ordemServicoAssembler;
 
     public PaginatedResult<OrdemServicoResponse> execute(Long id,

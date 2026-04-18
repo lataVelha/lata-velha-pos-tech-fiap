@@ -1,6 +1,6 @@
 package br.com.lata.velha.ordem_servico.api.controllers;
 
-import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoOsRequest;
+import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarOrdemSevicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.OrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarOrdemServicoResponse;
@@ -32,6 +32,7 @@ public class OrdemServicoController {
     private final FinalizarDiagnosticoUseCase finalizarDiagnosticoUseCase;
     private final IniciarServicoUseCase iniciarServicoUseCase;
     private final FinalizarServicoUseCase finalizarServicoUseCase;
+    private final RetirarVeiculoUseCase retirarVeiculoUseCase;
 
     @PostMapping("/create")
     @Operation(summary = "Criar ordem de serviço")
@@ -63,7 +64,7 @@ public class OrdemServicoController {
                 size));
     }
 
-    @PatchMapping("/{idOs}/{idMecanico}/iniciar")
+    @PatchMapping("/{idOs}/{idMecanico}/iniciar-diagnostico")
     @ApiResponse(responseCode = "200", description = "Ordem de Serviço iniciar")
     @ApiResponse(responseCode = "409", description = "Ordem de Serviço iniciada")
     public ResponseEntity<OrdemServicoResponse> startDiagnostic(@PathVariable Long idOs,
@@ -75,7 +76,7 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "200", description = "Serviço adicionado à Ordem de Serviço")
     @ApiResponse(responseCode = "404", description = "Ordem de Serviço não encontrada")
     @ApiResponse(responseCode = "409", description = "Serviço já existe na Ordem de Serviço ou status inválido")
-    public ResponseEntity<OrdemServicoResponse> addService(@Valid @RequestBody AddServicoOsRequest request) {
+    public ResponseEntity<OrdemServicoResponse> addService(@Valid @RequestBody AddServicoRequest request) {
         return ResponseEntity.ok(adicionarServicoUseCase.execute(request));
     }
 
@@ -121,5 +122,14 @@ public class OrdemServicoController {
     public ResponseEntity<OrdemServicoResponse> reprove(@PathVariable Long idOs,
                                                         @PathVariable Long idFunc) {
         return ResponseEntity.ok(reprovarOrdemServicoUseCase.execute(idOs, idFunc));
+    }
+
+    @PatchMapping("/{idOs}/{idFunc}/retirar-veiculo")
+    @ApiResponse(responseCode = "200", description = "Ordem de Serviço finalizada")
+    @ApiResponse(responseCode = "404", description = "Ordem de Serviço não encontrada")
+    @ApiResponse(responseCode = "409", description = "Ordem de Serviço já está reprovada ou em status inválido")
+    public ResponseEntity<OrdemServicoResponse> removeVehicle(@PathVariable Long idOs,
+                                                              @PathVariable Long idFunc) {
+        return ResponseEntity.ok(retirarVeiculoUseCase.execute(idOs, idFunc));
     }
 }
