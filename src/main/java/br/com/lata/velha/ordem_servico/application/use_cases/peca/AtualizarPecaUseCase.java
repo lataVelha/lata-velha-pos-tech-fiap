@@ -12,9 +12,10 @@ import org.springframework.stereotype.Component;
 public class AtualizarPecaUseCase {
 
     private final PecaRepository repository;
+    private final PecaAssembler assembler;
 
     public PecaResponse execute(Long id, AtualizarPecaRequest request) {
-        Peca peca = repository.findActiveById(id);
+        Peca peca = repository.getActiveById(id);
         peca.atualizar(request.nome(), request.descricao(), request.valor());
         return PecaResponse.from(repository.save(peca));
     }

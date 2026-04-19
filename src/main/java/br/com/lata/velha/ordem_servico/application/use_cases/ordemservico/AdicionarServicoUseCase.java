@@ -28,7 +28,7 @@ public class AdicionarServicoUseCase {
         request.servicoRequests().forEach(servicoRequest -> {
 
             var servico = servicoRepository.findActiveById(servicoRequest.servicoId());
-            var execucaoServico = new ExecucaoServico(servico, servicoRequest.valorMaoDeObra());
+            var execucaoServico = execucaoServicoRepository.save(new ExecucaoServico(servico, servicoRequest.valorMaoDeObra()));
 
             servicoRequest.pecas().forEach(pecaRequest -> {
                 var peca = buscarPecaPorIdUseCase.execute(pecaRequest.pecaId());

@@ -71,7 +71,7 @@ public class RetirarVeiculoUseCase {
                     }
                     Integer quantidade = pecaAlocada.getQuantidadeSolicitada();
                     pecaEstoqueRepository.baixarEstoque(pecaAlocada.getPecaId(), quantidade);
-                    var pecaAtiva = pecaRepository.findActiveById(pecaAlocada.getPecaId());
+                    var pecaAtiva = pecaRepository.getActiveById(pecaAlocada.getPecaId());
                     if (pecaAtiva.getValor() == null) return BigDecimal.ZERO;
                     return pecaAtiva.getValor().multiply(BigDecimal.valueOf(quantidade));
                 }))

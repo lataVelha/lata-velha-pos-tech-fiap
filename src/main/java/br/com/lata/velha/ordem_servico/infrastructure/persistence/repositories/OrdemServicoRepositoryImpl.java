@@ -33,6 +33,13 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
     }
 
     @Override
+    public OrdemServico getByIdWithExecucoes(Long id) {
+        return jpaRepository.findByIdWithExecucoes(id)
+                .map(ordemServicoMapper::toDomain)
+                .orElseThrow(() -> OrdemServicoNotFoundException.fromId(id));
+    }
+
+    @Override
     public Page<OrdemServicoProjection> findByAllOrdemSevico(Long id, String status, Long proprietarioId, Long mecanicoId, Pageable pageable) {
 
         return jpaRepository.findByAllOrdemSevico(

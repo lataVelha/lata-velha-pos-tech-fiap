@@ -40,7 +40,7 @@ public class FinalizarServicoUseCase {
                 execucaoServico.atualizarPeca(peca);
             });
 
-            execucaoServico.finalizar(mecanico.getId());
+            execucaoServico.finalizar();
         });
 
         ordemServico.finalizar(mecanico.getId());

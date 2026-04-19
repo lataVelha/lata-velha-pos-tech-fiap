@@ -5,7 +5,6 @@ import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ExecucaoServicoEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaAlocadaEntity;
-import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ServicoEntity;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +48,7 @@ public class ExecucaoServicoMapper {
 
                 PecaAlocada pecaDomain = new PecaAlocada(
                         pe.getId(),
-                        pe.getPeca().getId(),
+                        pe.getPecaId(),
                         entity.getId(),
                         pe.getQuantidadeSolicitada(),
                         pe.getQuantidadeReservada(),
@@ -75,6 +74,7 @@ public class ExecucaoServicoMapper {
 
         entity.setId(domain.getId());
         entity.setValorMaoDeObra(domain.getValorMaoDeObra());
+        entity.setAtendenteId(domain.getAtendenteId());
         entity.setMecanicoResponsavelId(domain.getMecanicoResponsavelId());
         entity.setIniciadoEm(domain.getIniciadoEm());
         entity.setTerminadoEm(domain.getTerminadoEm());
@@ -99,12 +99,8 @@ public class ExecucaoServicoMapper {
                 pe.setQuantidadeEncomendada(p.getQuantidadeEncomendada());
                 pe.setStatus(p.getStatus());
                 pe.setAtualizado(p.getAtualizado());
-
-                pe.setExecucaoServico(entity);
-
-                PecaEntity pecaEntity = new PecaEntity();
-                pecaEntity.setId(p.getPecaId());
-                pe.setPeca(pecaEntity);
+                pe.setExecucaoServicoId(entity.getId());
+                pe.setPecaId(p.getPecaId());
 
                 entity.getPecas().add(pe);
             });

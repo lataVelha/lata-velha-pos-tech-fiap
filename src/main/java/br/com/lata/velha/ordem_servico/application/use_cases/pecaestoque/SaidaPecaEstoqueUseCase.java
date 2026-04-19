@@ -15,14 +15,13 @@ public class SaidaPecaEstoqueUseCase {
     private final PecaEstoqueRepository pecaEstoqueRepository;
 
     public PecaEstoqueResponse execute(Long pecaId, MovimentarPecaEstoqueRequest request) {
-        pecaRepository.findActiveById(pecaId);
+        pecaRepository.getActiveById(pecaId);
 
-        var estoque = pecaEstoqueRepository.findByPecaId(pecaId);
-        if (estoque == null) {
-            throw new IllegalArgumentException("Estoque da peça não encontrado");
-        }
+        var estoque = pecaEstoqueRepository.findByPecaId(pecaId)
+                .orElseThrow(() -> new IllegalArgumentException("Estoque da peça não encontrado"));
 
-        estoque.remover(request.quantidade());
-        return PecaEstoqueResponse.from(pecaEstoqueRepository.save(estoque));
+        estoque.retirar(request.quantidade());
+        var saved = pecaEstoqueRepository.save(estoque);
+        return PecaEstoqueResponse.from(saved);
     }
 }

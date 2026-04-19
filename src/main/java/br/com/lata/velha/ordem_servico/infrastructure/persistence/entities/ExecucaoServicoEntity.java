@@ -49,6 +49,7 @@ public class ExecucaoServicoEntity {
     @Column(name = "ATUALIZADO_EM")
     private LocalDateTime atualizadoEm;
 
-    @OneToMany(mappedBy = "execucaoServico", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "EXECUCAO_SERVICO_ID")
     private List<PecaAlocadaEntity> pecas = new ArrayList<>();
 }

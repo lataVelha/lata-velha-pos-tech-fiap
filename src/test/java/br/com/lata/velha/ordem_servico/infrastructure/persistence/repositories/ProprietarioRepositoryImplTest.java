@@ -112,8 +112,9 @@ class ProprietarioRepositoryImplTest {
         Proprietario saved = repository.save(proprietario);
         saved.deactivate();
         repository.save(saved);
+        var id = saved.getId();
 
-        assertThatThrownBy(() -> repository.getActiveById(saved.getId()))
+        assertThatThrownBy(() -> repository.getActiveById(id))
                 .isInstanceOf(ProprietarioNotFoundException.class);
     }
 

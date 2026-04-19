@@ -13,9 +13,7 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DesativarPecaUseCaseTest {
@@ -30,7 +28,7 @@ class DesativarPecaUseCaseTest {
     @DisplayName("Deve desativar peça ativa com sucesso")
     void deveDesativarPecaAtivaComSucesso() {
         var peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("35.00"), true);
-        when(repository.findActiveById(1L)).thenReturn(peca);
+        when(repository.getActiveById(1L)).thenReturn(peca);
 
         useCase.execute(1L);
 
@@ -42,7 +40,7 @@ class DesativarPecaUseCaseTest {
     @DisplayName("Deve falhar quando peça já estiver desativada")
     void deveFalharQuandoPecaJaEstiverDesativada() {
         var peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("35.00"), false);
-        when(repository.findActiveById(1L)).thenReturn(peca);
+        when(repository.getActiveById(1L)).thenReturn(peca);
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(1L));
         verify(repository, never()).save(peca);

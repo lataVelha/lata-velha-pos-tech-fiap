@@ -56,12 +56,10 @@ class OrdemServicoTest {
     }
 
     private static PecaAlocada pecaProcessada() {
-        // isProcessada() → quantidadeSolicitada(5) >= quantidadeReservada(3) → true
         return new PecaAlocada(1L, 1L, 1L, 5, 3, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
     }
 
     private static PecaAlocada pecaNaoProcessada() {
-        // isProcessada() → quantidadeSolicitada(1) >= quantidadeReservada(5) → false
         return new PecaAlocada(1L, 1L, 1L, 1, 5, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
     }
 
