@@ -2,11 +2,13 @@ package br.com.lata.velha.ordem_servico.domain.entities;
 
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,6 +47,22 @@ class OrdemServicoTest {
     private static ExecucaoServico execucaoServico(Long servicoId) {
         Servico servico = new Servico(servicoId, "Troca de óleo", "Desc");
         return new ExecucaoServico(servico, new BigDecimal("150.00"));
+    }
+
+    private static ExecucaoServico execucaoFinalizada(Long servicoId) {
+        ExecucaoServico exec = execucaoServico(servicoId);
+        exec.setStatus(StatusExecucaoServico.FINALIZADO);
+        return exec;
+    }
+
+    private static PecaAlocada pecaProcessada() {
+        // isProcessada() → quantidadeSolicitada(5) >= quantidadeReservada(3) → true
+        return new PecaAlocada(1L, 1L, 1L, 5, 3, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
+    }
+
+    private static PecaAlocada pecaNaoProcessada() {
+        // isProcessada() → quantidadeSolicitada(1) >= quantidadeReservada(5) → false
+        return new PecaAlocada(1L, 1L, 1L, 1, 5, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
     }
 
     @Nested
@@ -216,6 +234,46 @@ class OrdemServicoTest {
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("serviços em execução");
         }
+
+        @Test
+        @DisplayName("deve lançar exceção quando serviço ativo tem peça não processada")
+        void deveLancarExcecaoQuandoServicAtivoPossuiPecaNaoProcessada() {
+            OrdemServico os = emExecucao();
+            ExecucaoServico exec = execucaoFinalizada(1L);
+            exec.getPecas().add(pecaNaoProcessada());
+            os.adicionarServico(exec);
+
+            assertThatThrownBy(() -> os.finalizar(10L))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("Existem peças não processadas em serviços ativos");
+        }
+
+        @Test
+        @DisplayName("não deve lançar exceção quando peça não processada pertence a serviço recusado")
+        void naoDeveLancarExcecaoQuandoPecaNaoProcessadaEDeServicoRecusado() {
+            OrdemServico os = emExecucao();
+            ExecucaoServico recusado = execucaoFinalizada(1L);
+            recusado.setStatus(StatusExecucaoServico.RECUSADO);
+            recusado.getPecas().add(pecaNaoProcessada());
+            os.adicionarServico(recusado);
+
+            os.finalizar(10L);
+
+            assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.FINALIZADA);
+        }
+
+        @Test
+        @DisplayName("deve finalizar quando todas as peças de serviços ativos estão processadas")
+        void deveFinalizarQuandoTodasAsPecasEstaoProcessadas() {
+            OrdemServico os = emExecucao();
+            ExecucaoServico exec = execucaoFinalizada(1L);
+            exec.getPecas().add(pecaProcessada());
+            os.adicionarServico(exec);
+
+            os.finalizar(10L);
+
+            assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.FINALIZADA);
+        }
     }
 
     @Nested
@@ -337,6 +395,114 @@ class OrdemServicoTest {
             os.adicionarServico(new ExecucaoServico(s2, new BigDecimal("80.00")));
 
             assertThat(os.calcularValorTotal()).isEqualByComparingTo(new BigDecimal("230.00"));
+        }
+    }
+
+    @Nested
+    @DisplayName("toString")
+    class ToString {
+
+        @Test
+        @DisplayName("deve conter id e status")
+        void deveConterIdEStatus() {
+            OrdemServico os = finalizada();
+
+            String result = os.toString();
+
+            assertThat(result).contains("status=FINALIZADA");
+        }
+
+        @Test
+        @DisplayName("deve incluir valorTotal")
+        void deveIncluirValorTotal() {
+            OrdemServico os = recebida();
+            os.adicionarServico(execucaoServico(1L));
+
+            String result = os.toString();
+
+            assertThat(result).contains("valorTotal=150.00");
+        }
+
+        @Test
+        @DisplayName("não deve lançar exceção")
+        void naoDeveLancarExcecao() {
+            assertThat(recebida().toString()).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("equals")
+    class Equals {
+
+        @Test
+        @DisplayName("deve ser igual a si mesmo")
+        void deveSerIgualASiMesmo() {
+            OrdemServico os = recebida();
+
+            assertThat(os).isEqualTo(os);
+        }
+
+        @Test
+        @DisplayName("deve ser igual a outra instância com mesmo id")
+        void deveSerIgualComMesmoId() {
+            OrdemServico os1 = OrdemServico.create(1L, 2L, "ruído", 3L);
+            OrdemServico os2 = OrdemServico.create(1L, 2L, "ruído", 3L);
+
+            assertThat(os1).isEqualTo(os2);
+        }
+
+        @Test
+        @DisplayName("não deve ser igual quando ids são diferentes")
+        void naoDeveSerIgualComIdsDiferentes() {
+            OrdemServico os1 = recebida();
+            OrdemServico os2 = finalizada();
+
+            // both have null id (created via factory), so they ARE equal — use full constructor to differ
+            OrdemServico a = new OrdemServico(1L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
+                    null, null, null, null, 1L, null, new java.util.ArrayList<>());
+            OrdemServico b = new OrdemServico(2L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
+                    null, null, null, null, 1L, null, new java.util.ArrayList<>());
+
+            assertThat(a).isNotEqualTo(b);
+        }
+
+        @Test
+        @DisplayName("não deve ser igual a null")
+        void naoDeveSerIgualANull() {
+            assertThat(recebida()).isNotEqualTo(null);
+        }
+
+        @Test
+        @DisplayName("não deve ser igual a objeto de outro tipo")
+        void naoDeveSerIgualAOutroTipo() {
+            assertThat(recebida()).isNotEqualTo("string");
+        }
+    }
+
+    @Nested
+    @DisplayName("hashCode")
+    class HashCode {
+
+        @Test
+        @DisplayName("instâncias com mesmo id devem ter mesmo hashCode")
+        void mesmoIdMesmoHashCode() {
+            OrdemServico a = new OrdemServico(1L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
+                    null, null, null, null, 1L, null, new java.util.ArrayList<>());
+            OrdemServico b = new OrdemServico(1L, 9L, 9L, "y", StatusOrdemServico.FINALIZADA,
+                    null, null, null, null, 9L, null, new java.util.ArrayList<>());
+
+            assertThat(a.hashCode()).isEqualTo(b.hashCode());
+        }
+
+        @Test
+        @DisplayName("instâncias com ids diferentes devem ter hashCodes diferentes")
+        void idsDiferentesHashCodesDiferentes() {
+            OrdemServico a = new OrdemServico(1L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
+                    null, null, null, null, 1L, null, new java.util.ArrayList<>());
+            OrdemServico b = new OrdemServico(2L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
+                    null, null, null, null, 1L, null, new java.util.ArrayList<>());
+
+            assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
         }
     }
 }
