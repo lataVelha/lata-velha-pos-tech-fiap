@@ -7,6 +7,8 @@ import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,8 @@ public class IniciarServicoUseCase {
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final PecaAlocadaRepository pecaAlocadaRepository;
+    private final ProprietarioRepository proprietarioRepository;
+    private final VeiculoRepository veiculoRepository;
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
         var ordemServico = ordemServicoRepository.findById(idOs);
@@ -31,7 +35,14 @@ public class IniciarServicoUseCase {
         ordemServico.getExecucaoServicos()
                 .forEach(execucao -> processarPecas(execucao, mecanico.getId()));
 
-        return OrdemServicoResponse.from(ordemServicoRepository.save(ordemServico), null, null, null, null, null);
+        var saved = ordemServicoRepository.save(ordemServico);
+        var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
+        var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
+
+        return OrdemServicoResponse.from(saved,
+                proprietario.getNome(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
+                null, null, null);
     }
 
     private void processarPecas(ExecucaoServico execucaoServico, Long mecanicoId) {

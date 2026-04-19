@@ -41,7 +41,7 @@ public final class OrdemServico {
     }
 
     public static OrdemServico create(Long proprietarioId, Long veiculoId, String reclamacaoCliente, Long atendenteInicioId) {
-        return new OrdemServico(null, proprietarioId, veiculoId, reclamacaoCliente, StatusOrdemServico.RECEBIDA, null, null, null, null, atendenteInicioId, null, new ArrayList<>());
+        return new OrdemServico(null, proprietarioId, veiculoId, reclamacaoCliente, StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, atendenteInicioId, null, new ArrayList<>());
     }
 
     /* ================== FLUXO ================== */
