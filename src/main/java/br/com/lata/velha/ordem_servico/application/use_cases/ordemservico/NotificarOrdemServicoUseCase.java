@@ -1,8 +1,8 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.ports.EmailProvider;
-import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.application.ports.OrdemServicoEmailBuilderPort;
+import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
@@ -27,8 +27,8 @@ public class NotificarOrdemServicoUseCase {
 
     public void execute(OrdemServico os) {
         try {
-            Proprietario proprietario = proprietarioRepository.findActiveById(os.getProprietarioId());
-            Veiculo veiculo = veiculoRepository.findActiveById(os.getVeiculoId());
+            Proprietario proprietario = proprietarioRepository.getActiveById(os.getProprietarioId());
+            Veiculo veiculo = veiculoRepository.getActiveById(os.getVeiculoId());
 
             Map<String, Object> variables = emailBuilder.buildVariables(os, proprietario, veiculo);
             String assunto = emailBuilder.getAssunto(os.getStatus());

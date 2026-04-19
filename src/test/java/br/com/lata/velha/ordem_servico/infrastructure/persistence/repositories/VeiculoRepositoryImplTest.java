@@ -1,28 +1,29 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
-import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
-import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
-import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.VeiculoNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.VeiculoNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.valueObjects.Documento;
 import br.com.lata.velha.ordem_servico.domain.valueObjects.NumeroCelular;
 import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.ProprietarioPersistenceMapper;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.VeiculoPersistenceMapper;
+import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -95,10 +96,10 @@ class VeiculoRepositoryImplTest {
 
     @Test
     @DisplayName("deve encontrar veículo ativo por id")
-    void shouldFindActiveById() {
+    void shouldGetActiveById() {
         Veiculo saved = repository.save(buildVeiculo(null, "ABC1234"));
 
-        Veiculo found = repository.findActiveById(saved.getId());
+        Veiculo found = repository.getActiveById(saved.getId());
 
         assertThat(found).isNotNull();
         assertThat(found.getId()).isEqualTo(saved.getId());
@@ -107,19 +108,19 @@ class VeiculoRepositoryImplTest {
 
     @Test
     @DisplayName("deve lançar exceção ao buscar veículo ativo por id inexistente")
-    void shouldThrowWhenFindActiveByIdNotFound() {
-        assertThatThrownBy(() -> repository.findActiveById(999L))
+    void shouldThrowWhenGetActiveByIdNotFound() {
+        assertThatThrownBy(() -> repository.getActiveById(999L))
                 .isInstanceOf(VeiculoNotFoundException.class);
     }
 
     @Test
     @DisplayName("deve lançar exceção ao buscar por id de veículo inativo")
-    void shouldThrowWhenFindActiveByIdButVeiculoIsInactive() {
+    void shouldThrowWhenGetActiveByIdButVeiculoIsInactive() {
         Veiculo saved = repository.save(buildVeiculo(null, "ABC1234"));
         saved.deactivate();
         repository.save(saved);
 
-        assertThatThrownBy(() -> repository.findActiveById(saved.getId()))
+        assertThatThrownBy(() -> repository.getActiveById(saved.getId()))
                 .isInstanceOf(VeiculoNotFoundException.class);
     }
 

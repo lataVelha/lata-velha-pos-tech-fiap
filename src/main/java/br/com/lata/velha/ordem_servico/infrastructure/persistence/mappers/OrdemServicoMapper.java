@@ -1,9 +1,13 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers;
 
+import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.OrdemServicoEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -12,36 +16,31 @@ public class OrdemServicoMapper {
     private final ExecucaoServicoMapper execucaoServicoMapper;
 
     public OrdemServico toDomain(OrdemServicoEntity entity) {
-
         if (entity == null) {
             return null;
         }
 
-        OrdemServico os = new OrdemServico(
+        List<ExecucaoServico> execucoes = new ArrayList<>();
+        if (entity.getServicos() != null) {
+            execucoes = entity.getServicos().stream()
+                    .map(execucaoServicoMapper::toDomain)
+                    .toList();
+        }
+
+        return new OrdemServico(
                 entity.getId(),
                 entity.getProprietarioId(),
                 entity.getVeiculoId(),
                 entity.getReclamacaoCliente(),
-                entity.getAtendenteInicioId()
+                entity.getStatus(),
+                entity.getIniciadoEm(),
+                entity.getAtualizadoEm(),
+                entity.getFinalizadoEm(),
+                entity.getEntregueEm(),
+                entity.getAtendenteInicioId(),
+                entity.getMecanicoFinalId(),
+                execucoes
         );
-
-        os.setStatus(entity.getStatus());
-        os.setIniciadoEm(entity.getIniciadoEm());
-        os.setAtualizadoEm(entity.getAtualizadoEm());
-        os.setFinalizadoEm(entity.getFinalizadoEm());
-        os.setEntregueEm(entity.getEntregueEm());
-        os.setMecanicoResponsavelId(entity.getMecanicoFinalId());
-
-        if (entity.getServicos() != null) {
-            entity.getServicos().forEach(servicoEntity -> {
-
-                var execucao = execucaoServicoMapper.toDomain(servicoEntity);
-
-                os.getExecucaoServicos().add(execucao);
-            });
-        }
-
-        return os;
     }
 
     public OrdemServicoEntity toEntity(OrdemServico domain) {

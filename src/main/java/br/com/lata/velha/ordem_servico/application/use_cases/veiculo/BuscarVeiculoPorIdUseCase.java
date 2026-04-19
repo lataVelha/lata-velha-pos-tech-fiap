@@ -14,6 +14,6 @@ public class BuscarVeiculoPorIdUseCase {
     private final VeiculoAssembler assembler;
 
     public VeiculoResponse execute(Long id) {
-        return assembler.toResponse(repository.findActiveById(id));
+        return assembler.toResponse(repository.getActiveById(id));
     }
 }

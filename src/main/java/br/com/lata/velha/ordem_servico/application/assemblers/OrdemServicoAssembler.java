@@ -1,10 +1,9 @@
 package br.com.lata.velha.ordem_servico.application.assemblers;
 
-import br.com.lata.velha.ordem_servico.application.dtos.request.OrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarServicoOsResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ExecucaoServicoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.infrastructure.repositories.projection.OrdemServicoProjection;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -20,16 +19,6 @@ import java.util.stream.Collectors;
 public class OrdemServicoAssembler {
 
     private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-
-    public OrdemServico toDomain(OrdemServicoRequest request) {
-        return new OrdemServico(
-                null,
-                request.proprietarioId(),
-                request.veiculoId(),
-                request.reclamacaoCliente(),
-                request.atendenteInicioId()
-        );
-    }
 
     public OrdemServicoResponse toResponse(
             OrdemServico domain,

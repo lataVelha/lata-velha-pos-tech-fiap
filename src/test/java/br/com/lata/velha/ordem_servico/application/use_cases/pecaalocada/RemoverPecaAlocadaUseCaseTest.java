@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada;
 
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -28,7 +31,7 @@ class RemoverPecaAlocadaUseCaseTest {
 
     @Test
     void deveRemoverPecaComSucesso() {
-        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 10L, 3);
+        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 10L, 3, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
         PecaEstoque estoque = new PecaEstoque(2L, 7);
 
         when(pecaAlocadaRepository.findById(1L)).thenReturn(pecaAlocada);

@@ -17,7 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,8 +46,8 @@ class AtualizarVeiculoUseCaseTest {
         VeiculoResponse response = mock(VeiculoResponse.class);
 
         when(request.proprietarioId()).thenReturn(1L);
-        when(veiculoRepository.findActiveById(1L)).thenReturn(existing);
-        when(proprietarioRepository.findActiveById(1L)).thenReturn(proprietario);
+        when(veiculoRepository.getActiveById(1L)).thenReturn(existing);
+        when(proprietarioRepository.getActiveById(1L)).thenReturn(proprietario);
         doNothing().when(assembler).updateDomain(existing, request);
         when(veiculoRepository.save(existing)).thenReturn(saved);
         when(assembler.toResponse(saved)).thenReturn(response);
@@ -55,8 +55,8 @@ class AtualizarVeiculoUseCaseTest {
         VeiculoResponse result = useCase.execute(1L, request);
 
         assertNotNull(result);
-        verify(veiculoRepository).findActiveById(1L);
-        verify(proprietarioRepository).findActiveById(1L);
+        verify(veiculoRepository).getActiveById(1L);
+        verify(proprietarioRepository).getActiveById(1L);
         verify(assembler).updateDomain(existing, request);
         verify(veiculoRepository).save(existing);
     }

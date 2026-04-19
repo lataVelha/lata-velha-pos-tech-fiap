@@ -1,13 +1,14 @@
 package br.com.lata.velha.ordem_servico.api.controllers;
 
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarOrdemSevicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.request.OrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,16 +35,17 @@ public class OrdemServicoController {
     private final FinalizarServicoUseCase finalizarServicoUseCase;
     private final RetirarVeiculoUseCase retirarVeiculoUseCase;
 
-    @PostMapping("/create")
+    @PostMapping
     @Operation(summary = "Criar ordem de serviço")
     @ApiResponse(responseCode = "201", description = "Ordem de Serviço criada")
     @ApiResponse(responseCode = "409", description = "Ordem de Serviço cadastrado")
-    public ResponseEntity<OrdemServicoResponse> create(
-            @Valid @RequestBody OrdemServicoRequest request) {
-
+    public ResponseEntity<CriarOrdemServicoResponse> create(@Valid @RequestBody CriarOrdemServicoRequest request) {
+        var input = request.toCriarOsUseCaseInput();
+        var output = criarOrdemServicoUseCase.execute(input);
+        var response = CriarOrdemServicoResponse.fromCriarOsUseCaseOutput(output);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(criarOrdemServicoUseCase.execute(request));
+                .body(response);
     }
 
     @GetMapping
