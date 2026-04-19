@@ -34,9 +34,9 @@ public class OrdemServicoMapper {
                 entity.getReclamacaoCliente(),
                 entity.getStatus(),
                 entity.getIniciadoEm(),
-                entity.getAtualizadoEm(),
                 entity.getFinalizadoEm(),
                 entity.getEntregueEm(),
+                entity.getAtualizadoEm(),
                 entity.getAtendenteInicioId(),
                 entity.getMecanicoFinalId(),
                 execucoes

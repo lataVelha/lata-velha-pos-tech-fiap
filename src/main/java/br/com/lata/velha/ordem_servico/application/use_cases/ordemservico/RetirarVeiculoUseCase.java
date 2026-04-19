@@ -21,6 +21,8 @@ public class RetirarVeiculoUseCase {
     private final PecaEstoqueRepository pecaEstoqueRepository;
     private final PecaRepository pecaRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
+    private final ProprietarioRepository proprietarioRepository;
+    private final VeiculoRepository veiculoRepository;
 
     public OrdemServicoResponse execute(Long idOs, Long idFuncionario) {
         var ordemServico = ordemServicoRepository.findById(idOs);
@@ -39,10 +41,14 @@ public class RetirarVeiculoUseCase {
         ordemServico.entregar(funcionario.getId());
         notificarUseCase.execute(ordemServico);
 
+        var saved = ordemServicoRepository.save(ordemServico);
+        var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
+        var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
+
         return OrdemServicoResponse.from(
-                ordemServicoRepository.save(ordemServico),
-                null,
-                null,
+                saved,
+                proprietario.getNome(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
                 totalServicos,
                 totalPecas,
                 totalOrdemServico

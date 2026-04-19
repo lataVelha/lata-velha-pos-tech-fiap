@@ -16,6 +16,7 @@ public class FinalizarServicoUseCase {
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final ProprietarioRepository proprietarioRepository;
+    private final VeiculoRepository veiculoRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
     @Transactional
@@ -43,9 +44,15 @@ public class FinalizarServicoUseCase {
         });
 
         ordemServico.finalizar(mecanico.getId());
-        ordemServicoRepository.save(ordemServico);
-        notificarUseCase.execute(ordemServico);
+        var saved = ordemServicoRepository.save(ordemServico);
+        notificarUseCase.execute(saved);
 
-        return OrdemServicoResponse.from(ordemServico, null, null, null, null, null);
+        var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
+        var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
+
+        return OrdemServicoResponse.from(saved,
+                proprietario.getNome(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
+                null, null, null);
     }
 }

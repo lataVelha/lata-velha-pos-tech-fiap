@@ -8,6 +8,8 @@ import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +20,8 @@ public class ReprovarOrdemServicoUseCase {
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
+    private final ProprietarioRepository proprietarioRepository;
+    private final VeiculoRepository veiculoRepository;
 
     public OrdemServicoResponse execute(Long osId, Long idFunc) {
         var ordemServico = ordemServicoRepository.findById(osId);
@@ -33,7 +37,14 @@ public class ReprovarOrdemServicoUseCase {
         ordemServico.reprovar(funcionario.getId());
         notificarUseCase.execute(ordemServico);
 
-        return OrdemServicoResponse.from(ordemServicoRepository.save(ordemServico), null, null, null, null, null);
+        var saved = ordemServicoRepository.save(ordemServico);
+        var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
+        var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
+
+        return OrdemServicoResponse.from(saved,
+                proprietario.getNome(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
+                null, null, null);
     }
 
     private void vailidarStatusOrdem(StatusOrdemServico statusOrdemServico, OrdemServico ordemServico) {
