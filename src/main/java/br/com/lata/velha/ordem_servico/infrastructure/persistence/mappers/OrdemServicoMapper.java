@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class OrdemServicoMapper {
         if (entity.getServicos() != null) {
             execucoes = entity.getServicos().stream()
                     .map(execucaoServicoMapper::toDomain)
-                    .toList();
+                    .collect(Collectors.toList());
         }
 
         return new OrdemServico(
@@ -70,12 +71,10 @@ public class OrdemServicoMapper {
                             .stream()
                             .map(execucao -> {
                                 var servicoEntity = execucaoServicoMapper.toEntity(execucao);
-
                                 servicoEntity.setOrdemServico(entity);
-
                                 return servicoEntity;
                             })
-                            .toList()
+                            .collect(Collectors.toList())
             );
         }
 
