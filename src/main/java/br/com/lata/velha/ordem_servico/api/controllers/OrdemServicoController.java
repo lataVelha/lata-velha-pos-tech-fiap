@@ -3,7 +3,7 @@ package br.com.lata.velha.ordem_servico.api.controllers;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarOrdemSevicoRequest;
+import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
@@ -95,7 +95,7 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "200", description = "Ordem de Serviço aprovada")
     @ApiResponse(responseCode = "404", description = "Ordem de Serviço não encontrada")
     @ApiResponse(responseCode = "409", description = "Ordem de Serviço já aprovada ou em status inválido")
-    public ResponseEntity<AprovarOrdemServicoResponse> approve(@Valid @RequestBody AprovarOrdemSevicoRequest request) {
+    public ResponseEntity<AprovarOrdemServicoResponse> approve(@Valid @RequestBody AprovarOrdemServicoRequest request) {
         return ResponseEntity.ok(aprovarOrdemServicoUseCase.execute(request));
     }
 

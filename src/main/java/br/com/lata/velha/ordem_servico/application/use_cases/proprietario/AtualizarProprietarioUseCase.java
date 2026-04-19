@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.ProprietarioAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
@@ -13,12 +12,10 @@ import org.springframework.stereotype.Component;
 public class AtualizarProprietarioUseCase {
 
     private final ProprietarioRepository repository;
-    private final ProprietarioAssembler assembler;
 
     public ProprietarioResponse execute(Long id, ProprietarioRequest request) {
         Proprietario existing = repository.getActiveById(id);
-        assembler.updateDomain(existing, request);
-        Proprietario saved = repository.save(existing);
-        return assembler.toResponse(saved);
+        request.updateDomain(existing);
+        return ProprietarioResponse.from(repository.save(existing));
     }
 }

@@ -1,8 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.BuscarProprietarioPorIdUseCase;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
@@ -19,46 +17,36 @@ public class ReprovarOrdemServicoUseCase {
 
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
-    private final OrdemServicoAssembler ordemServicoAssembler;
-    private final BuscarProprietarioPorIdUseCase buscarProprietarioPorIdUseCase;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(Long osId, Long idFunc) {
         var ordemServico = ordemServicoRepository.findById(osId);
         var funcionario = funcionarioRepository.getById(idFunc);
 
-        StatusOrdemServico status = ordemServico.getStatus();
-        vailidarStatusOrdem(status, ordemServico);
+        vailidarStatusOrdem(ordemServico.getStatus(), ordemServico);
 
         ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
-
-            StatusExecucaoServico statusExecucaoServico = execucaoServico.getStatus();
-            vailidarStatusServico(statusExecucaoServico, execucaoServico);
-
+            vailidarStatusServico(execucaoServico.getStatus(), execucaoServico);
             execucaoServico.recusar(funcionario.getId());
-
         });
 
         ordemServico.reprovar(funcionario.getId());
         notificarUseCase.execute(ordemServico);
-        return ordemServicoAssembler.toResponse(ordemServicoRepository.save(ordemServico), null, null,null,null,null);
+
+        return OrdemServicoResponse.from(ordemServicoRepository.save(ordemServico), null, null, null, null, null);
     }
 
     private void vailidarStatusOrdem(StatusOrdemServico statusOrdemServico, OrdemServico ordemServico) {
-
         if (statusOrdemServico == null) {
             throw new IllegalStateException("Ordem de Serviço sem status: " + ordemServico.getId());
         }
         switch (statusOrdemServico) {
             case FINALIZADA -> throw new ResourceAlreadyExistsException(
                     "Esta Ordem de Serviço foi finalizada: " + ordemServico.getId());
-
             case EM_EXECUCAO -> throw new ResourceAlreadyExistsException(
                     "Esta Ordem de Serviço está em execução: " + ordemServico.getId());
-
             case ENTREGUE -> throw new ResourceAlreadyExistsException(
                     "Esta Ordem de Serviço já foi entregue: " + ordemServico.getId());
-
         }
     }
 
@@ -67,11 +55,9 @@ public class ReprovarOrdemServicoUseCase {
             throw new ResourceAlreadyExistsException(
                     "Este serviço foi Aprovado " + execucaoServico.getServico().getNome());
         }
-
         if (statusExecucaoServico == StatusExecucaoServico.FINALIZADO) {
             throw new ResourceAlreadyExistsException(
                     "Este serviço ja foi realizado " + execucaoServico.getServico().getNome());
         }
     }
-
 }

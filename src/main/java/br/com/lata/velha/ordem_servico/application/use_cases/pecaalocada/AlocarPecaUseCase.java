@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaAlocadaAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AlocarPecaRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaAlocadaResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
@@ -24,7 +23,6 @@ public class AlocarPecaUseCase {
 
     @Transactional
     public PecaAlocadaResponse execute(AlocarPecaRequest request) {
-        
         var servicoOS = execucaoServicoRepository.findById(request.servicoOsId());
         if (servicoOS == null) {
             throw new IllegalArgumentException("Serviço OS não encontrado");
@@ -43,10 +41,7 @@ public class AlocarPecaUseCase {
         estoque.remover(request.quantidade());
         pecaEstoqueRepository.save(estoque);
 
-        var pecaAlocada = new PecaAlocada( peca.getId(), request.servicoOsId(), request.quantidade());
-
-        PecaAlocada saved = pecaAlocadaRepository.save(pecaAlocada);
-
-        return PecaAlocadaAssembler.toResponse(saved);
+        PecaAlocada saved = pecaAlocadaRepository.save(new PecaAlocada(peca.getId(), request.servicoOsId(), request.quantidade()));
+        return PecaAlocadaResponse.from(saved);
     }
 }

@@ -1,11 +1,10 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.infrastructure.repositories.projection.OrdemServicoProjection;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,7 +17,6 @@ import java.util.List;
 public class BuscarOrdemServicoUseCase {
 
     private final OrdemServicoRepository ordemServicoRepository;
-    private final OrdemServicoAssembler ordemServicoAssembler;
 
     public PaginatedResult<OrdemServicoResponse> execute(Long id,
                                                          StatusOrdemServico status,
@@ -26,21 +24,18 @@ public class BuscarOrdemServicoUseCase {
                                                          Long mecanicoId,
                                                          int page,
                                                          int size) {
+        Page<OrdemServicoProjection> result = ordemServicoRepository.findByAllOrdemSevico(
+                id,
+                status != null ? status.name() : null,
+                proprietarioId,
+                mecanicoId,
+                PageRequest.of(page, size)
+        );
 
-        Page<OrdemServicoProjection> result =
-                ordemServicoRepository.findByAllOrdemSevico(
-                        id,
-                        status != null ? status.name() : null,
-                        proprietarioId,
-                        mecanicoId,
-                        PageRequest.of(page, size)
-                );
-
-        List<OrdemServicoResponse> content =
-                result.getContent()
-                        .stream()
-                        .map(ordemServicoAssembler::map)
-                        .toList();
+        List<OrdemServicoResponse> content = result.getContent()
+                .stream()
+                .map(OrdemServicoResponse::from)
+                .toList();
 
         return new PaginatedResult<>(
                 content,

@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
@@ -13,20 +12,17 @@ public class IniciarDiagnosticoUseCase {
 
     private final OrdemServicoRepository repository;
     private final FuncionarioRepository funcionarioRepository;
-    private final OrdemServicoAssembler ordemServicoAssembler;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
-
         var ordemServico = repository.findById(idOs);
-
         var mecanico = funcionarioRepository.getById(idMecanico);
 
         ordemServico.iniciarDiagnostico(mecanico.getId());
 
-        var ordemServicoIniciada = repository.save(ordemServico);
-        notificarUseCase.execute(ordemServicoIniciada);
+        var saved = repository.save(ordemServico);
+        notificarUseCase.execute(saved);
 
-        return ordemServicoAssembler.toResponse(ordemServicoIniciada,null, null,null,null,null);
+        return OrdemServicoResponse.from(saved, null, null, null, null, null);
     }
 }

@@ -14,10 +14,8 @@ public class CriarOrdemServicoUseCase {
     private final OrdemServicoRepository repository;
     private final FuncionarioRepository funcionarioRepository;
     private final ProprietarioRepository proprietarioRepository;
-
     private final VeiculoRepository veiculoRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
-
 
     public Output execute(Input input) {
         var veiculo = veiculoRepository.getActiveById(input.veiculoId());
@@ -32,13 +30,12 @@ public class CriarOrdemServicoUseCase {
         );
 
         var saved = repository.save(ordemServico);
-
         notificarUseCase.execute(saved);
 
         return new Output(saved.getId());
     }
 
-    public record Input(Long veiculoId, Long proprietarioId, Long atendenteInicioId, String reclamacaoCliente){}
+    public record Input(Long veiculoId, Long proprietarioId, Long atendenteInicioId, String reclamacaoCliente) {}
 
-    public record Output(Long ordemServicoId){}
+    public record Output(Long ordemServicoId) {}
 }

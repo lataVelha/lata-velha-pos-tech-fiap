@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaEstoqueAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEstoqueRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
@@ -14,7 +13,6 @@ public class SaidaPecaEstoqueUseCase {
 
     private final PecaRepository pecaRepository;
     private final PecaEstoqueRepository pecaEstoqueRepository;
-    private final PecaEstoqueAssembler assembler;
 
     public PecaEstoqueResponse execute(Long pecaId, MovimentarPecaEstoqueRequest request) {
         pecaRepository.findActiveById(pecaId);
@@ -25,8 +23,6 @@ public class SaidaPecaEstoqueUseCase {
         }
 
         estoque.remover(request.quantidade());
-        var saved = pecaEstoqueRepository.save(estoque);
-
-        return assembler.toResponse(saved);
+        return PecaEstoqueResponse.from(pecaEstoqueRepository.save(estoque));
     }
 }
