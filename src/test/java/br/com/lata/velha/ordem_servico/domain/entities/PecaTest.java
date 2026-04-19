@@ -43,8 +43,9 @@ class PecaTest {
     void shouldFailWhenUpdatingWithInvalidNome() {
         Peca peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("35.00"), true);
 
+        var valor = new BigDecimal("10.00");
         assertThrows(IllegalArgumentException.class,
-                () -> peca.atualizar(" ", "Descrição", new BigDecimal("10.00")));
+                () -> peca.atualizar(" ", "Descrição", valor));
     }
 
     @Test
@@ -52,8 +53,9 @@ class PecaTest {
     void shouldFailWhenUpdatingWithInvalidDescricao() {
         Peca peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("35.00"), true);
 
+        var valor = new BigDecimal("10.00");
         assertThrows(IllegalArgumentException.class,
-                () -> peca.atualizar("Nome", " ", new BigDecimal("10.00")));
+                () -> peca.atualizar("Nome", " ", valor));
     }
 
     @Test
@@ -68,22 +70,25 @@ class PecaTest {
     @Test
     @DisplayName("deve falhar no construtor com nome inválido")
     void shouldFailOnConstructorWithInvalidNome() {
+        var valor = new BigDecimal("10.00");
         assertThrows(IllegalArgumentException.class,
-                () -> new Peca(1L, "", "Descrição", new BigDecimal("10.00"), true));
+                () -> new Peca(1L, "", "Descrição", valor, true));
     }
 
     @Test
     @DisplayName("deve falhar no construtor com descrição inválida")
     void shouldFailOnConstructorWithInvalidDescricao() {
+        var valor = new BigDecimal("10.00");
         assertThrows(IllegalArgumentException.class,
-                () -> new Peca(1L, "Nome", "", new BigDecimal("10.00"), true));
+                () -> new Peca(1L, "Nome", "", valor, true));
     }
 
     @Test
     @DisplayName("deve falhar no construtor com valor inválido")
     void shouldFailOnConstructorWithInvalidValor() {
+        var valor = new BigDecimal("0.00");
         assertThrows(IllegalArgumentException.class,
-                () -> new Peca(1L, "Nome", "Descrição", new BigDecimal("0.00"), true));
+                () -> new Peca(1L, "Nome", "Descrição", valor, true));
     }
 
     @Test

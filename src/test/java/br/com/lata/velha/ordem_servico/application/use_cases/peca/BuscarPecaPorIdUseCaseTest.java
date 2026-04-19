@@ -16,9 +16,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BuscarPecaPorIdUseCaseTest {
@@ -38,21 +36,21 @@ class BuscarPecaPorIdUseCaseTest {
         var peca = new Peca(1L, "Disco de freio", "Disco dianteiro", new BigDecimal("220.00"), true);
         var response = new PecaResponse(1L, "Disco de freio", "Disco dianteiro", new BigDecimal("220.00"), true);
 
-        when(repository.findActiveById(1L)).thenReturn(peca);
+        when(repository.getActiveById(1L)).thenReturn(peca);
         when(assembler.toResponse(peca)).thenReturn(response);
 
         var result = useCase.execute(1L);
 
         assertEquals(1L, result.id());
         assertEquals("Disco de freio", result.nome());
-        verify(repository).findActiveById(1L);
+        verify(repository).getActiveById(1L);
         verify(assembler).toResponse(peca);
     }
 
     @Test
     @DisplayName("Deve falhar ao buscar peça inexistente")
     void deveFalharAoBuscarPecaInexistente() {
-        when(repository.findActiveById(99L)).thenThrow(new IllegalArgumentException("Peça não encontrada"));
+        when(repository.getActiveById(99L)).thenThrow(new IllegalArgumentException("Peça não encontrada"));
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(99L));
         verify(assembler, never()).toResponse(any());

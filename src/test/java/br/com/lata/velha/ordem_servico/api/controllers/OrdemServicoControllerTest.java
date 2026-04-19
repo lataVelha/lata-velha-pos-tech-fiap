@@ -1,13 +1,10 @@
 package br.com.lata.velha.ordem_servico.api.controllers;
 
 import br.com.lata.velha.authentication.infrastructure.security.config.SecurityConfig;
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarOrdemSevicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarServicoOsRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.ServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarOrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarServicoOsResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
@@ -225,12 +222,12 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /ordens-servico/aprovar deve retornar 200")
     void shouldReturn200OnAprovar() throws Exception {
-        var aprovacaoRequest = new AprovarServicoOsRequest(10L, StatusExecucaoServico.APROVADO);
-        var request = new AprovarOrdemSevicoRequest(1L, 2L, List.of(aprovacaoRequest));
-        var response = new AprovarOrdemServicoResponse(1L, "EM_EXECUCAO",
-                List.of(new AprovarServicoOsResponse(10L, "APROVADO")));
+        var servico = new AprovarOrdemServicoRequest.Servico(10L, StatusExecucaoServico.APROVADO);
+        var request = new AprovarOrdemServicoRequest(1L, 2L, List.of(servico));
+        var output = new AprovarOrdemServicoUseCase.Output(1L, "EM_EXECUCAO",
+                List.of(new AprovarOrdemServicoUseCase.Output.Servico(10L, "APROVADO")));
 
-        when(aprovarOrdemServicoUseCase.execute(any())).thenReturn(response);
+        when(aprovarOrdemServicoUseCase.execute(any())).thenReturn(output);
 
         mockMvc.perform(patch("/ordens-servico/aprovar")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -244,7 +241,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /ordens-servico/aprovar com body inválido deve retornar 400")
     void shouldReturn400OnAprovarWithInvalidRequest() throws Exception {
-        var invalid = new AprovarOrdemSevicoRequest(null, null, List.of());
+        var invalid = new AprovarOrdemServicoRequest(null, null, List.of());
 
         mockMvc.perform(patch("/ordens-servico/aprovar")
                         .contentType(MediaType.APPLICATION_JSON)

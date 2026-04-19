@@ -1,11 +1,10 @@
 package br.com.lata.velha.authentication.application.use_cases;
 
-import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarFuncionarioRequest;
-import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioUseCase;
-import br.com.lata.velha.authentication.domain.exceptions.not_found_exceptions.UserNotFoundException;
 import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
-import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
+import br.com.lata.velha.authentication.domain.exceptions.not_found_exceptions.UserNotFoundException;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
+import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioUseCase;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;

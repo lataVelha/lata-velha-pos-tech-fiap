@@ -68,8 +68,9 @@ class VeiculoRepositoryImplTest {
     @DisplayName("deve lançar exceção ao salvar veículo com placa duplicada")
     void shouldThrowWhenPlacaDuplicated() {
         repository.save(buildVeiculo(null, "ABC1234"));
+        var veiculo = buildVeiculo(null, "ABC1234");
 
-        assertThatThrownBy(() -> repository.save(buildVeiculo(null, "ABC1234")))
+        assertThatThrownBy(() -> repository.save(veiculo))
                 .isInstanceOf(ResourceAlreadyExistsException.class);
     }
 
@@ -119,8 +120,9 @@ class VeiculoRepositoryImplTest {
         Veiculo saved = repository.save(buildVeiculo(null, "ABC1234"));
         saved.deactivate();
         repository.save(saved);
+        var id = saved.getId();
 
-        assertThatThrownBy(() -> repository.getActiveById(saved.getId()))
+        assertThatThrownBy(() -> repository.getActiveById(id))
                 .isInstanceOf(VeiculoNotFoundException.class);
     }
 

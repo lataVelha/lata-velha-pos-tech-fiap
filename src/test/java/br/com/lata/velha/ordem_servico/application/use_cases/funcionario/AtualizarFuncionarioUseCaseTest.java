@@ -61,6 +61,7 @@ class AtualizarFuncionarioUseCaseTest {
     @DisplayName("Deve falhar quando cargo nao existir")
     void shouldFailWhenCargoNotFound() {
         var request = new AtualizarFuncionarioRequest("Nome", 99L);
+        var input = request.toUpdateUseCaseInput(1L);
         UserId userId = UserId.random();
         var funcionario = new Funcionario(1L, "Nome", new Cargo(1L, "MECANICO", null), userId);
 
@@ -68,7 +69,7 @@ class AtualizarFuncionarioUseCaseTest {
         when(userRepository.isAtivoById(userId)).thenReturn(true);
         when(cargoRepository.getById(99L)).thenThrow(new IllegalArgumentException("Cargo não encontrado"));
 
-        assertThrows(IllegalArgumentException.class, () -> useCase.execute(request.toUpdateUseCaseInput(1L)));
+        assertThrows(IllegalArgumentException.class, () -> useCase.execute(input));
         verify(funcionarioRepository, never()).save(funcionario);
     }
 
@@ -76,13 +77,14 @@ class AtualizarFuncionarioUseCaseTest {
     @DisplayName("Deve lançar InactiveUserException quando usuário estiver inativo")
     void shouldThrowInactiveUserExceptionWhenUserIsInactive() {
         var request = new AtualizarFuncionarioRequest("Novo Nome", 2L);
+        var input = request.toUpdateUseCaseInput(1L);
         UserId userId = UserId.random();
         var funcionario = new Funcionario(1L, "Nome Antigo", new Cargo(1L, "MECANICO", null), userId);
 
         when(funcionarioRepository.getById(1L)).thenReturn(funcionario);
         when(userRepository.isAtivoById(userId)).thenReturn(false);
 
-        assertThrows(InactiveUserException.class, () -> useCase.execute(request.toUpdateUseCaseInput(1L)));
+        assertThrows(InactiveUserException.class, () -> useCase.execute(input));
         verify(cargoRepository, never()).getById(any());
         verify(funcionarioRepository, never()).save(any());
     }
@@ -91,10 +93,11 @@ class AtualizarFuncionarioUseCaseTest {
     @DisplayName("Deve propagar exceção quando funcionário não for encontrado")
     void shouldPropagateExceptionWhenFuncionarioNotFound() {
         var request = new AtualizarFuncionarioRequest("Novo Nome", 2L);
+        var input = request.toUpdateUseCaseInput(99L);
 
         when(funcionarioRepository.getById(99L)).thenThrow(FuncionarioNotFoundException.fromId(99L));
 
-        assertThrows(FuncionarioNotFoundException.class, () -> useCase.execute(request.toUpdateUseCaseInput(99L)));
+        assertThrows(FuncionarioNotFoundException.class, () -> useCase.execute(input));
         verify(userRepository, never()).isAtivoById(any());
         verify(funcionarioRepository, never()).save(any());
     }

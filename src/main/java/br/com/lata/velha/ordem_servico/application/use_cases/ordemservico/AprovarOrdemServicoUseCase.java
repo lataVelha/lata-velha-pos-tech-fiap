@@ -1,67 +1,58 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarOrdemServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarServicoOsRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarOrdemServicoResponse;
+import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
+import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
+import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class AprovarOrdemServicoUseCase {
-
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final PecaEstoqueRepository pecaEstoqueRepository;
-    private final PecaAlocadaRepository pecaAlocadaRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
     @Transactional
-    public AprovarOrdemServicoResponse execute(AprovarOrdemServicoRequest request) {
-        var ordemServico = ordemServicoRepository.findById(request.idOs());
-        var funcionario = funcionarioRepository.getById(request.idFunc());
+    public Output execute(Input input) {
+        var ordemServico = ordemServicoRepository.getByIdWithExecucoes(input.idOs());
+        var funcionario = funcionarioRepository.getById(input.funcionarioId());
 
-        Map<Long, StatusExecucaoServico> statusPorId =
-                request.idServicoOsAprovar().stream()
-                        .collect(Collectors.toMap(
-                                AprovarServicoOsRequest::idServicoOs,
-                                AprovarServicoOsRequest::statusExecucaoServico
-                        ));
+        var statusPorId = input.getServiceStatusMap();
+        var pecasEstoque = getStockMap(ordemServico.getExecucaoServicos());
 
         ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
-            StatusExecucaoServico novoStatus = statusPorId.get(execucaoServico.getId());
-            if (novoStatus == null) return;
+            var novoStatus = statusPorId.get(execucaoServico.getId());
+            if (novoStatus == null) novoStatus = StatusExecucaoServico.RECUSADO;
 
             switch (novoStatus) {
                 case APROVADO -> {
                     execucaoServico.aprovar(funcionario.getId());
+                    execucaoServico.getPecas().forEach(alocacaoPeca -> {
+                        var estoque = pecasEstoque.get(alocacaoPeca.getPecaId());
+                        alocacaoPeca.reservar(estoque);
 
-                    execucaoServico.getPecas().forEach(peca -> {
-                        var estoque = pecaEstoqueRepository.findByPecaId(peca.getPecaId());
-
-                        int quantidadeDisponivel = 0;
-                        if (estoque != null && estoque.getQuantidadeArmazenada() != null) {
-                            Integer jaReservado = pecaAlocadaRepository.somarQuantidadeReservadaPorPeca(peca.getPecaId());
-                            quantidadeDisponivel = estoque.getQuantidadeArmazenada() - jaReservado;
-                            if (quantidadeDisponivel < 0) quantidadeDisponivel = 0;
-                        }
-
-                        peca.reservar(quantidadeDisponivel);
-
-                        if (peca.getQuantidadeEncomendada() != null && peca.getQuantidadeEncomendada() > 0) {
-                            gerarEncomendaPeca(ordemServico.getId(), execucaoServico.getId(), peca.getPecaId(), peca.getQuantidadeEncomendada());
+                        if (alocacaoPeca.getQuantidadeEncomendada() != null && alocacaoPeca.getQuantidadeEncomendada() > 0) {
+                            gerarEncomendaPeca(
+                                    ordemServico.getId(),
+                                    execucaoServico.getId(),
+                                    alocacaoPeca.getPecaId(),
+                                    alocacaoPeca.getQuantidadeEncomendada()
+                            );
                         }
                     });
                 }
+
                 case RECUSADO -> execucaoServico.recusar(funcionario.getId());
             }
         });
@@ -69,7 +60,27 @@ public class AprovarOrdemServicoUseCase {
         ordemServico.aprovar(funcionario.getId());
         notificarUseCase.execute(ordemServico);
 
-        return AprovarOrdemServicoResponse.from(ordemServicoRepository.save(ordemServico));
+        pecaEstoqueRepository.saveAll(pecasEstoque.values());
+        var saved = ordemServicoRepository.save(ordemServico);
+
+        List<Output.Servico> servicos = saved.getExecucaoServicos().stream()
+                .map(s -> new Output.Servico(s.getId(), s.getStatus().name()))
+                .toList();
+
+        return new Output(saved.getId(), saved.getStatus().name(), servicos);
+    }
+
+    private Map<Long, PecaEstoque> getStockMap(List<ExecucaoServico> execucaoServicos) {
+        var pecaIds = execucaoServicos.stream()
+                .flatMap(s -> s.getPecas()
+                        .stream()
+                        .map(PecaAlocada::getPecaId))
+                .collect(Collectors.toSet());
+        List<PecaEstoque> estoque = pecaEstoqueRepository.findAllByPecaIds(pecaIds);
+        return estoque.stream()
+                .collect(Collectors
+                                .toMap(PecaEstoque::getPecaId, p -> p)
+                );
     }
 
     private void gerarEncomendaPeca(Long osId, Long servicoId, Long pecaId, Integer quantidadeFaltante) {
@@ -79,5 +90,21 @@ public class AprovarOrdemServicoUseCase {
                         " | Peça: " + pecaId +
                         " | Quantidade: " + quantidadeFaltante
         );
+    }
+
+    public record Input(Long idOs, Long funcionarioId, List<Servicos> servicos) {
+        public Map<Long, StatusExecucaoServico> getServiceStatusMap() {
+            return servicos.stream()
+                    .collect(Collectors.toMap(
+                            Servicos::servicoOsId,
+                            Servicos::status
+                    ));
+        }
+
+        public record Servicos(Long servicoOsId, StatusExecucaoServico status) {}
+    }
+
+    public record Output(Long idOs, String status, List<Servico> servicos) {
+        public record Servico(Long idServicoOs, String statusServico) {}
     }
 }

@@ -23,7 +23,7 @@ public class IniciarServicoUseCase {
     private final VeiculoRepository veiculoRepository;
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
-        var ordemServico = ordemServicoRepository.findById(idOs);
+        var ordemServico = ordemServicoRepository.getById(idOs);
         var mecanico = funcionarioRepository.getById(idMecanico);
 
         if (!StatusOrdemServico.EM_EXECUCAO.equals(ordemServico.getStatus())) {

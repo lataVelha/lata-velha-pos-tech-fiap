@@ -24,7 +24,7 @@ public class ReprovarOrdemServicoUseCase {
     private final VeiculoRepository veiculoRepository;
 
     public OrdemServicoResponse execute(Long osId, Long idFunc) {
-        var ordemServico = ordemServicoRepository.findById(osId);
+        var ordemServico = ordemServicoRepository.getById(osId);
         var funcionario = funcionarioRepository.getById(idFunc);
 
         vailidarStatusOrdem(ordemServico.getStatus(), ordemServico);

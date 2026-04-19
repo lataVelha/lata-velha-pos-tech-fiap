@@ -5,11 +5,10 @@ import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class PecaAlocada {
-
-    private Long id;
-    private Long pecaId;
-    private Long execucaoServicoId;
+public final class PecaAlocada {
+    private final Long id;
+    private final Long pecaId;
+    private final Long execucaoServicoId;
 
     private Integer quantidadeSolicitada;
     private Integer quantidadeReservada;
@@ -18,59 +17,34 @@ public class PecaAlocada {
     private StatusPecaAlocada status;
     private LocalDateTime atualizado;
 
-    public PecaAlocada() {}
-
-    public PecaAlocada(Long pecaId, Long execucaoServicoId, Integer quantidadeSolicitada) {
-        setPecaId(pecaId);
-        setExecucaoServicoId(execucaoServicoId);
-        setQuantidadeSolicitada(quantidadeSolicitada);
-
-        this.quantidadeReservada = 0;
-        this.quantidadeEncomendada = 0;
-        this.status = StatusPecaAlocada.ORCAMENTO;
-        this.atualizado = LocalDateTime.now();
-    }
-
-    public PecaAlocada(Long pecaId, Integer quantidadeSolicitada) {
-        setPecaId(pecaId);
-        setQuantidadeSolicitada(quantidadeSolicitada);
-
-        this.quantidadeReservada = 0;
-        this.quantidadeEncomendada = 0;
-        this.status = StatusPecaAlocada.ORCAMENTO;
-        this.atualizado = LocalDateTime.now();
-    }
-
     public PecaAlocada(Long id, Long pecaId, Long execucaoServicoId, Integer quantidadeSolicitada, Integer quantidadeReservada, Integer quantidadeEncomendada, StatusPecaAlocada status, LocalDateTime atualizado) {
+        validatePecaId(pecaId);
+        validateExecucaoServicoId(execucaoServicoId);
+
         this.id = id;
         this.pecaId = pecaId;
         this.execucaoServicoId = execucaoServicoId;
-        this.quantidadeSolicitada = quantidadeSolicitada;
+
+        setQuantidadeSolicitada(quantidadeSolicitada);
         this.quantidadeReservada = quantidadeReservada;
         this.quantidadeEncomendada = quantidadeEncomendada;
         this.status = status;
         this.atualizado = atualizado;
     }
 
-    /* ================= REGRAS ================= */
+    public static PecaAlocada create(Long pecaId, Long execucaoServicoId, Integer quantidadeSolicitada) {
+        var quantidadeReservadaInicial = 0;
+        var quantidadeEncomendadaInicial = 0;
+        var statusInicial = StatusPecaAlocada.ORCAMENTO;
+        return new PecaAlocada(null, pecaId, execucaoServicoId, quantidadeSolicitada, quantidadeReservadaInicial, quantidadeEncomendadaInicial, statusInicial, LocalDateTime.now());
+    }
 
-    public void reservar(Integer quantidadeDisponivel) {
+    public void reservar(PecaEstoque estoque) {
+        if (estoque != null && estoque.getQuantidadeDisponivel() > 0)
+            reservarEstoque(estoque);
+        encomendarFaltante();
 
-        if (quantidadeDisponivel == null || quantidadeDisponivel <= 0) {
-            encomendarTotal();
-            return;
-        }
-
-        int restante = quantidadeSolicitada - quantidadeReservada;
-
-        int reservar = Math.min(quantidadeDisponivel, restante);
-
-        this.quantidadeReservada += reservar;
-
-        int faltante = quantidadeSolicitada - quantidadeReservada;
-
-        if (faltante > 0) {
-            this.quantidadeEncomendada = faltante;
+        if (this.quantidadeEncomendada > 0) {
             this.status = StatusPecaAlocada.PARCIAL;
         } else {
             this.quantidadeEncomendada = 0;
@@ -80,47 +54,14 @@ public class PecaAlocada {
         touch();
     }
 
-    public void encomendarTotal() {
-        this.quantidadeReservada = 0;
-        this.quantidadeEncomendada = quantidadeSolicitada;
-        this.status = StatusPecaAlocada.ENCOMENDA;
-        touch();
-    }
-
-    public void movimentarParaReservado(Integer quantidade) {
-
-        if (quantidade == null || quantidade <= 0)
-            throw new IllegalArgumentException("Quantidade inválida");
-
-        this.quantidadeReservada += quantidade;
-        this.quantidadeEncomendada -= quantidade;
-
-        if (quantidadeEncomendada <= 0) {
-            quantidadeEncomendada = 0;
-            status = StatusPecaAlocada.RESERVADA;
-        } else {
-            status = StatusPecaAlocada.PARCIAL;
-        }
-
-        touch();
-    }
-
     public void instalada(Integer quantidade) {
-
         if (quantidade == null || quantidade <= 0)
             throw new IllegalArgumentException("Quantidade inválida");
 
-        if (quantidadeReservada < quantidade) {
-            throw new IllegalStateException(
-                    "Quantidade reservada insuficiente para instalar"
-            );
-        }
+        if (quantidadeReservada < quantidade)
+            throw new IllegalStateException("Quantidade reservada insuficiente para instalar");
 
         this.quantidadeReservada -= quantidade;
-
-        if (this.quantidadeReservada < 0) {
-            throw new IllegalStateException("Quantidade inconsistente");
-        }
 
         if (this.quantidadeReservada == 0 && this.quantidadeEncomendada == 0) {
             this.status = StatusPecaAlocada.INSTALADA;
@@ -139,22 +80,9 @@ public class PecaAlocada {
                 quantidadeReservada.equals(quantidadeSolicitada);
     }
 
-    public boolean parcialmenteReservada() {
-        return quantidadeReservada != null &&
-                quantidadeReservada > 0 &&
-                quantidadeReservada < quantidadeSolicitada;
-    }
-
-    public boolean totalmenteInstalada() {
-        return quantidadeReservada == 0 &&
-                quantidadeEncomendada == 0 &&
-                status == StatusPecaAlocada.INSTALADA;
-    }
-
     private void touch() {
         this.atualizado = LocalDateTime.now();
     }
-
     /* ================= GETTERS ================= */
 
     public Long getId() { return id; }
@@ -167,29 +95,6 @@ public class PecaAlocada {
     public LocalDateTime getAtualizado() { return atualizado; }
 
     /* ================= SETTERS CONTROLADOS ================= */
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setPecaId(Long pecaId) {
-        if (pecaId == null)
-            throw new IllegalArgumentException("Peça obrigatória");
-        this.pecaId = pecaId;
-    }
-
-    public void setExecucaoServicoId(Long execucaoServicoId) {
-        if (execucaoServicoId == null)
-            throw new IllegalArgumentException("Serviço obrigatório");
-        this.execucaoServicoId = execucaoServicoId;
-    }
-
-    public void setQuantidadeSolicitada(Integer quantidadeSolicitada) {
-        if (quantidadeSolicitada == null || quantidadeSolicitada <= 0)
-            throw new IllegalArgumentException("Quantidade inválida");
-        this.quantidadeSolicitada = quantidadeSolicitada;
-    }
-
     public void setQuantidadeReservada(Integer quantidadeReservada) {
         this.quantidadeReservada = quantidadeReservada;
     }
@@ -200,10 +105,6 @@ public class PecaAlocada {
 
     public void setStatus(StatusPecaAlocada status) {
         this.status = status;
-    }
-
-    public void setAtualizado(LocalDateTime atualizado) {
-        this.atualizado = atualizado;
     }
 
     /* ================= OBJECT ================= */
@@ -221,7 +122,33 @@ public class PecaAlocada {
         return Objects.hash(id);
     }
 
-    public boolean isReservada() {
-        return StatusPecaAlocada.RESERVADA.equals(this.status);
+    private void validateExecucaoServicoId(Long execucaoServicoId) {
+        if (execucaoServicoId == null)
+            throw new IllegalArgumentException("Serviço obrigatório");
+    }
+
+    private void validatePecaId(Long pecaId) {
+        if (pecaId == null)
+            throw new IllegalArgumentException("Peça obrigatória");
+    }
+
+    private void reservarEstoque(PecaEstoque estoque) {
+        int quantidadeReservar = Math.min(estoque.getQuantidadeDisponivel(), getRestante());
+        estoque.alocar(quantidadeReservar);
+        this.quantidadeReservada += quantidadeReservar;
+    }
+
+    private void encomendarFaltante() {
+        this.quantidadeEncomendada = getRestante();
+    }
+
+    private int getRestante() {
+        return this.quantidadeSolicitada - this.quantidadeReservada;
+    }
+
+    private void setQuantidadeSolicitada(Integer quantidadeSolicitada) {
+        if (quantidadeSolicitada == null || quantidadeSolicitada <= 0)
+            throw new IllegalArgumentException("Quantidade inválida");
+        this.quantidadeSolicitada = quantidadeSolicitada;
     }
 }

@@ -9,7 +9,9 @@ public interface OrdemServicoRepository {
 
     OrdemServico save(OrdemServico ordemServico);
 
-    OrdemServico findById(Long id);
+    OrdemServico getById(Long id);
+
+    OrdemServico getByIdWithExecucoes(Long id);
 
     Page<OrdemServicoProjection> findByAllOrdemSevico(Long id,
                                                       String status,

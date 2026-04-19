@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+import java.util.Set;
+
 public interface PecaEstoqueJpaRepository extends JpaRepository<PecaEstoqueEntity, Long> {
 
     @Modifying
@@ -18,4 +21,6 @@ public interface PecaEstoqueJpaRepository extends JpaRepository<PecaEstoqueEntit
             """)
     void baixarEstoque(@Param("pecaId") Long pecaId,
                        @Param("quantidade") Integer quantidade);
+
+    List<PecaEstoqueEntity> findAllByPecaIdIn(Set<Long> pecaIds);
 }

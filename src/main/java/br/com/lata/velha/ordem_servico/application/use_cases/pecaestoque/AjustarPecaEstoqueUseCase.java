@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AjustarPecaEstoqueRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.PecaNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +17,15 @@ public class AjustarPecaEstoqueUseCase {
     private final PecaEstoqueRepository pecaEstoqueRepository;
 
     public PecaEstoqueResponse execute(Long pecaId, AjustarPecaEstoqueRequest request) {
-        pecaRepository.findActiveById(pecaId);
+        if(!pecaRepository.existsActiveById(pecaId))
+            throw PecaNotFoundException.fromId(pecaId);
 
-        PecaEstoque estoque = pecaEstoqueRepository.findByPecaId(pecaId);
-        if (estoque == null) {
-            estoque = new PecaEstoque(pecaId, 0);
-        }
+        var estoque = pecaEstoqueRepository.findByPecaId(pecaId)
+                .orElse(PecaEstoque.create(pecaId));
+        estoque.ajustar(request.quantidadeArmazenada(), request.quantidadeDisponivel());
+        PecaEstoque saved = pecaEstoqueRepository.save(estoque);
 
-        estoque.ajustar(request.quantidadeArmazenada());
+        return assembler.toResponse(saved);
         return PecaEstoqueResponse.from(pecaEstoqueRepository.save(estoque));
     }
 }

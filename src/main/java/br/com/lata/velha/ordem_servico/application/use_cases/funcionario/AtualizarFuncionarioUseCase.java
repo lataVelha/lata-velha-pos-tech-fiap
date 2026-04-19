@@ -1,9 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.funcionario;
 
-import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarFuncionarioRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResponse;
-import br.com.lata.velha.authentication.domain.repositories.UserRepository;
 import br.com.lata.velha.authentication.domain.exceptions.InactiveUserException;
+import br.com.lata.velha.authentication.domain.repositories.UserRepository;
 import br.com.lata.velha.ordem_servico.domain.entities.Cargo;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.repositories.CargoRepository;

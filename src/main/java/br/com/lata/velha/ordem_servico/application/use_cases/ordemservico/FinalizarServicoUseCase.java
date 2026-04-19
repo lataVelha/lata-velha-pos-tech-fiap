@@ -21,7 +21,7 @@ public class FinalizarServicoUseCase {
 
     @Transactional
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
-        var ordemServico = ordemServicoRepository.findById(idOs);
+        var ordemServico = ordemServicoRepository.getById(idOs);
         var mecanico = funcionarioRepository.getById(idMecanico);
 
         if (!StatusOrdemServico.EM_EXECUCAO.equals(ordemServico.getStatus())) {
@@ -40,7 +40,7 @@ public class FinalizarServicoUseCase {
                 execucaoServico.atualizarPeca(peca);
             });
 
-            execucaoServico.finalizar(mecanico.getId());
+            execucaoServico.finalizar();
         });
 
         ordemServico.finalizar(mecanico.getId());

@@ -132,8 +132,9 @@ class CargoTest {
         @Test
         @DisplayName("roles devem ser imutáveis via getRoles")
         void shouldBeImmutableViaGetRoles() {
-            assertThrows(UnsupportedOperationException.class,
-                    () -> cargo.getRoles().add(Role.create("MECANICO")));
+            var roles = cargo.getRoles();
+            var role = Role.create("MECANICO");
+            assertThrows(UnsupportedOperationException.class, () -> roles.add(role));
         }
     }
 
