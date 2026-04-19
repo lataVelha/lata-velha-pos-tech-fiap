@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/*/finalizar-diagnostico").hasAnyRole("MECANICO", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/*/iniciar-servico").hasAnyRole("MECANICO", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/*/finalizar-servico").hasAnyRole("MECANICO", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/ordens-servico/metricas/**").hasRole("ADMIN")
                         .requestMatchers("/ordens-servico/**").hasAnyRole("USER", "MECANICO", "ADMIN")
 
 

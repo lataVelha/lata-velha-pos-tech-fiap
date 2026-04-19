@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarOrdemSevi
 import br.com.lata.velha.ordem_servico.application.dtos.request.OrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
@@ -15,7 +16,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/ordens-servico")
@@ -33,6 +37,7 @@ public class OrdemServicoController {
     private final IniciarServicoUseCase iniciarServicoUseCase;
     private final FinalizarServicoUseCase finalizarServicoUseCase;
     private final RetirarVeiculoUseCase retirarVeiculoUseCase;
+    private final BuscarTempoMedioExecucaoServicosFinalizadosUseCase buscarTempoMedioExecucaoServicosFinalizadosUseCase;
 
     @PostMapping("/create")
     @Operation(summary = "Criar ordem de serviço")
@@ -62,6 +67,23 @@ public class OrdemServicoController {
                 mecanicoId,
                 page,
                 size));
+    }
+
+    @GetMapping("/metricas/tempo-medio-execucao")
+    @Operation(summary = "Tempo médio de execução por serviço finalizado [ADMIN] - formato de data: dd/MM/aaaa")
+    @ApiResponse(responseCode = "200", description = "Métrica calculada com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros de período inválidos")
+    public ResponseEntity<TempoMedioExecucaoResponse> getAverageExecutionTime(
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "dd/MM/yyyy")
+            LocalDate dataInicio,
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "dd/MM/yyyy")
+            LocalDate dataFim) {
+
+        return ResponseEntity.ok(
+                buscarTempoMedioExecucaoServicosFinalizadosUseCase.execute(dataInicio, dataFim)
+        );
     }
 
     @PatchMapping("/{idOs}/{idMecanico}/iniciar-diagnostico")
