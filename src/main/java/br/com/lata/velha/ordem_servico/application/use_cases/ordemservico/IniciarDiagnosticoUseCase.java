@@ -19,7 +19,8 @@ public class IniciarDiagnosticoUseCase {
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
-        var ordemServico = repository.findById(idOs);
+        var ordemServico = repository.getById(idOs);
+
         var mecanico = funcionarioRepository.getById(idMecanico);
 
         ordemServico.iniciarDiagnostico(mecanico.getId());

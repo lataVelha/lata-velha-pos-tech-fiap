@@ -25,7 +25,7 @@ public class RetirarVeiculoUseCase {
     private final VeiculoRepository veiculoRepository;
 
     public OrdemServicoResponse execute(Long idOs, Long idFuncionario) {
-        var ordemServico = ordemServicoRepository.findById(idOs);
+        var ordemServico = ordemServicoRepository.getById(idOs);
         var funcionario = funcionarioRepository.getById(idFuncionario);
 
         if (!StatusOrdemServico.FINALIZADA.equals(ordemServico.getStatus())) {

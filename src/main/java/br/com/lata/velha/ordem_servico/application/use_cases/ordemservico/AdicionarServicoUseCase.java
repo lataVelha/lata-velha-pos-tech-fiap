@@ -23,9 +23,10 @@ public class AdicionarServicoUseCase {
     private final VeiculoRepository veiculoRepository;
 
     public OrdemServicoResponse execute(AddServicoRequest request) {
-        var ordemServico = ordemServicoRepository.findById(request.idOs());
+        var ordemServico = ordemServicoRepository.getById(request.idOs());
 
         request.servicoRequests().forEach(servicoRequest -> {
+
             var servico = servicoRepository.findActiveById(servicoRequest.servicoId());
             var execucaoServico = new ExecucaoServico(servico, servicoRequest.valorMaoDeObra());
 

@@ -26,7 +26,7 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
     }
 
     @Override
-    public OrdemServico findById(Long id) {
+    public OrdemServico getById(Long id) {
         return jpaRepository.findById(id)
                 .map(ordemServicoMapper::toDomain)
                 .orElseThrow(() -> OrdemServicoNotFoundException.fromId(id));

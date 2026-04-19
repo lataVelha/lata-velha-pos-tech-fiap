@@ -18,8 +18,8 @@ public class FinalizarDiagnosticoUseCase {
     private final VeiculoRepository veiculoRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
-    public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
-        var ordemServico = ordemServicoRepository.findById(idOs);
+    public OrdemServicoResponse execute(Long idOs, Long idMecanico){
+        var ordemServico = ordemServicoRepository.getById(idOs);
         var mecanico = funcionarioRepository.getById(idMecanico);
 
         ordemServico.finalizarDiagnostico(mecanico.getId());
