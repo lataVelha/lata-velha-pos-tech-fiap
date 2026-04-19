@@ -28,7 +28,7 @@ O projeto segue **Domain-Driven Design (DDD)** com arquitetura em camadas, onde 
 ```
 br.com.lata.velha
 ├── presentation/        → Entrada HTTP (controllers, exception handlers)
-├── application/         → Casos de uso, DTOs, assemblers e portas de saída
+├── application/         → Casos de uso, DTOs (com mapeamento) e portas de saída
 ├── domain/              → Regras de negócio puras (zero frameworks)
 └── infrastructure/      → JPA, JWT, configs do Spring
 ```
