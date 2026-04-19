@@ -12,7 +12,7 @@ public class DesativarProprietarioUseCase {
     private final ProprietarioRepository repository;
 
     public void execute(Long id) {
-        Proprietario proprietario = repository.findActiveById(id);
+        Proprietario proprietario = repository.getActiveById(id);
         proprietario.deactivate();
         repository.save(proprietario);
     }

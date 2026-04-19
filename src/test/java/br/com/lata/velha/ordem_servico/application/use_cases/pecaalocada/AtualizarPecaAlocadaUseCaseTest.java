@@ -4,6 +4,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarPecaAlo
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaAlocadaResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,7 +36,7 @@ class AtualizarPecaAlocadaUseCaseTest {
     void deveAtualizarPecaComSucesso() {
         // Arrange
         AtualizarPecaAlocadaRequest request = new AtualizarPecaAlocadaRequest(5);
-        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 99L, 2);
+        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 99L, 2, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
         PecaEstoque estoque = new PecaEstoque(2L, 10);
         
         when(pecaAlocadaRepository.findById(1L)).thenReturn(pecaAlocada);

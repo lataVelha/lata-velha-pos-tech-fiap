@@ -18,8 +18,8 @@ public class AtualizarVeiculoUseCase {
     private final VeiculoAssembler assembler;
 
     public VeiculoResponse execute(Long id, VeiculoRequest request) {
-        Veiculo existing = veiculoRepository.findActiveById(id);
-        proprietarioRepository.findActiveById(request.proprietarioId());
+        Veiculo existing = veiculoRepository.getActiveById(id);
+        proprietarioRepository.getActiveById(request.proprietarioId());
 
         assembler.updateDomain(existing, request);
         Veiculo saved = veiculoRepository.save(existing);

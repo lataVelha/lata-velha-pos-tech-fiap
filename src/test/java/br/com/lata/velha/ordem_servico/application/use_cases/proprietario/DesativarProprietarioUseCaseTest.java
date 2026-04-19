@@ -11,8 +11,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DesativarProprietarioUseCaseTest {
@@ -29,13 +30,13 @@ class DesativarProprietarioUseCaseTest {
         Proprietario proprietario = new Proprietario(1L, "João", "joao@email.com",
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
 
-        when(repository.findActiveById(1L)).thenReturn(proprietario);
+        when(repository.getActiveById(1L)).thenReturn(proprietario);
         when(repository.save(proprietario)).thenReturn(proprietario);
 
         useCase.execute(1L);
 
         assertFalse(proprietario.isAtivo());
-        verify(repository).findActiveById(1L);
+        verify(repository).getActiveById(1L);
         verify(repository).save(proprietario);
     }
 }

@@ -14,6 +14,6 @@ public class BuscarProprietarioPorIdUseCase {
     private final ProprietarioAssembler assembler;
 
     public ProprietarioResponse execute(Long id) {
-        return assembler.toResponse(repository.findActiveById(id));
+        return assembler.toResponse(repository.getActiveById(id));
     }
 }

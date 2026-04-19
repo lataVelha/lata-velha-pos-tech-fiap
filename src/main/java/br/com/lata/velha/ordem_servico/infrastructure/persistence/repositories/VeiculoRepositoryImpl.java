@@ -1,14 +1,14 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
-import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
+import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.VeiculoNotFoundException;
-import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ProprietarioEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.VeiculoPersistenceMapper;
+import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
@@ -39,7 +39,7 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     }
 
     @Override
-    public Veiculo findActiveById(Long id) {
+    public Veiculo getActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> VeiculoNotFoundException.fromId(id));

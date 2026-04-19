@@ -2,15 +2,12 @@ package br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.AlocarPecaRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaAlocadaResponse;
-import br.com.lata.velha.ordem_servico.domain.entities.Peca;
-import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
-import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
-import br.com.lata.velha.ordem_servico.domain.entities.Servico;
-import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
+import br.com.lata.velha.ordem_servico.domain.entities.*;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
+import br.com.lata.velha.ordem_servico.domain.repositories.ExecucaoServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ExecucaoServicoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,7 +57,7 @@ class AlocarPecaUseCaseTest {
         when(pecaEstoqueRepository.findByPecaId(2L)).thenReturn(estoque);
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
 
-        PecaAlocada pecaAlocadaSalva = new PecaAlocada(10L, 2L, 1L, 3);
+        PecaAlocada pecaAlocadaSalva = new PecaAlocada(10L, 2L, 1L, 3, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
         when(pecaAlocadaRepository.save(any(PecaAlocada.class))).thenReturn(pecaAlocadaSalva);
 
         // Act

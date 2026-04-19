@@ -12,7 +12,7 @@ public class DesativarVeiculoUseCase {
     private final VeiculoRepository repository;
 
     public void execute(Long id) {
-        Veiculo veiculo = repository.findActiveById(id);
+        Veiculo veiculo = repository.getActiveById(id);
         veiculo.deactivate();
         repository.save(veiculo);
     }
