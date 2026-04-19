@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEs
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
+import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,6 +31,9 @@ class EntradaPecaEstoqueUseCaseTest {
     private PecaEstoqueRepository pecaEstoqueRepository;
 
     @Mock
+    private PecaAlocadaRepository pecaAlocadaRepository;
+
+    @Mock
     private PecaEstoqueAssembler assembler;
 
     @InjectMocks
@@ -42,6 +47,7 @@ class EntradaPecaEstoqueUseCaseTest {
 
         when(pecaRepository.findActiveById(1L)).thenReturn(peca);
         when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(estoque);
+        when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of());
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
         when(assembler.toResponse(any(PecaEstoque.class))).thenAnswer(i -> {
             PecaEstoque e = i.getArgument(0);
@@ -60,6 +66,7 @@ class EntradaPecaEstoqueUseCaseTest {
 
         when(pecaRepository.findActiveById(1L)).thenReturn(peca);
         when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(null);
+        when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of());
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
         when(assembler.toResponse(any(PecaEstoque.class))).thenAnswer(i -> {
             PecaEstoque e = i.getArgument(0);

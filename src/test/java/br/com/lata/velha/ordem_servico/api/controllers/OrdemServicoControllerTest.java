@@ -202,7 +202,7 @@ class OrdemServicoControllerTest {
 
         when(iniciarDiagnosticoUseCase.execute(1L, 5L)).thenReturn(response);
 
-        mockMvc.perform(patch("/ordens-servico/1/5/iniciar"))
+        mockMvc.perform(patch("/ordens-servico/1/5/iniciar-diagnostico"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("EM_DIAGNOSTICO"));
     }
@@ -308,7 +308,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /ordens-servico/{idOs}/{idMecanico}/iniciar com role USER deve retornar 403")
     void shouldReturn403OnIniciarDiagnosticoForUserRole() throws Exception {
-        mockMvc.perform(patch("/ordens-servico/1/5/iniciar"))
+                mockMvc.perform(patch("/ordens-servico/1/5/iniciar-diagnostico"))
                 .andExpect(status().isForbidden());
     }
 
