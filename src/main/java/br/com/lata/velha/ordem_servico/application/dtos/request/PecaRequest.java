@@ -9,7 +9,7 @@ public record PecaRequest(
         Long pecaId,
 
         @NotNull(message = "Quantidade é obrigatório!")
-        @Schema(example = "1",description = "quantidade de peças neecessarias")
+        @Schema(example = "1", description = "quantidade de peças necessárias")
         Integer quantidade
 ) {
 

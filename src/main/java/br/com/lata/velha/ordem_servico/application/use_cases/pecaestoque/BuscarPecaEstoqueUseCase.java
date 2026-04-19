@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaEstoqueAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
@@ -13,7 +12,6 @@ public class BuscarPecaEstoqueUseCase {
 
     private final PecaRepository pecaRepository;
     private final PecaEstoqueRepository pecaEstoqueRepository;
-    private final PecaEstoqueAssembler assembler;
 
     public PecaEstoqueResponse execute(Long pecaId) {
         pecaRepository.findActiveById(pecaId);
@@ -23,6 +21,6 @@ public class BuscarPecaEstoqueUseCase {
             throw new IllegalArgumentException("Estoque da peça não encontrado");
         }
 
-        return assembler.toResponse(estoque);
+        return PecaEstoqueResponse.from(estoque);
     }
 }

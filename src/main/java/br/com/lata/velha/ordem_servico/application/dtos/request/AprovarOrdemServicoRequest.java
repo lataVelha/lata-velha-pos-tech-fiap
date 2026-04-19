@@ -6,11 +6,9 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-public record AprovarOrdemSevicoRequest(
+public record AprovarOrdemServicoRequest(
         @NotNull(message = "ID Os é obrigatório") Long idOs,
-        @NotNull(message = "ID Funcionario  é obrigatório") Long idFunc,
+        @NotNull(message = "ID Funcionario é obrigatório") Long idFunc,
         @NotEmpty(message = "Lista de idServicoOs não pode ser vazia")
         List<@Valid AprovarServicoOsRequest> idServicoOsAprovar) {
-
-
 }

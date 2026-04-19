@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaAlocadaAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarPecaAlocadaRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaAlocadaResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
@@ -35,8 +34,6 @@ public class AtualizarPecaAlocadaUseCase {
         pecaEstoqueRepository.save(estoque);
 
         pecaAlocada.setQuantidadeSolicitada(request.quantidade());
-        PecaAlocada saved = pecaAlocadaRepository.save(pecaAlocada);
-
-        return PecaAlocadaAssembler.toResponse(saved);
+        return PecaAlocadaResponse.from(pecaAlocadaRepository.save(pecaAlocada));
     }
 }

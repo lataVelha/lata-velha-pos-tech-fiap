@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.OrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.BuscarProprietarioPorIdUseCase;
@@ -16,15 +15,12 @@ import org.springframework.stereotype.Component;
 public class CriarOrdemServicoUseCase {
 
     private final OrdemServicoRepository repository;
-    private final OrdemServicoAssembler ordemServicoAssembler;
     private final BuscarVeiculoPorIdUseCase buscarVeiculoPorIdUseCase;
     private final BuscarProprietarioPorIdUseCase buscarProprietarioPorIdUseCase;
     private final NotificarOrdemServicoUseCase notificarUseCase;
     private final FuncionarioRepository funcionarioRepository;
 
-
     public OrdemServicoResponse execute(OrdemServicoRequest request) {
-
         var veiculo = buscarVeiculoPorIdUseCase.execute(request.veiculoId());
         var proprietario = buscarProprietarioPorIdUseCase.execute(request.proprietarioId());
         var funcionario = funcionarioRepository.getById(request.atendenteInicioId());
@@ -37,10 +33,9 @@ public class CriarOrdemServicoUseCase {
                 funcionario.getId()
         );
 
-        OrdemServico ordemServicoSalva = repository.save(ordemServico);
+        OrdemServico saved = repository.save(ordemServico);
+        notificarUseCase.execute(saved);
 
-        notificarUseCase.execute(ordemServicoSalva);
-
-        return ordemServicoAssembler.toResponse(ordemServicoSalva, proprietario.nome(), veiculo.modelo(),null,null,null);
+        return OrdemServicoResponse.from(saved, proprietario.nome(), veiculo.modelo(), null, null, null);
     }
 }

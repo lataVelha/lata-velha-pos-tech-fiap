@@ -1,5 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.dtos.request;
 
+import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
+import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
@@ -19,4 +21,10 @@ public record ServicoRequest(
         @Schema(example = "150.00", description = "valor serviço")
         BigDecimal valorMaoDeObra
 
-) {}
+) {
+    public ExecucaoServico toDomain() {
+        Servico servico = new Servico();
+        servico.setId(servicoId);
+        return new ExecucaoServico(servico, valorMaoDeObra);
+    }
+}

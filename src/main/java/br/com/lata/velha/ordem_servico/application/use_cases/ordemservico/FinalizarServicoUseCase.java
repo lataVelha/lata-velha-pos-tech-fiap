@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FinalizarServicoUseCase {
 
-    private final OrdemServicoAssembler ordemServicoAssembler;
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final ProprietarioRepository proprietarioRepository;
@@ -22,7 +20,6 @@ public class FinalizarServicoUseCase {
 
     @Transactional
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
-
         var ordemServico = ordemServicoRepository.findById(idOs);
         var mecanico = funcionarioRepository.getById(idMecanico);
 
@@ -33,17 +30,11 @@ public class FinalizarServicoUseCase {
         }
 
         ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
-
-            if (!StatusExecucaoServico.EM_EXECUCAO.equals(execucaoServico.getStatus())) {
-                return;
-            }
+            if (!StatusExecucaoServico.EM_EXECUCAO.equals(execucaoServico.getStatus())) return;
 
             execucaoServico.getPecas().forEach(peca -> {
-
                 if (peca.getId() == null) return;
-
                 if (!peca.getStatus().equals(StatusPecaAlocada.RESERVADA)) return;
-
                 peca.instalada(peca.getQuantidadeSolicitada());
                 execucaoServico.atualizarPeca(peca);
             });
@@ -52,17 +43,9 @@ public class FinalizarServicoUseCase {
         });
 
         ordemServico.finalizar(mecanico.getId());
-
         ordemServicoRepository.save(ordemServico);
         notificarUseCase.execute(ordemServico);
 
-        return ordemServicoAssembler.toResponse(
-                ordemServico,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
+        return OrdemServicoResponse.from(ordemServico, null, null, null, null, null);
     }
 }

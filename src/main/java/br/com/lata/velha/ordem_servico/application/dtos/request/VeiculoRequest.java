@@ -1,5 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.dtos.request;
 
+import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
+import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,4 +14,17 @@ public record VeiculoRequest(
         @NotBlank(message = "Modelo é obrigatório") @Schema(example = "Uno") String modelo,
         @NotNull(message = "Ano é obrigatório") @Schema(example = "2020") Integer ano,
         @NotBlank(message = "Cor é obrigatória") @Schema(example = "Prata") String cor
-) {}
+) {
+    public Veiculo toDomain() {
+        return new Veiculo(null, proprietarioId, Placa.of(placa), marca, modelo, ano, cor);
+    }
+
+    public void updateDomain(Veiculo existente) {
+        existente.setProprietarioId(proprietarioId);
+        existente.setPlaca(Placa.of(placa));
+        existente.setMarca(marca);
+        existente.setModelo(modelo);
+        existente.setAno(ano);
+        existente.setCor(cor);
+    }
+}

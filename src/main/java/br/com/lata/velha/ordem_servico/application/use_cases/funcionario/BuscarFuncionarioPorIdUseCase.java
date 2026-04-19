@@ -13,6 +13,6 @@ public class BuscarFuncionarioPorIdUseCase {
 
     public FuncionarioResponse execute(Long id) {
         var funcionario = repository.getById(id);
-        return FuncionarioResponse.fromEntity(funcionario);
+        return FuncionarioResponse.from(funcionario);
     }
 }
