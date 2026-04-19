@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Objects;
 
 public final class OrdemServico {
-    private Long id;
-    private Long proprietarioId;
-    private Long veiculoId;
-    private String reclamacaoCliente;
+    private final Long id;
+    private final Long proprietarioId;
+    private final Long veiculoId;
+    private final String reclamacaoCliente;
     private StatusOrdemServico status;
 
-    private LocalDateTime iniciadoEm;
+    private final LocalDateTime iniciadoEm;
     private LocalDateTime finalizadoEm;
     private LocalDateTime entregueEm;
     private LocalDateTime atualizadoEm;
@@ -180,32 +180,6 @@ public final class OrdemServico {
     public Long getMecanicoResponsavelId() { return mecanicoResponsavelId; }
     public List<ExecucaoServico> getExecucaoServicos() { return execucaoServicos; }
 
-    /* ================== SETTERS CONTROLADOS ================== */
-
-    public void setProprietarioId(Long proprietarioId) {
-        if (proprietarioId == null)
-            throw new IllegalArgumentException("Proprietário obrigatório");
-        this.proprietarioId = proprietarioId;
-    }
-
-    public void setVeiculoId(Long veiculoId) {
-        if (veiculoId == null)
-            throw new IllegalArgumentException("Veículo obrigatório");
-        this.veiculoId = veiculoId;
-    }
-
-    public void setReclamacaoCliente(String reclamacaoCliente) {
-        if (reclamacaoCliente == null || reclamacaoCliente.isBlank())
-            throw new IllegalArgumentException("Reclamação obrigatória");
-        this.reclamacaoCliente = reclamacaoCliente;
-    }
-
-    public void setAtendenteInicioId(Long atendenteInicioId) {
-        if (atendenteInicioId == null)
-            throw new IllegalArgumentException("Atendente obrigatório");
-        this.atendenteInicioId = atendenteInicioId;
-    }
-
     /* ================== OBJECT ================== */
 
     @Override
@@ -227,29 +201,5 @@ public final class OrdemServico {
     @Override
     public int hashCode() {
         return Objects.hash(id);
-    }
-
-    public void setStatus(StatusOrdemServico status) {
-        this.status = status;
-    }
-
-    public void setIniciadoEm(LocalDateTime iniciadoEm) {
-        this.iniciadoEm = iniciadoEm;
-    }
-
-    public void setAtualizadoEm(LocalDateTime atualizadoEm) {
-        this.atualizadoEm = atualizadoEm;
-    }
-
-    public void setFinalizadoEm(LocalDateTime finalizadoEm) {
-        this.finalizadoEm = finalizadoEm;
-    }
-
-    public void setEntregueEm(LocalDateTime entregueEm) {
-        this.entregueEm = entregueEm;
-    }
-
-    public void setMecanicoResponsavelId(Long mecanicoResponsavelId) {
-        this.mecanicoResponsavelId = mecanicoResponsavelId;
     }
 }
