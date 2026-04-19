@@ -76,7 +76,7 @@ public class OrdemServico {
         validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
 
         this.atendenteInicioId = atendenteId;
-        this.status = StatusOrdemServico.FINALIZADA;
+        this.status = StatusOrdemServico.REPROVADA;
         this.finalizadoEm = LocalDateTime.now();
         touch();
     }

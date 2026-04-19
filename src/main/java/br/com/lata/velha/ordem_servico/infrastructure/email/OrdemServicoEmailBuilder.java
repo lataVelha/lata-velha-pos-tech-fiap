@@ -24,6 +24,7 @@ public class OrdemServicoEmailBuilder implements OrdemServicoEmailBuilderPort {
         variables.put("osNumero", os.getId());
         variables.put("veiculo", veiculo.getMarca() + " " + veiculo.getModelo());
         variables.put("timeline", buildTimeline(os.getStatus()));
+        variables.put("reprovada", os.getStatus() == StatusOrdemServico.REPROVADA);
 
         StatusConfig config = getConfig(os.getStatus());
         variables.put("subtitulo", config.subtitulo());
@@ -32,6 +33,7 @@ public class OrdemServicoEmailBuilder implements OrdemServicoEmailBuilderPort {
         addReclamacao(variables, os);
         addServicos(variables, os);
         addAprovadosRecusados(variables, os);
+        addTodosRecusados(variables, os);
 
         return variables;
     }
@@ -68,6 +70,11 @@ public class OrdemServicoEmailBuilder implements OrdemServicoEmailBuilderPort {
                     "Serviços Finalizados",
                     "Todos os serviços do seu veículo foram concluídos. Seu veículo está pronto para retirada.",
                     "Serviços Finalizados"
+            );
+            case REPROVADA -> new StatusConfig(
+                    "Serviços Recusados",
+                    "Todos os serviços foram reprovados!",
+                    "Serviços Recusados"
             );
             case ENTREGUE -> new StatusConfig(
                     "Veículo Entregue",
@@ -132,6 +139,24 @@ public class OrdemServicoEmailBuilder implements OrdemServicoEmailBuilderPort {
         variables.put("valorRecusado", valorRecusado);
     }
 
+    private void addTodosRecusados(Map<String, Object> variables, OrdemServico os) {
+        if (os.getStatus() != StatusOrdemServico.REPROVADA
+                || os.getExecucaoServicos().isEmpty()) {
+            return;
+        }
+
+        List<Map<String, Object>> recusados = os.getExecucaoServicos().stream()
+                .map(this::toServicoMap)
+                .toList();
+
+        BigDecimal valorRecusado = os.getExecucaoServicos().stream()
+                .map(ExecucaoServico::calcularTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        variables.put("servicosRecusados", recusados);
+        variables.put("valorRecusado", valorRecusado);
+    }
+
     private Map<String, Object> toServicoMap(ExecucaoServico s) {
         Map<String, Object> map = new HashMap<>();
         map.put("nome", s.getServico().getNome());
@@ -147,14 +172,28 @@ public class OrdemServicoEmailBuilder implements OrdemServicoEmailBuilderPort {
     }
 
     // --- timeline dinâmica ---
+
     private List<Map<String, Object>> buildTimeline(StatusOrdemServico statusAtual) {
-        List<TimelineStep> steps = List.of(
-                new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
-                new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliando o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
-                new TimelineStep(3, "Aguardando Aprovação", "Aprovação dos serviços identificados", StatusOrdemServico.AGUARDANDO_APROVACAO),
-                new TimelineStep(4, "Em Execução", "Próximo passo: mecânico irá executar os serviços", StatusOrdemServico.EM_EXECUCAO),
-                new TimelineStep(5, "Finalizada", "Serviços concluídos", StatusOrdemServico.FINALIZADA),
-                new TimelineStep(6, "Entregue", "Veículo retirado pelo cliente", StatusOrdemServico.ENTREGUE)        );
+        boolean isReprovada = statusAtual == StatusOrdemServico.REPROVADA;
+
+        List<TimelineStep> steps;
+        if (isReprovada) {
+            steps = List.of(
+                    new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
+                    new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliou o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
+                    new TimelineStep(3, "Aguardando Aprovação", "Serviços apresentados ao cliente", StatusOrdemServico.AGUARDANDO_APROVACAO),
+                    new TimelineStep(4, "Reprovada", "Todos os serviços foram recusados", StatusOrdemServico.REPROVADA)
+            );
+        } else {
+            steps = List.of(
+                    new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
+                    new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliando o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
+                    new TimelineStep(3, "Aguardando Aprovação", "Aprovação dos serviços identificados", StatusOrdemServico.AGUARDANDO_APROVACAO),
+                    new TimelineStep(4, "Em Execução", "Próximo passo: mecânico irá executar os serviços", StatusOrdemServico.EM_EXECUCAO),
+                    new TimelineStep(5, "Finalizada", "Serviços concluídos", StatusOrdemServico.FINALIZADA),
+                    new TimelineStep(6, "Entregue", "Veículo retirado pelo cliente", StatusOrdemServico.ENTREGUE)
+            );
+        }
 
         int currentIndex = steps.stream()
                 .filter(s -> s.status() == statusAtual)
@@ -163,17 +202,16 @@ public class OrdemServicoEmailBuilder implements OrdemServicoEmailBuilderPort {
                 .orElse(1);
 
         int lastCompletedIndex;
-
         if (statusAtual == StatusOrdemServico.FINALIZADA
-                || statusAtual == StatusOrdemServico.ENTREGUE  
-                    || statusAtual == StatusOrdemServico.RECEBIDA) {
+                || statusAtual == StatusOrdemServico.ENTREGUE
+                || statusAtual == StatusOrdemServico.RECEBIDA
+                || statusAtual == StatusOrdemServico.REPROVADA) {
             lastCompletedIndex = currentIndex;
         } else {
             lastCompletedIndex = currentIndex - 1;
         }
 
         List<Map<String, Object>> timeline = new ArrayList<>();
-
         for (TimelineStep step : steps) {
             Map<String, Object> map = new HashMap<>();
             map.put("numero", step.numero());
@@ -181,8 +219,12 @@ public class OrdemServicoEmailBuilder implements OrdemServicoEmailBuilderPort {
             map.put("descricao", step.descricao());
 
             if (step.numero() <= lastCompletedIndex) {
-                map.put("status", "CONCLUIDO");
-            } else if (step.numero() == currentIndex) {
+                if (isReprovada && step.status() == StatusOrdemServico.REPROVADA) {
+                    map.put("status", "RECUSADO");
+                } else {
+                    map.put("status", "CONCLUIDO");
+                }
+            } else if (step.numero() == lastCompletedIndex + 1) {
                 map.put("status", "ATUAL");
             } else {
                 map.put("status", "PENDENTE");
