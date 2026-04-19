@@ -1,7 +1,7 @@
 package br.com.lata.velha.ordem_servico.domain.repositories;
 
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ public interface VeiculoRepository {
 
     Veiculo save(Veiculo veiculo);
 
-    Veiculo findActiveById(Long id);
+    Veiculo getActiveById(Long id);
 
     List<Veiculo> findActiveByProprietarioId(Long proprietarioId);
 

@@ -12,7 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,13 +33,13 @@ class BuscarVeiculoPorIdUseCaseTest {
         Veiculo domain = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
         VeiculoResponse response = mock(VeiculoResponse.class);
 
-        when(repository.findActiveById(1L)).thenReturn(domain);
+        when(repository.getActiveById(1L)).thenReturn(domain);
         when(assembler.toResponse(domain)).thenReturn(response);
 
         VeiculoResponse result = useCase.execute(1L);
 
         assertNotNull(result);
-        verify(repository).findActiveById(1L);
+        verify(repository).getActiveById(1L);
         verify(assembler).toResponse(domain);
     }
 }

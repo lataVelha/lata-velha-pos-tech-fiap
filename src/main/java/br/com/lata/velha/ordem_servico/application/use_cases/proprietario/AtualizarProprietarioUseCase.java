@@ -14,7 +14,7 @@ public class AtualizarProprietarioUseCase {
     private final ProprietarioRepository repository;
 
     public ProprietarioResponse execute(Long id, ProprietarioRequest request) {
-        Proprietario existing = repository.findActiveById(id);
+        Proprietario existing = repository.getActiveById(id);
         request.updateDomain(existing);
         return ProprietarioResponse.from(repository.save(existing));
     }

@@ -10,8 +10,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DesativarVeiculoUseCaseTest {
@@ -27,13 +28,13 @@ class DesativarVeiculoUseCaseTest {
     void shouldDeactivateVeiculo() {
         Veiculo veiculo = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
 
-        when(repository.findActiveById(1L)).thenReturn(veiculo);
+        when(repository.getActiveById(1L)).thenReturn(veiculo);
         when(repository.save(veiculo)).thenReturn(veiculo);
 
         useCase.execute(1L);
 
         assertFalse(veiculo.isAtivo());
-        verify(repository).findActiveById(1L);
+        verify(repository).getActiveById(1L);
         verify(repository).save(veiculo);
     }
 }

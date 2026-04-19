@@ -15,7 +15,7 @@ public class CriarVeiculoUseCase {
     private final ProprietarioRepository proprietarioRepository;
 
     public VeiculoResponse execute(VeiculoRequest request) {
-        proprietarioRepository.findActiveById(request.proprietarioId());
+        proprietarioRepository.getActiveById(request.proprietarioId());
         return VeiculoResponse.from(veiculoRepository.save(request.toDomain()));
     }
 }

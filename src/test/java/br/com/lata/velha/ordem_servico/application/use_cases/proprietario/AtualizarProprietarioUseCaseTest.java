@@ -14,7 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,7 +39,7 @@ class AtualizarProprietarioUseCaseTest {
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
         ProprietarioResponse response = mock(ProprietarioResponse.class);
 
-        when(repository.findActiveById(1L)).thenReturn(existing);
+        when(repository.getActiveById(1L)).thenReturn(existing);
         doNothing().when(assembler).updateDomain(existing, request);
         when(repository.save(existing)).thenReturn(saved);
         when(assembler.toResponse(saved)).thenReturn(response);
@@ -47,7 +47,7 @@ class AtualizarProprietarioUseCaseTest {
         ProprietarioResponse result = useCase.execute(1L, request);
 
         assertNotNull(result);
-        verify(repository).findActiveById(1L);
+        verify(repository).getActiveById(1L);
         verify(assembler).updateDomain(existing, request);
         verify(repository).save(existing);
         verify(assembler).toResponse(saved);

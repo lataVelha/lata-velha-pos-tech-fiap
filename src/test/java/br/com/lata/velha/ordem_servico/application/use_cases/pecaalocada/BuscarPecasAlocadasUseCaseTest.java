@@ -1,10 +1,11 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada;
 
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaAlocadaResponse;
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,11 +13,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BuscarPecasAlocadasUseCaseTest {
@@ -31,8 +33,8 @@ class BuscarPecasAlocadasUseCaseTest {
     void deveBuscarPecasDeUmServicoComSucesso() {
         // Arrange
         Peca peca = new Peca(2L, "Pastilha", "Desc", new BigDecimal("50.0"));
-        PecaAlocada peca1 = new PecaAlocada(1L, 2L, 99L, 2);
-        PecaAlocada peca2 = new PecaAlocada(2L, 2L, 99L, 4);
+        PecaAlocada peca1 = new PecaAlocada(1L, 2L, 99L, 2, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
+        PecaAlocada peca2 = new PecaAlocada(2L, 2L, 99L, 4, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
         
         PaginatedResult<PecaAlocada> paginatedResult = new PaginatedResult<>(
                 List.of(peca1, peca2), 0, 10, 2L, 1

@@ -16,8 +16,8 @@ public class AtualizarVeiculoUseCase {
     private final ProprietarioRepository proprietarioRepository;
 
     public VeiculoResponse execute(Long id, VeiculoRequest request) {
-        Veiculo existing = veiculoRepository.findActiveById(id);
-        proprietarioRepository.findActiveById(request.proprietarioId());
+        Veiculo existing = veiculoRepository.getActiveById(id);
+        proprietarioRepository.getActiveById(request.proprietarioId());
         request.updateDomain(existing);
         return VeiculoResponse.from(veiculoRepository.save(existing));
     }

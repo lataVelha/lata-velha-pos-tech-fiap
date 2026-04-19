@@ -12,6 +12,6 @@ public class BuscarProprietarioPorIdUseCase {
     private final ProprietarioRepository repository;
 
     public ProprietarioResponse execute(Long id) {
-        return ProprietarioResponse.from(repository.findActiveById(id));
+        return ProprietarioResponse.from(repository.getActiveById(id));
     }
 }

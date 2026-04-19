@@ -8,15 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class OrdemServico {
-
-    private Long id;
-    private Long proprietarioId;
-    private Long veiculoId;
-    private String reclamacaoCliente;
+public final class OrdemServico {
+    private final Long id;
+    private final Long proprietarioId;
+    private final Long veiculoId;
+    private final String reclamacaoCliente;
     private StatusOrdemServico status;
 
-    private LocalDateTime iniciadoEm;
+    private final LocalDateTime iniciadoEm;
     private LocalDateTime finalizadoEm;
     private LocalDateTime entregueEm;
     private LocalDateTime atualizadoEm;
@@ -24,24 +23,25 @@ public class OrdemServico {
     private Long atendenteInicioId;
     private Long mecanicoResponsavelId;
 
-    private List<ExecucaoServico> ExecucaoServicos = new ArrayList<>();
+    private final List<ExecucaoServico> execucaoServicos;
 
-    public OrdemServico() {}
-
-    public OrdemServico(Long id,
-                        Long proprietarioId,
-                        Long veiculoId,
-                        String reclamacaoCliente,
-                        Long atendenteInicioId) {
-
+    public OrdemServico(Long id, Long proprietarioId, Long veiculoId, String reclamacaoCliente, StatusOrdemServico status, LocalDateTime iniciadoEm, LocalDateTime finalizadoEm, LocalDateTime entregueEm, LocalDateTime atualizadoEm, Long atendenteInicioId, Long mecanicoResponsavelId, List<ExecucaoServico> execucaoServicos) {
         this.id = id;
-        setProprietarioId(proprietarioId);
-        setVeiculoId(veiculoId);
-        setReclamacaoCliente(reclamacaoCliente);
-        setAtendenteInicioId(atendenteInicioId);
+        this.proprietarioId = proprietarioId;
+        this.veiculoId = veiculoId;
+        this.reclamacaoCliente = reclamacaoCliente;
+        this.status = status;
+        this.iniciadoEm = iniciadoEm;
+        this.finalizadoEm = finalizadoEm;
+        this.entregueEm = entregueEm;
+        this.atualizadoEm = atualizadoEm;
+        this.atendenteInicioId = atendenteInicioId;
+        this.mecanicoResponsavelId = mecanicoResponsavelId;
+        this.execucaoServicos = execucaoServicos;
+    }
 
-        this.status = StatusOrdemServico.RECEBIDA;
-        this.atualizadoEm = LocalDateTime.now();
+    public static OrdemServico create(Long proprietarioId, Long veiculoId, String reclamacaoCliente, Long atendenteInicioId) {
+        return new OrdemServico(null, proprietarioId, veiculoId, reclamacaoCliente, StatusOrdemServico.RECEBIDA, null, null, null, null, atendenteInicioId, null, new ArrayList<>());
     }
 
     /* ================== FLUXO ================== */
@@ -70,8 +70,6 @@ public class OrdemServico {
         touch();
     }
 
-
-
     public void reprovar(Long atendenteId) {
         validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
 
@@ -82,11 +80,10 @@ public class OrdemServico {
     }
 
     public void finalizar(Long mecanicoId) {
-
         validarStatus(StatusOrdemServico.EM_EXECUCAO);
 
-        boolean existeExecucaoEmAndamento = ExecucaoServicos.stream()
-                .anyMatch(s -> s.isEmExecucao());
+        boolean existeExecucaoEmAndamento = execucaoServicos.stream()
+                .anyMatch(ExecucaoServico::isEmExecucao);
 
         if (existeExecucaoEmAndamento) {
             throw new IllegalStateException(
@@ -94,7 +91,7 @@ public class OrdemServico {
             );
         }
 
-        boolean existeExecucaoComPecaNaoProcessada = ExecucaoServicos.stream()
+        boolean existeExecucaoComPecaNaoProcessada = execucaoServicos.stream()
                 .filter(s -> !s.isRecusado())
                 .anyMatch(s -> s.getPecas().stream().anyMatch(p -> !p.isProcessada()));
 
@@ -133,7 +130,7 @@ public class OrdemServico {
             );
         }
 
-        boolean jaExiste = ExecucaoServicos.stream()
+        boolean jaExiste = execucaoServicos.stream()
                 .anyMatch(s -> s.getServico().getId()
                         .equals(servico.getServico().getId()));
 
@@ -143,12 +140,12 @@ public class OrdemServico {
             );
         }
 
-        ExecucaoServicos.add(servico);
+        execucaoServicos.add(servico);
         touch();
     }
 
     public BigDecimal calcularValorTotal() {
-        return ExecucaoServicos.stream()
+        return execucaoServicos.stream()
                 .map(ExecucaoServico::calcularTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -181,33 +178,7 @@ public class OrdemServico {
     public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
     public Long getAtendenteInicioId() { return atendenteInicioId; }
     public Long getMecanicoResponsavelId() { return mecanicoResponsavelId; }
-    public List<ExecucaoServico> getExecucaoServicos() { return ExecucaoServicos; }
-
-    /* ================== SETTERS CONTROLADOS ================== */
-
-    public void setProprietarioId(Long proprietarioId) {
-        if (proprietarioId == null)
-            throw new IllegalArgumentException("Proprietário obrigatório");
-        this.proprietarioId = proprietarioId;
-    }
-
-    public void setVeiculoId(Long veiculoId) {
-        if (veiculoId == null)
-            throw new IllegalArgumentException("Veículo obrigatório");
-        this.veiculoId = veiculoId;
-    }
-
-    public void setReclamacaoCliente(String reclamacaoCliente) {
-        if (reclamacaoCliente == null || reclamacaoCliente.isBlank())
-            throw new IllegalArgumentException("Reclamação obrigatória");
-        this.reclamacaoCliente = reclamacaoCliente;
-    }
-
-    public void setAtendenteInicioId(Long atendenteInicioId) {
-        if (atendenteInicioId == null)
-            throw new IllegalArgumentException("Atendente obrigatório");
-        this.atendenteInicioId = atendenteInicioId;
-    }
+    public List<ExecucaoServico> getExecucaoServicos() { return execucaoServicos; }
 
     /* ================== OBJECT ================== */
 
@@ -230,29 +201,5 @@ public class OrdemServico {
     @Override
     public int hashCode() {
         return Objects.hash(id);
-    }
-
-    public void setStatus(StatusOrdemServico status) {
-        this.status = status;
-    }
-
-    public void setIniciadoEm(LocalDateTime iniciadoEm) {
-        this.iniciadoEm = iniciadoEm;
-    }
-
-    public void setAtualizadoEm(LocalDateTime atualizadoEm) {
-        this.atualizadoEm = atualizadoEm;
-    }
-
-    public void setFinalizadoEm(LocalDateTime finalizadoEm) {
-        this.finalizadoEm = finalizadoEm;
-    }
-
-    public void setEntregueEm(LocalDateTime entregueEm) {
-        this.entregueEm = entregueEm;
-    }
-
-    public void setMecanicoResponsavelId(Long mecanicoResponsavelId) {
-        this.mecanicoResponsavelId = mecanicoResponsavelId;
     }
 }
