@@ -5,7 +5,10 @@ import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServic
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.ServicoRequest;
+import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResumoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResumoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResumoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
@@ -26,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -82,12 +86,13 @@ class OrdemServicoControllerTest {
 
     private OrdemServicoResponse buildOrdemResponse() {
         return new OrdemServicoResponse(
-                1L, 2L, "Maria Atendente", 3L, "Fiat Uno 2020",
-                4L, "João Proprietário", null, null,
-                "RECEBIDA", "Barulho ao frear",
-                LocalDateTime.now(), null, null, LocalDateTime.now(), List.of(),BigDecimal.ZERO,
-                BigDecimal.ZERO,
-                BigDecimal.ZERO
+                1L, "RECEBIDA", "Barulho ao frear",
+                new FuncionarioResumoResponse(2L, "Maria Atendente"),
+                null,
+                new ProprietarioResumoResponse(4L, "João Proprietário"),
+                new VeiculoResumoResponse(3L, "Fiat Uno 2020"),
+                LocalDateTime.now(), null, null, LocalDateTime.now(),
+                List.of(), null
         );
     }
 
@@ -97,13 +102,13 @@ class OrdemServicoControllerTest {
     void shouldReturn201OnCreate() throws Exception {
         var request = new CriarOrdemServicoRequest(3L, 4L, 2L, "Barulho ao frear");
 
-        when(criarOrdemServicoUseCase.execute(any())).thenReturn(new CriarOrdemServicoUseCase.Output(1L));
+        when(criarOrdemServicoUseCase.execute(any())).thenReturn(buildOrdemResponse());
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.ordemServicoId").value(1L));
+                .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test
@@ -157,11 +162,13 @@ class OrdemServicoControllerTest {
     @DisplayName("PATCH /ordens-servico/{idOs}/{idMecanico}/iniciar deve retornar 200")
     void shouldReturn200OnIniciarDiagnostico() throws Exception {
         var response = new OrdemServicoResponse(
-                1L, 2L, "Maria", 3L, "Fiat Uno", 4L, "João",
-                5L, "Carlos Mecânico", "EM_DIAGNOSTICO",
-                "Barulho", LocalDateTime.now(), null, null, LocalDateTime.now(), List.of(),BigDecimal.ZERO,
-                BigDecimal.ZERO,
-                BigDecimal.ZERO
+                1L, "EM_DIAGNOSTICO", "Barulho",
+                new FuncionarioResumoResponse(2L, "Maria"),
+                new FuncionarioResumoResponse(5L, "Carlos Mecânico"),
+                new ProprietarioResumoResponse(4L, "João"),
+                new VeiculoResumoResponse(3L, "Fiat Uno"),
+                LocalDateTime.now(), null, null, LocalDateTime.now(),
+                List.of(), null
         );
 
         when(iniciarDiagnosticoUseCase.execute(1L, 5L)).thenReturn(response);
@@ -204,11 +211,13 @@ class OrdemServicoControllerTest {
     @DisplayName("PATCH /ordens-servico/{idOs}/{idFunc}/finalizar-diagnostico deve retornar 200")
     void shouldReturn200OnFinalizarDiagnostico() throws Exception {
         var response = new OrdemServicoResponse(
-                1L, 2L, "Maria", 3L, "Fiat Uno", 4L, "João",
-                5L, "Carlos", "AGUARDANDO_APROVACAO",
-                "Barulho", LocalDateTime.now(), LocalDateTime.now(), null, LocalDateTime.now(), List.of(),BigDecimal.ZERO,
-                BigDecimal.ZERO,
-                BigDecimal.ZERO
+                1L, "AGUARDANDO_APROVACAO", "Barulho",
+                new FuncionarioResumoResponse(2L, "Maria"),
+                new FuncionarioResumoResponse(5L, "Carlos"),
+                new ProprietarioResumoResponse(4L, "João"),
+                new VeiculoResumoResponse(3L, "Fiat Uno"),
+                LocalDateTime.now(), LocalDateTime.now(), null, LocalDateTime.now(),
+                List.of(), null
         );
 
         when(finalizarDiagnosticoUseCase.execute(1L, 5L)).thenReturn(response);
@@ -254,11 +263,13 @@ class OrdemServicoControllerTest {
     @DisplayName("PATCH /ordens-servico/{idOs}/{idFunc}/reprovar deve retornar 200")
     void shouldReturn200OnReprovar() throws Exception {
         var response = new OrdemServicoResponse(
-                1L, 2L, "Maria", 3L, "Fiat Uno", 4L, "João",
-                null, null, "REPROVADA",
-                "Barulho", LocalDateTime.now(), null, null, LocalDateTime.now(), List.of(),BigDecimal.ZERO,
-                BigDecimal.ZERO,
-                BigDecimal.ZERO
+                1L, "REPROVADA", "Barulho",
+                new FuncionarioResumoResponse(2L, "Maria"),
+                null,
+                new ProprietarioResumoResponse(4L, "João"),
+                new VeiculoResumoResponse(3L, "Fiat Uno"),
+                LocalDateTime.now(), null, null, LocalDateTime.now(),
+                List.of(), null
         );
 
         when(reprovarOrdemServicoUseCase.execute(1L, 2L)).thenReturn(response);

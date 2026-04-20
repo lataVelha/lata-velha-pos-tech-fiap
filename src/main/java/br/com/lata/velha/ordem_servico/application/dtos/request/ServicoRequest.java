@@ -11,14 +11,14 @@ import java.util.List;
 public record ServicoRequest(
 
         @NotNull(message = "Serviço Id é obrigatório!")
-        @Schema(example = "1", description = "servicos")
+        @Schema(description = "ID do serviço a executar", example = "1")
         Long servicoId,
 
-        @Schema(description = "Lista de peças utilizadas no serviço")
+        @Schema(description = "Peças necessárias para o serviço")
         List<PecaRequest> pecas,
 
         @NotNull(message = "Valor de Mão de Obra é obrigatório!")
-        @Schema(example = "150.00", description = "valor serviço")
+        @Schema(description = "Valor cobrado pela mão de obra", example = "150.00")
         BigDecimal valorMaoDeObra
 
 ) {

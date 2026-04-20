@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
@@ -59,7 +60,10 @@ class CriarOrdemServicoUseCaseTest {
 
     private void stubHappyPath() {
         when(veiculo.getId()).thenReturn(3L);
+        when(veiculo.getMarca()).thenReturn("Fiat");
+        when(veiculo.getModelo()).thenReturn("Uno");
         when(proprietario.getId()).thenReturn(4L);
+        when(proprietario.getNome()).thenReturn("João");
         when(veiculoRepository.getActiveById(3L)).thenReturn(veiculo);
         when(proprietarioRepository.getActiveById(4L)).thenReturn(proprietario);
         when(funcionarioRepository.getById(2L)).thenReturn(funcionario);
@@ -71,10 +75,10 @@ class CriarOrdemServicoUseCaseTest {
     void deveCriarOrdemServicoComSucesso() {
         stubHappyPath();
 
-        CriarOrdemServicoUseCase.Output output = useCase.execute(input);
+        OrdemServicoResponse output = useCase.execute(input);
 
         assertThat(output).isNotNull();
-        assertThat(output.ordemServicoId()).isEqualTo(1L);
+        assertThat(output.id()).isEqualTo(1L);
     }
 
     @Test
