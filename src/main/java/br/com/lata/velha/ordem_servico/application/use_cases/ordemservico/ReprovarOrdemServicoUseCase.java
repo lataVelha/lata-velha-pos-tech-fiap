@@ -42,6 +42,8 @@ public class ReprovarOrdemServicoUseCase {
         var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
 
         return OrdemServicoResponse.from(saved,
+                funcionario.getNome(),
+                null,
                 proprietario.getNome(),
                 veiculo.getMarca() + " " + veiculo.getModelo(),
                 null, null, null);

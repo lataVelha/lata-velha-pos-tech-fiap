@@ -7,12 +7,13 @@ import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -22,24 +23,25 @@ class BuscarServicosUseCaseTest {
     @Mock
     private ServicoRepository repository;
 
+    @InjectMocks
+    private BuscarServicosUseCase useCase;
+
     @Test
     @DisplayName("Deve listar serviços ativos de forma paginada")
     void deveListarServicosAtivosDeFormaPaginada() {
-        var useCase = new BuscarServicosUseCase(repository);
-
-        var servico1 = new Servico(1L, "Balanceamento", "Balanceamento das rodas", true);
-        var servico2 = new Servico(2L, "Troca de óleo", "Substituição do óleo", true);
-
-        var page = new PaginatedResult<>(List.of(servico1, servico2), 0, 10, 2, 1);
+        var s1 = new Servico(1L, "Balanceamento", "Balanceamento das rodas", true);
+        var s2 = new Servico(2L, "Troca de óleo", "Substituição do óleo", true);
+        var page = new PaginatedResult<>(List.of(s1, s2), 0, 10, 2L, 1);
 
         when(repository.findAllActivePaginated(0, 10)).thenReturn(page);
 
         PaginatedResult<ServicoResponse> result = useCase.execute(0, 10);
 
-        assertEquals(2, result.content().size());
-        assertEquals(0, result.page());
-        assertEquals(10, result.size());
-        assertEquals(2, result.totalElements());
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.page()).isZero();
+        assertThat(result.size()).isEqualTo(10);
+        assertThat(result.totalElements()).isEqualTo(2);
+        assertThat(result.content().get(0).id()).isEqualTo(1L);
         verify(repository).findAllActivePaginated(0, 10);
     }
 }

@@ -4,12 +4,12 @@ import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class CredentialTest {
-
-    // Hasher simples: hash = valor em texto plano
     private static final PasswordHasher PLAIN_HASHER = new PasswordHasher() {
         @Override public String hashSenha(Senha senha) { return senha.getValor(); }
         @Override public boolean match(Credential cred, String raw) { return raw.equals(cred.getHash()); }
@@ -56,12 +56,13 @@ class CredentialTest {
             assertTrue(credential.match(VALID_SENHA));
         }
 
-        @Test
-        @DisplayName("deve retornar false para senha errada")
-        void shouldReturnFalseForWrongPassword() {
+        @ParameterizedTest
+        @ValueSource(strings = {"SenhaErrada1@", "   "})
+        @DisplayName("deve retornar false para senha incorreta")
+        void shouldReturnFalseForWrongPassword(String senha) {
             Credential credential = Credential.fromHash(VALID_SENHA, PLAIN_HASHER);
 
-            assertFalse(credential.match("SenhaErrada1@"));
+            assertFalse(credential.match(senha));
         }
 
         @Test
@@ -70,14 +71,6 @@ class CredentialTest {
             Credential credential = Credential.fromHash(VALID_SENHA, PLAIN_HASHER);
 
             assertFalse(credential.match(null));
-        }
-
-        @Test
-        @DisplayName("deve retornar false para senha em branco")
-        void shouldReturnFalseForBlankPassword() {
-            Credential credential = Credential.fromHash(VALID_SENHA, PLAIN_HASHER);
-
-            assertFalse(credential.match("   "));
         }
     }
 

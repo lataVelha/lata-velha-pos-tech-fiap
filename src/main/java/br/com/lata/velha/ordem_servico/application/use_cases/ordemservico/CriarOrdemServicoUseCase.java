@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
@@ -17,7 +18,7 @@ public class CriarOrdemServicoUseCase {
     private final VeiculoRepository veiculoRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
-    public Output execute(Input input) {
+    public OrdemServicoResponse execute(Input input) {
         var veiculo = veiculoRepository.getActiveById(input.veiculoId());
         var proprietario = proprietarioRepository.getActiveById(input.proprietarioId());
         var funcionario = funcionarioRepository.getById(input.atendenteInicioId());
@@ -32,10 +33,13 @@ public class CriarOrdemServicoUseCase {
         var saved = repository.save(ordemServico);
         notificarUseCase.execute(saved);
 
-        return new Output(saved.getId());
+        return OrdemServicoResponse.from(saved,
+                funcionario.getNome(),
+                null,
+                proprietario.getNome(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
+                null, null, null);
     }
 
     public record Input(Long veiculoId, Long proprietarioId, Long atendenteInicioId, String reclamacaoCliente) {}
-
-    public record Output(Long ordemServicoId) {}
 }

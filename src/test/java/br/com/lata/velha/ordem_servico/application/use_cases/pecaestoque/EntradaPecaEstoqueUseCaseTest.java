@@ -1,7 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEstoqueRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
@@ -47,7 +46,7 @@ class EntradaPecaEstoqueUseCaseTest {
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
         when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of());
 
-        PecaEstoqueResponse response = useCase.execute(1L, request);
+        var response = useCase.execute(1L, request);
 
         assertThat(response.quantidadeArmazenada()).isEqualTo(15);
         assertThat(response.quantidadeDisponivel()).isEqualTo(15);
@@ -62,7 +61,7 @@ class EntradaPecaEstoqueUseCaseTest {
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
         when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of());
 
-        PecaEstoqueResponse response = useCase.execute(1L, request);
+        var response = useCase.execute(1L, request);
 
         assertThat(response.quantidadeArmazenada()).isEqualTo(5);
         assertThat(response.quantidadeDisponivel()).isEqualTo(5);
@@ -80,7 +79,7 @@ class EntradaPecaEstoqueUseCaseTest {
         when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of(pendente));
         when(pecaAlocadaRepository.save(any(PecaAlocada.class))).thenAnswer(i -> i.getArgument(0));
 
-        PecaEstoqueResponse response = useCase.execute(1L, request);
+        var response = useCase.execute(1L, request);
 
         assertThat(response.quantidadeArmazenada()).isEqualTo(10);
         assertThat(response.quantidadeDisponivel()).isEqualTo(6);

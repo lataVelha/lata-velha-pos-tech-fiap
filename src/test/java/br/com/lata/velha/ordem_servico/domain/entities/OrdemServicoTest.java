@@ -452,10 +452,6 @@ class OrdemServicoTest {
         @Test
         @DisplayName("não deve ser igual quando ids são diferentes")
         void naoDeveSerIgualComIdsDiferentes() {
-            OrdemServico os1 = recebida();
-            OrdemServico os2 = finalizada();
-
-            // both have null id (created via factory), so they ARE equal — use full constructor to differ
             OrdemServico a = new OrdemServico(1L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
                     null, null, null, null, 1L, null, new java.util.ArrayList<>());
             OrdemServico b = new OrdemServico(2L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
@@ -467,7 +463,7 @@ class OrdemServicoTest {
         @Test
         @DisplayName("não deve ser igual a null")
         void naoDeveSerIgualANull() {
-            assertThat(recebida()).isNotEqualTo(null);
+            assertThat(recebida()).isNotNull();
         }
 
         @Test

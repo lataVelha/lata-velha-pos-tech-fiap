@@ -1,7 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.ServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +30,7 @@ class CadastrarServicoUseCaseTest {
         var request = new CadastrarServicoRequest("Alinhamento", "Alinhamento completo");
         var savedDomain = new Servico(10L, "Alinhamento", "Alinhamento completo", true);
 
-        when(repository.save(any(Servico.class))).thenReturn(savedDomain);
+        when(repository.save(any())).thenReturn(savedDomain);
 
         var result = useCase.execute(request);
 
@@ -39,6 +38,6 @@ class CadastrarServicoUseCaseTest {
         assertThat(result.id()).isEqualTo(10L);
         assertThat(result.nome()).isEqualTo("Alinhamento");
         assertThat(result.descricao()).isEqualTo("Alinhamento completo");
-        verify(repository).save(any(Servico.class));
+        verify(repository).save(any());
     }
 }

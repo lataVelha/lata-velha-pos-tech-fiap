@@ -1,4 +1,4 @@
-package br.com.lata.velha.ordem_servico.domain.valueObjects;
+package br.com.lata.velha.ordem_servico.domain.value_objects;
 
 import java.util.Objects;
 

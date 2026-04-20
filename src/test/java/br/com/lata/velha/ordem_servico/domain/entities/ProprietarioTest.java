@@ -1,9 +1,9 @@
 package br.com.lata.velha.ordem_servico.domain.entities;
 
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Documento;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Endereco;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.NumeroCelular;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Endereco;
+import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

@@ -1,7 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEstoqueRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
@@ -42,7 +41,7 @@ class SaidaPecaEstoqueUseCaseTest {
         when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.of(estoque));
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
 
-        PecaEstoqueResponse response = useCase.execute(1L, request);
+        var response = useCase.execute(1L, request);
 
         assertThat(response.quantidadeArmazenada()).isEqualTo(7);
     }

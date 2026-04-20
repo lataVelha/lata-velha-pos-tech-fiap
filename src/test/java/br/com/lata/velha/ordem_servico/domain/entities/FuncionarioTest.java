@@ -28,7 +28,7 @@ class FuncionarioTest {
     class UpdateTests {
         @Test
         @DisplayName("deve atualizar dados")
-        public void shouldUpdateData() {
+        void shouldUpdateData() {
             var novoNome = "Novo nome";
             var novoCargo = new Cargo(2L, "NOVO", null);
 
@@ -40,7 +40,7 @@ class FuncionarioTest {
 
         @Test
         @DisplayName("deve lançar IllegalArgumentException quando nome for null")
-        public void shouldThrowIllegalArgumentExceptionWhenNomeIsNull() {
+        void shouldThrowIllegalArgumentExceptionWhenNomeIsNull() {
             var novoCargo = new Cargo(2L, "NOVO", null);
 
             assertThrows(IllegalArgumentException.class, () -> funcionario.update(null, novoCargo));
@@ -49,7 +49,7 @@ class FuncionarioTest {
         @ParameterizedTest
         @DisplayName("deve lançar IllegalArgumentException quando nome for invalido")
         @ValueSource(strings = {"", "   "})
-        public void shouldThrowIllegalArgumentExceptionWhenNomeIsInvalid(String novoNome) {
+        void shouldThrowIllegalArgumentExceptionWhenNomeIsInvalid(String novoNome) {
             var novoCargo = new Cargo(2L, "NOVO", null);
 
             assertThrows(IllegalArgumentException.class, () -> funcionario.update(novoNome, novoCargo));
@@ -57,7 +57,7 @@ class FuncionarioTest {
 
         @Test
         @DisplayName("deve lançar IllegalArgumentException quando cargo for null")
-        public void shouldThrowIllegalArgumentExceptionWhenCargoIsNull() {
+        void shouldThrowIllegalArgumentExceptionWhenCargoIsNull() {
             var novoNome = "Novo nome";
             assertThrows(IllegalArgumentException.class, () -> funcionario.update(novoNome, null));
         }

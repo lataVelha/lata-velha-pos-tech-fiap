@@ -123,8 +123,7 @@ class FuncionarioControllerTest {
     @WithMockUser(roles = "ADMIN")
     @DisplayName("GET /funcionarios/{id} deve retornar 404 quando não encontrado")
     void shouldReturn400WhenFuncionarioNotFound() throws Exception {
-        when(buscarPorIdUseCase.execute(99L))
-                .thenThrow(FuncionarioNotFoundException.fromId(99L));
+        when(buscarPorIdUseCase.execute(99L)).thenThrow(FuncionarioNotFoundException.fromId(99L));
 
         mockMvc.perform(get("/funcionarios/99"))
                 .andExpect(status().isNotFound());
@@ -148,7 +147,7 @@ class FuncionarioControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-        @DisplayName("PUT /funcionarios/{id} deve retornar 404 quando funcionário não encontrado")
+    @DisplayName("PUT /funcionarios/{id} deve retornar 404 quando funcionário não encontrado")
     void shouldReturn400WhenFuncionarioNotFoundOnUpdate() throws Exception {
         var request = new AtualizarFuncionarioRequest("Carlos Atualizado", 2L);
 
@@ -162,7 +161,7 @@ class FuncionarioControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-        @DisplayName("PUT /funcionarios/{id} deve retornar 422 quando usuário estiver inativo")
+    @DisplayName("PUT /funcionarios/{id} deve retornar 422 quando usuário estiver inativo")
     void shouldReturn400WhenUserIsInactiveOnUpdate() throws Exception {
         var request = new AtualizarFuncionarioRequest("Carlos Atualizado", 2L);
 
@@ -198,12 +197,12 @@ class FuncionarioControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-        @DisplayName("PATCH /funcionarios/{id}/desativar deve retornar 404 quando não encontrado")
+    @DisplayName("PATCH /funcionarios/{id}/desativar deve retornar 404 quando não encontrado")
     void shouldReturn400OnDesativarWhenNotFound() throws Exception {
         doThrow(FuncionarioNotFoundException.fromId(99L)).when(desativarUseCase).execute(99L);
 
         mockMvc.perform(patch("/funcionarios/99/desativar"))
-                                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound());
     }
 
     @Test

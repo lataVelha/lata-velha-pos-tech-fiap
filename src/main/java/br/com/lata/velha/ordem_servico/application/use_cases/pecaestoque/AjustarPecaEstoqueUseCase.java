@@ -24,7 +24,6 @@ public class AjustarPecaEstoqueUseCase {
                 .orElse(PecaEstoque.create(pecaId));
         estoque.ajustar(request.quantidadeArmazenada(), request.quantidadeDisponivel());
         PecaEstoque saved = pecaEstoqueRepository.save(estoque);
-
         return PecaEstoqueResponse.from(saved);
     }
 }

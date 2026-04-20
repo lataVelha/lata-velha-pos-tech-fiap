@@ -2,9 +2,9 @@ package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Documento;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Endereco;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.NumeroCelular;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Endereco;
+import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.ProprietarioPersistenceMapper;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
@@ -166,8 +166,8 @@ class ProprietarioRepositoryImplTest {
 
         List<Proprietario> ativos = repository.findAllActive();
 
-        assertThat(ativos).isNotEmpty();
-        assertThat(ativos).allMatch(Proprietario::isAtivo);
+        assertThat(ativos).isNotEmpty()
+                .allMatch(Proprietario::isAtivo);
     }
 
     @Test

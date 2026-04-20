@@ -1,10 +1,9 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
-import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Documento;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.NumeroCelular;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
+import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,8 +11,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BuscarProprietarioPorIdUseCaseTest {
@@ -32,9 +32,11 @@ class BuscarProprietarioPorIdUseCaseTest {
 
         when(repository.getActiveById(1L)).thenReturn(domain);
 
-        ProprietarioResponse result = useCase.execute(1L);
+        var result = useCase.execute(1L);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.nome()).isEqualTo("João");
         verify(repository).getActiveById(1L);
     }
 }

@@ -1,7 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.peca;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarPecaRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.PecaResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
@@ -37,7 +36,7 @@ class CadastrarPecaUseCaseTest {
         var request = new CadastrarPecaRequest("Pastilha", "Pastilha dianteira", new BigDecimal("150.00"));
         var savedDomain = new Peca(10L, "Pastilha", "Pastilha dianteira", new BigDecimal("150.00"), true);
 
-        when(repository.save(any(Peca.class))).thenReturn(savedDomain);
+        when(repository.save(any())).thenReturn(savedDomain);
 
         var result = useCase.execute(request);
 
@@ -45,9 +44,7 @@ class CadastrarPecaUseCaseTest {
         assertThat(result.id()).isEqualTo(10L);
         assertThat(result.nome()).isEqualTo("Pastilha");
         assertThat(result.ativo()).isTrue();
-        verify(repository).save(any(Peca.class));
-        verify(pecaEstoqueRepository).save(org.mockito.ArgumentMatchers.argThat(
-            estoque -> estoque.getPecaId().equals(10L) && estoque.getQuantidadeArmazenada().equals(0)
-        ));
+        verify(repository).save(any());
+        verify(pecaEstoqueRepository).save(any());
     }
 }

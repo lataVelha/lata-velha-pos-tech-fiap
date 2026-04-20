@@ -8,10 +8,6 @@ public record PecaEstoqueResponse(
         Integer quantidadeDisponivel
 ) {
     public static PecaEstoqueResponse from(PecaEstoque estoque) {
-        return new PecaEstoqueResponse(
-                estoque.getPecaId(),
-                estoque.getQuantidadeArmazenada(),
-                estoque.getQuantidadeDisponivel()
-        );
+        return new PecaEstoqueResponse(estoque.getPecaId(), estoque.getQuantidadeArmazenada(), estoque.getQuantidadeDisponivel());
     }
 }

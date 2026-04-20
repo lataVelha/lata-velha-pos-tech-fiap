@@ -1,11 +1,11 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
 import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResponse;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Documento;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.NumeroCelular;
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
+import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,9 +15,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ListarProprietariosUseCaseTest {
@@ -33,14 +33,15 @@ class ListarProprietariosUseCaseTest {
     void shouldListPaginated() {
         Proprietario domain = new Proprietario(1L, "João", "joao@email.com",
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
-        PaginatedResult<Proprietario> paginatedResult = new PaginatedResult<>(
-                List.of(domain), 0, 10, 1, 1);
+        PaginatedResult<Proprietario> paginatedResult = new PaginatedResult<>(List.of(domain), 0, 10, 1L, 1);
+
         when(repository.findAllActivePaginated(0, 10)).thenReturn(paginatedResult);
 
         PaginatedResult<ProprietarioResponse> result = useCase.execute(0, 10);
 
-        assertNotNull(result);
-        assertEquals(1, result.content().size());
+        assertThat(result).isNotNull();
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().get(0).id()).isEqualTo(1L);
         verify(repository).findAllActivePaginated(0, 10);
     }
 }

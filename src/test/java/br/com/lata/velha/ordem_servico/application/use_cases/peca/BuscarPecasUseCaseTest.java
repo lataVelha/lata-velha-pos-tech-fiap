@@ -7,13 +7,14 @@ import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,24 +24,26 @@ class BuscarPecasUseCaseTest {
     @Mock
     private PecaRepository repository;
 
+    @InjectMocks
+    private BuscarPecasUseCase useCase;
+
     @Test
     @DisplayName("Deve listar peças ativas de forma paginada")
     void deveListarPecasAtivasDeFormaPaginada() {
-        var useCase = new BuscarPecasUseCase(repository);
-
         var peca1 = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("30.00"), true);
         var peca2 = new Peca(2L, "Óleo", "Óleo sintético", new BigDecimal("59.90"), true);
-
-        var page = new PaginatedResult<>(List.of(peca1, peca2), 0, 10, 2, 1);
+        var page = new PaginatedResult<>(List.of(peca1, peca2), 0, 10, 2L, 1);
 
         when(repository.findAllActivePaginated(0, 10)).thenReturn(page);
 
         PaginatedResult<PecaResponse> result = useCase.execute(0, 10);
 
-        assertEquals(2, result.content().size());
-        assertEquals(0, result.page());
-        assertEquals(10, result.size());
-        assertEquals(2, result.totalElements());
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.page()).isZero();
+        assertThat(result.size()).isEqualTo(10);
+        assertThat(result.totalElements()).isEqualTo(2);
+        assertThat(result.content().get(0).id()).isEqualTo(1L);
+        assertThat(result.content().get(1).id()).isEqualTo(2L);
         verify(repository).findAllActivePaginated(0, 10);
     }
 }
