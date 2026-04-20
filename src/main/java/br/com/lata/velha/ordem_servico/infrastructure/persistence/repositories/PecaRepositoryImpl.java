@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Set;
+
 @Repository
 @RequiredArgsConstructor
 public class PecaRepositoryImpl implements PecaRepository {
@@ -46,5 +49,12 @@ public class PecaRepositoryImpl implements PecaRepository {
     @Override
     public boolean existsActiveById(Long pecaId) {
         return jpaRepository.existsByIdAndAtivoTrue(pecaId);
+    }
+
+    @Override
+    public List<Peca> findAllByIds(Set<Long> ids) {
+        return jpaRepository.findAllByIdIn(ids).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }

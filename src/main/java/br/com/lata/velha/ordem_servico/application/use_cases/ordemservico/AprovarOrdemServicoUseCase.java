@@ -12,7 +12,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,6 +24,7 @@ public class AprovarOrdemServicoUseCase {
     private final FuncionarioRepository funcionarioRepository;
     private final PecaEstoqueRepository pecaEstoqueRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
+    private final CalcularTotaisOrdemServicoUseCase calcularTotaisUseCase;
 
     @Transactional
     public Output execute(Input input) {
@@ -70,9 +70,7 @@ public class AprovarOrdemServicoUseCase {
                 .map(s -> new Output.Servico(s.getId(), s.getStatus().name()))
                 .toList();
 
-        var maoDeObraAprovada = saved.calcularTotalAprovados();
-        var totalRecusado = saved.calcularTotalRecusados();
-        var totais = new TotaisOrdemServicoResponse(maoDeObraAprovada, BigDecimal.ZERO, maoDeObraAprovada, totalRecusado);
+        var totais = calcularTotaisUseCase.execute(saved.getExecucaoServicos());
 
         return new Output(saved.getId(), saved.getStatus().name(), servicos, totais);
     }
