@@ -47,6 +47,8 @@ public class RetirarVeiculoUseCase {
 
         return OrdemServicoResponse.from(
                 saved,
+                funcionario.getNome(),
+                null,
                 proprietario.getNome(),
                 veiculo.getMarca() + " " + veiculo.getModelo(),
                 totalServicos,

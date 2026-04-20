@@ -1,8 +1,14 @@
 package br.com.lata.velha.ordem_servico.api.controllers;
 
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
+import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResumoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResumoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResumoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,13 +86,22 @@ class CriarOrdemServicoControllerIT {
     @DisplayName("POST /ordens-servico deve retornar 201 com a OrdemServico criada")
     void shouldReturn201WhenCreatingOrdemServico() throws Exception {
         var request = new CriarOrdemServicoRequest(3L, 4L, 2L, "Barulho ao frear");
-        when(criarOrdemServicoUseCase.execute(any())).thenReturn(new CriarOrdemServicoUseCase.Output(1L));
+        var osResponse = new OrdemServicoResponse(
+                1L, "RECEBIDA", "Barulho ao frear",
+                new FuncionarioResumoResponse(2L, "Maria Atendente"),
+                null,
+                new ProprietarioResumoResponse(4L, "João Proprietário"),
+                new VeiculoResumoResponse(3L, "Fiat Uno 2020"),
+                LocalDateTime.now(), null, null, LocalDateTime.now(),
+                List.of(), null
+        );
+        when(criarOrdemServicoUseCase.execute(any())).thenReturn(osResponse);
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.ordemServicoId").value(1L));
+                .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test

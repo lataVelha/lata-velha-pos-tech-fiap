@@ -95,12 +95,12 @@ class CriarOrdemServicoUseCaseIT {
         var output = useCase.execute(input);
 
         assertThat(output).isNotNull();
-        assertThat(output.ordemServicoId()).isNotNull();
+        assertThat(output.id()).isNotNull();
 
         em.flush();
         em.clear();
 
-        OrdemServicoEntity entity = em.find(OrdemServicoEntity.class, output.ordemServicoId());
+        OrdemServicoEntity entity = em.find(OrdemServicoEntity.class, output.id());
         assertThat(entity).isNotNull();
         assertThat(entity.getStatus()).isEqualTo(StatusOrdemServico.RECEBIDA);
         assertThat(entity.getVeiculoId()).isEqualTo(veiculoId);
@@ -119,7 +119,7 @@ class CriarOrdemServicoUseCaseIT {
         em.flush();
         em.clear();
 
-        OrdemServicoEntity entity = em.find(OrdemServicoEntity.class, output.ordemServicoId());
+        OrdemServicoEntity entity = em.find(OrdemServicoEntity.class, output.id());
         assertThat(entity.getReclamacaoCliente()).isEqualTo("Motor superaquecendo");
     }
 
@@ -133,7 +133,7 @@ class CriarOrdemServicoUseCaseIT {
         em.flush();
         em.clear();
 
-        OrdemServicoEntity entity = em.find(OrdemServicoEntity.class, output.ordemServicoId());
+        OrdemServicoEntity entity = em.find(OrdemServicoEntity.class, output.id());
         assertThat(entity.getAtendenteInicioId()).isEqualTo(funcionarioId);
         assertThat(entity.getStatus()).isEqualTo(StatusOrdemServico.RECEBIDA);
     }

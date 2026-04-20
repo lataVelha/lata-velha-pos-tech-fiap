@@ -40,6 +40,8 @@ public class IniciarServicoUseCase {
         var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
 
         return OrdemServicoResponse.from(saved,
+                null,
+                mecanico.getNome(),
                 proprietario.getNome(),
                 veiculo.getMarca() + " " + veiculo.getModelo(),
                 null, null, null);
