@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 @Schema(name = "OrdemServicoRequest", description = "Dados para criação da Ordem de Serviço")
 public record CriarOrdemServicoRequest(
         @NotNull(message = "Veículo Id é obrigatório!")
@@ -15,10 +17,6 @@ public record CriarOrdemServicoRequest(
         @Schema(description = "Id do proprietário", example = "3")
         Long proprietarioId,
 
-        @NotNull(message = "Atendente Id é obrigatório!")
-        @Schema(description = "Id do atendente", example = "1")
-        Long atendenteInicioId,
-
         @Size(max = 500, message = "Observações deve ter no máximo 500 caracteres")
         @Schema(
                 description = "Observações da ordem de serviço",
@@ -27,7 +25,7 @@ public record CriarOrdemServicoRequest(
         String reclamacaoCliente
 
 ) {
-        public CriarOrdemServicoUseCase.Input toCriarOsUseCaseInput() {
-                return new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, atendenteInicioId, reclamacaoCliente);
+        public CriarOrdemServicoUseCase.Input toCriarOsUseCaseInput(UUID userId) {
+                return new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, userId, reclamacaoCliente);
         }
 }

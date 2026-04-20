@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -26,7 +27,7 @@ public class AprovarOrdemServicoUseCase {
     @Transactional
     public Output execute(Input input) {
         var ordemServico = ordemServicoRepository.getByIdWithExecucoes(input.idOs());
-        var funcionario = funcionarioRepository.getById(input.funcionarioId());
+        var funcionario = funcionarioRepository.getByUserId(input.userId());
 
         var statusPorId = input.getServiceStatusMap();
         var pecasEstoque = getStockMap(ordemServico.getExecucaoServicos());
@@ -92,7 +93,7 @@ public class AprovarOrdemServicoUseCase {
         );
     }
 
-    public record Input(Long idOs, Long funcionarioId, List<Servicos> servicos) {
+    public record Input(Long idOs, UUID userId, List<Servicos> servicos) {
         public Map<Long, StatusExecucaoServico> getServiceStatusMap() {
             return servicos.stream()
                     .collect(Collectors.toMap(

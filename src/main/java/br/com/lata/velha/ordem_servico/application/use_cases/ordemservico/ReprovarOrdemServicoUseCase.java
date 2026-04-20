@@ -13,6 +13,8 @@ import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class ReprovarOrdemServicoUseCase {
@@ -23,9 +25,9 @@ public class ReprovarOrdemServicoUseCase {
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
 
-    public OrdemServicoResponse execute(Long osId, Long idFunc) {
+    public OrdemServicoResponse execute(Long osId, UUID userId) {
         var ordemServico = ordemServicoRepository.getById(osId);
-        var funcionario = funcionarioRepository.getById(idFunc);
+        var funcionario = funcionarioRepository.getByUserId(userId);
 
         vailidarStatusOrdem(ordemServico.getStatus(), ordemServico);
 

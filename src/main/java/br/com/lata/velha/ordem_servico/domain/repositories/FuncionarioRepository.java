@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.domain.repositories;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface FuncionarioRepository {
 
@@ -11,4 +12,6 @@ public interface FuncionarioRepository {
     Optional<Funcionario> findById(Long id);
 
     Funcionario getById(Long id);
+
+    Funcionario getByUserId(UUID userId);
 }

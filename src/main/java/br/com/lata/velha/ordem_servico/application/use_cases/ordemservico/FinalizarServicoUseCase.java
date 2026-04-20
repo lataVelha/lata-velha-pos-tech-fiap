@@ -9,6 +9,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class FinalizarServicoUseCase {
@@ -20,9 +22,9 @@ public class FinalizarServicoUseCase {
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
     @Transactional
-    public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
+    public OrdemServicoResponse execute(Long idOs, UUID userId) {
         var ordemServico = ordemServicoRepository.getById(idOs);
-        var mecanico = funcionarioRepository.getById(idMecanico);
+        var mecanico = funcionarioRepository.getByUserId(userId);
 
         if (!StatusOrdemServico.EM_EXECUCAO.equals(ordemServico.getStatus())) {
             throw new IllegalStateException(

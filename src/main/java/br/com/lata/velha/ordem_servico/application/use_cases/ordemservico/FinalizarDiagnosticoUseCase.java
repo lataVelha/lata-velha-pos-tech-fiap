@@ -8,6 +8,8 @@ import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class FinalizarDiagnosticoUseCase {
@@ -18,9 +20,9 @@ public class FinalizarDiagnosticoUseCase {
     private final VeiculoRepository veiculoRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
-    public OrdemServicoResponse execute(Long idOs, Long idMecanico){
+    public OrdemServicoResponse execute(Long idOs, UUID userId){
         var ordemServico = ordemServicoRepository.getById(idOs);
-        var mecanico = funcionarioRepository.getById(idMecanico);
+        var mecanico = funcionarioRepository.getByUserId(userId);
 
         ordemServico.finalizarDiagnostico(mecanico.getId());
 

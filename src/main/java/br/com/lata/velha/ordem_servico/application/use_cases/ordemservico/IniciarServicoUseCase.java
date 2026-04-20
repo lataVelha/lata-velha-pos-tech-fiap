@@ -12,6 +12,8 @@ import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class IniciarServicoUseCase {
@@ -22,9 +24,9 @@ public class IniciarServicoUseCase {
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
 
-    public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
+    public OrdemServicoResponse execute(Long idOs, UUID userId) {
         var ordemServico = ordemServicoRepository.getById(idOs);
-        var mecanico = funcionarioRepository.getById(idMecanico);
+        var mecanico = funcionarioRepository.getByUserId(userId);
 
         if (!StatusOrdemServico.EM_EXECUCAO.equals(ordemServico.getStatus())) {
             throw new IllegalStateException(

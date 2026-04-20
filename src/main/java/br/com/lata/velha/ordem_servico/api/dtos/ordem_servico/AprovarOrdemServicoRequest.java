@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
+import java.util.UUID;
 
 @Schema(name = "AprovarOrdemServicoRequest", description = "Dados para aprovação da Ordem de Serviço")
 public record AprovarOrdemServicoRequest(
@@ -15,19 +16,15 @@ public record AprovarOrdemServicoRequest(
         @Schema(description = "Id da ordem de serviço", example = "1")
         Long idOs,
 
-        @NotNull(message = "ID do funcionário é obrigatório")
-        @Schema(description = "Id do funcionário que está aprovando", example = "2")
-        Long funcionarioId,
-
         @NotEmpty(message = "Lista de serviços não pode ser vazia")
         @Schema(description = "Serviços a aprovar ou reprovar")
         List<@Valid Servico> servicos
 ) {
-        public AprovarOrdemServicoUseCase.Input toInput() {
+        public AprovarOrdemServicoUseCase.Input toInput(UUID userId) {
                 List<AprovarOrdemServicoUseCase.Input.Servicos> servicosInput = servicos.stream()
                         .map(s -> new AprovarOrdemServicoUseCase.Input.Servicos(s.servicoOsId(), s.status()))
                         .toList();
-                return new AprovarOrdemServicoUseCase.Input(idOs, funcionarioId, servicosInput);
+                return new AprovarOrdemServicoUseCase.Input(idOs, userId, servicosInput);
         }
 
         public record Servico(
