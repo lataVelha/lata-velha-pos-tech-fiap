@@ -8,7 +8,7 @@ public record ProprietarioResumoResponse(
         @Schema(description = "Id do proprietário", example = "4")
         Long id,
 
-        @Schema(description = "Nome do proprietário", example = "Diego Santos")
+        @Schema(description = "Nome do proprietário", example = "João Santos")
         String nome
 
 ) {}

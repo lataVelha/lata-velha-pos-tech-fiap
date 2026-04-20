@@ -36,11 +36,12 @@ public class IniciarServicoUseCase {
                 .forEach(execucao -> processarPecas(execucao, mecanico.getId()));
 
         var saved = ordemServicoRepository.save(ordemServico);
+        var atendente = funcionarioRepository.getById(saved.getAtendenteInicioId());
         var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
         var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
 
         return OrdemServicoResponse.from(saved,
-                null,
+                atendente.getNome(),
                 mecanico.getNome(),
                 proprietario.getNome(),
                 veiculo.getMarca() + " " + veiculo.getModelo(),
