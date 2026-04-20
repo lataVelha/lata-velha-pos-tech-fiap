@@ -12,6 +12,6 @@ public class BuscarPecaPorIdUseCase {
     private final PecaRepository repository;
 
     public PecaResponse execute(Long id) {
-        return assembler.toResponse(repository.getActiveById(id));
+        return PecaResponse.from(repository.getActiveById(id));
     }
 }

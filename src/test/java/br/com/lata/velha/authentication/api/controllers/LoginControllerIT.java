@@ -94,13 +94,13 @@ class LoginControllerIT {
     }
 
     @Test
-    @DisplayName("POST /auth/login deve retornar 400 com usuário inexistente")
+    @DisplayName("POST /auth/login deve retornar 404 com usuário inexistente")
     void shouldReturn400WithUnknownUsername() throws Exception {
         var body = Map.of("username", "desconhecido@example.com", "password", SENHA);
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 }

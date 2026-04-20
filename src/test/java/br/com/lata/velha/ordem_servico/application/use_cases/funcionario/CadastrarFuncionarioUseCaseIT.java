@@ -84,7 +84,7 @@ class CadastrarFuncionarioUseCaseIT {
     @DisplayName("deve associar o role do cargo ao usuário criado")
     void shouldAssignCargoRolesToUser() {
         var input = new CadastrarFuncionarioUseCase.Input("João Silva", "joao@example.com", "Senha1@!", cargoId);
-        var output = useCase.execute(input);
+        useCase.execute(input);
         em.flush();
         em.clear();
 

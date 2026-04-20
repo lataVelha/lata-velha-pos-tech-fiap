@@ -2,8 +2,8 @@ package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Documento;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.NumeroCelular;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
+import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,6 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.dtos.response;
 
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Endereco;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Endereco;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Dados do endereço")

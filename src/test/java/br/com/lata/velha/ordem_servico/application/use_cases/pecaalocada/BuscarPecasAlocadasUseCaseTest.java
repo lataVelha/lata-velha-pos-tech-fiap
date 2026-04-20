@@ -32,7 +32,6 @@ class BuscarPecasAlocadasUseCaseTest {
     @Test
     void deveBuscarPecasDeUmServicoComSucesso() {
         // Arrange
-        Peca peca = new Peca(2L, "Pastilha", "Desc", new BigDecimal("50.0"));
         PecaAlocada peca1 = new PecaAlocada(1L, 2L, 99L, 2, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
         PecaAlocada peca2 = new PecaAlocada(2L, 2L, 99L, 4, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
         

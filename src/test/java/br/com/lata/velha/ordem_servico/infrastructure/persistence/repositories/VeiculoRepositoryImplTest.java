@@ -4,9 +4,9 @@ import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.VeiculoNotFoundException;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Documento;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.NumeroCelular;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
+import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.ProprietarioPersistenceMapper;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.VeiculoPersistenceMapper;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
@@ -134,8 +134,8 @@ class VeiculoRepositoryImplTest {
 
         List<Veiculo> veiculos = repository.findActiveByProprietarioId(proprietarioSalvo.getId());
 
-        assertThat(veiculos).hasSize(2);
-        assertThat(veiculos).allMatch(Veiculo::isAtivo);
+        assertThat(veiculos).hasSize(2)
+                .allMatch(Veiculo::isAtivo);
     }
 
     @Test
@@ -157,8 +157,8 @@ class VeiculoRepositoryImplTest {
 
         List<Veiculo> ativos = repository.findAllActive();
 
-        assertThat(ativos).isNotEmpty();
-        assertThat(ativos).allMatch(Veiculo::isAtivo);
+        assertThat(ativos).isNotEmpty()
+                .allMatch(Veiculo::isAtivo);
     }
 
     @Test

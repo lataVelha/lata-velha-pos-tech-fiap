@@ -1,6 +1,6 @@
 package br.com.lata.velha.ordem_servico.domain.entities;
 
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import java.util.Objects;
 
 public class Veiculo {

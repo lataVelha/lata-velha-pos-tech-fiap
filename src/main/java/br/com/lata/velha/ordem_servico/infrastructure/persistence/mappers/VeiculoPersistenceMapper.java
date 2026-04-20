@@ -1,7 +1,7 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ProprietarioEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.VeiculoEntity;
 import org.springframework.stereotype.Component;

@@ -1,7 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaEstoqueAssembler;
-import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.PecaNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
@@ -27,22 +25,17 @@ class BuscarPecaEstoqueUseCaseTest {
     @Mock
     private PecaEstoqueRepository pecaEstoqueRepository;
 
-    @Mock
-    private PecaEstoqueAssembler assembler;
-
     @InjectMocks
     private BuscarPecaEstoqueUseCase useCase;
 
     @Test
     void deveBuscarEstoqueComSucesso() {
         PecaEstoque estoque = new PecaEstoque(1L, 10, 10);
-        PecaEstoqueResponse response = new PecaEstoqueResponse(1L, 10, 10);
 
         when(pecaRepository.existsActiveById(1L)).thenReturn(true);
         when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.of(estoque));
-        when(assembler.toResponse(estoque)).thenReturn(response);
 
-        PecaEstoqueResponse result = useCase.execute(1L);
+        var result = useCase.execute(1L);
 
         assertThat(result.pecaId()).isEqualTo(1L);
         assertThat(result.quantidadeArmazenada()).isEqualTo(10);
