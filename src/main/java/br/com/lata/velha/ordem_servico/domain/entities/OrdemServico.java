@@ -66,6 +66,13 @@ public final class OrdemServico {
     public void aprovar(Long atendenteId) {
         validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
 
+        boolean temServicoNaoDecidido = execucaoServicos.stream()
+                .anyMatch(e -> e.getStatus() != StatusExecucaoServico.APROVADO
+                        && e.getStatus() != StatusExecucaoServico.RECUSADO);
+        if (temServicoNaoDecidido) {
+            throw new IllegalStateException("Todos os serviços devem estar com status APROVADO ou RECUSADO antes de aprovar a OS.");
+        }
+
         boolean nenhumAprovado = execucaoServicos.stream()
                 .noneMatch(e -> e.getStatus() == StatusExecucaoServico.APROVADO);
         if (nenhumAprovado) {

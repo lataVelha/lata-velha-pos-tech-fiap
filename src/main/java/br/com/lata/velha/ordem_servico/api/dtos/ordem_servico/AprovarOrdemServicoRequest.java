@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.api.dtos.ordem_servico;
 
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.AprovarOrdemServicoUseCase;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
+import br.com.lata.velha.shared.api.validators.StatusAprovacaoValido;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -27,6 +28,7 @@ public record AprovarOrdemServicoRequest(
                 return new AprovarOrdemServicoUseCase.Input(idOs, userId, servicosInput);
         }
 
+        @StatusAprovacaoValido
         public record Servico(
                 @NotNull(message = "ID do serviço OS é obrigatório")
                 @Schema(description = "Id da execução de serviço", example = "10")

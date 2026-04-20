@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface PecaJpaRepository extends JpaRepository<PecaEntity, Long> {
@@ -14,4 +16,6 @@ public interface PecaJpaRepository extends JpaRepository<PecaEntity, Long> {
     Page<PecaEntity> findByAtivoTrue(Pageable pageable);
 
     boolean existsByIdAndAtivoTrue(Long pecaId);
+
+    List<PecaEntity> findAllByIdIn(Collection<Long> ids);
 }

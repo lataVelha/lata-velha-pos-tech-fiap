@@ -4,10 +4,13 @@ import br.com.lata.velha.ordem_servico.application.ports.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
+import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.ordem_servico.domain.entities.Peca;
+import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -29,6 +34,7 @@ public class NotificarOrdemServicoUseCase {
     private final EmailTemplateProvider templateProvider;
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
+    private final PecaRepository pecaRepository;
 
     public void execute(OrdemServico os) {
         try {
@@ -128,18 +134,24 @@ public class NotificarOrdemServicoUseCase {
             return;
         }
 
+        var precoPecas = buscarPrecoPecas(os.getExecucaoServicos());
+
         List<Map<String, Object>> servicos = os.getExecucaoServicos().stream()
                 .map(s -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("nome", s.getServico().getNome());
                     map.put("descricao", s.getServico().getDescricao());
-                    map.put("valor", s.calcularTotal());
+                    map.put("valor", calcularTotalServico(s, precoPecas));
                     return map;
                 })
                 .toList();
 
+        var valorTotal = servicos.stream()
+                .map(s -> (BigDecimal) s.get("valor"))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         variables.put("servicos", servicos);
-        variables.put("valorTotal", os.calcularValorTotal());
+        variables.put("valorTotal", valorTotal);
     }
 
     private void addAprovadosRecusados(Map<String, Object> variables, OrdemServico os) {
@@ -148,20 +160,22 @@ public class NotificarOrdemServicoUseCase {
             return;
         }
 
+        var precoPecas = buscarPrecoPecas(os.getExecucaoServicos());
+
         List<Map<String, Object>> aprovados = os.getExecucaoServicos().stream()
                 .filter(s -> s.getStatus() == StatusExecucaoServico.APROVADO)
-                .map(this::toServicoMap)
+                .map(s -> toServicoMap(s, precoPecas))
                 .toList();
 
         List<Map<String, Object>> recusados = os.getExecucaoServicos().stream()
                 .filter(s -> s.getStatus() == StatusExecucaoServico.RECUSADO)
-                .map(this::toServicoMap)
+                .map(s -> toServicoMap(s, precoPecas))
                 .toList();
 
         variables.put("servicosAprovados", aprovados);
         variables.put("servicosRecusados", recusados);
-        variables.put("valorAprovado", calcularTotal(os, StatusExecucaoServico.APROVADO));
-        variables.put("valorRecusado", calcularTotal(os, StatusExecucaoServico.RECUSADO));
+        variables.put("valorAprovado", calcularTotal(os, StatusExecucaoServico.APROVADO, precoPecas));
+        variables.put("valorRecusado", calcularTotal(os, StatusExecucaoServico.RECUSADO, precoPecas));
     }
 
     private void addTodosRecusados(Map<String, Object> variables, OrdemServico os) {
@@ -170,29 +184,52 @@ public class NotificarOrdemServicoUseCase {
             return;
         }
 
+        var precoPecas = buscarPrecoPecas(os.getExecucaoServicos());
+
         List<Map<String, Object>> recusados = os.getExecucaoServicos().stream()
-                .map(this::toServicoMap)
+                .map(s -> toServicoMap(s, precoPecas))
                 .toList();
 
         BigDecimal valorRecusado = os.getExecucaoServicos().stream()
-                .map(ExecucaoServico::calcularTotal)
+                .map(s -> calcularTotalServico(s, precoPecas))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         variables.put("servicosRecusados", recusados);
         variables.put("valorRecusado", valorRecusado);
     }
 
-    private Map<String, Object> toServicoMap(ExecucaoServico s) {
+    private Map<Long, Peca> buscarPrecoPecas(List<ExecucaoServico> execucoes) {
+        Set<Long> ids = execucoes.stream()
+                .flatMap(e -> e.getPecas().stream().map(PecaAlocada::getPecaId))
+                .collect(Collectors.toSet());
+        if (ids.isEmpty()) return Map.of();
+        return pecaRepository.findAllByIds(ids).stream()
+                .collect(Collectors.toMap(Peca::getId, p -> p));
+    }
+
+    private BigDecimal calcularTotalServico(ExecucaoServico s, Map<Long, Peca> precoPecas) {
+        var maoDeObra = s.getValorMaoDeObra() != null ? s.getValorMaoDeObra() : BigDecimal.ZERO;
+        var totalPecas = s.getPecas().stream()
+                .map(p -> {
+                    var peca = precoPecas.get(p.getPecaId());
+                    if (peca == null) return BigDecimal.ZERO;
+                    return peca.getValor().multiply(BigDecimal.valueOf(p.getQuantidadeSolicitada()));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return maoDeObra.add(totalPecas);
+    }
+
+    private Map<String, Object> toServicoMap(ExecucaoServico s, Map<Long, Peca> precoPecas) {
         Map<String, Object> map = new HashMap<>();
         map.put("nome", s.getServico().getNome());
-        map.put("valor", s.calcularTotal());
+        map.put("valor", calcularTotalServico(s, precoPecas));
         return map;
     }
 
-    private BigDecimal calcularTotal(OrdemServico os, StatusExecucaoServico status) {
+    private BigDecimal calcularTotal(OrdemServico os, StatusExecucaoServico status, Map<Long, Peca> precoPecas) {
         return os.getExecucaoServicos().stream()
                 .filter(s -> s.getStatus() == status)
-                .map(ExecucaoServico::calcularTotal)
+                .map(s -> calcularTotalServico(s, precoPecas))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
