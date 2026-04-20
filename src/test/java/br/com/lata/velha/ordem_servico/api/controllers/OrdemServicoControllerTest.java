@@ -8,6 +8,8 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.ServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResumoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResumoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoServicoItemResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResumoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
