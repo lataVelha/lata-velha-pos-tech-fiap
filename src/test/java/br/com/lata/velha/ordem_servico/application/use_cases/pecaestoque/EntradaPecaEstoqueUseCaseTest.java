@@ -3,8 +3,9 @@ package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 import br.com.lata.velha.ordem_servico.application.assemblers.PecaEstoqueAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEstoqueRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
-import br.com.lata.velha.ordem_servico.domain.entities.Peca;
+import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
@@ -14,8 +15,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,40 +43,63 @@ class EntradaPecaEstoqueUseCaseTest {
 
     @Test
     void deveAdicionarQuantidadeQuandoEstoqueJaExiste() {
-        Peca peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("30.00"), true);
-        PecaEstoque estoque = new PecaEstoque(1L, 10);
+        PecaEstoque estoque = new PecaEstoque(1L, 10, 10);
         MovimentarPecaEstoqueRequest request = new MovimentarPecaEstoqueRequest(5);
 
-        when(pecaRepository.findActiveById(1L)).thenReturn(peca);
-        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(estoque);
-        when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of());
+        when(pecaRepository.existsActiveById(1L)).thenReturn(true);
+        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.of(estoque));
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
+        when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of());
         when(assembler.toResponse(any(PecaEstoque.class))).thenAnswer(i -> {
             PecaEstoque e = i.getArgument(0);
-            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada());
+            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada(), e.getQuantidadeDisponivel());
         });
 
         PecaEstoqueResponse response = useCase.execute(1L, request);
 
         assertThat(response.quantidadeArmazenada()).isEqualTo(15);
+        assertThat(response.quantidadeDisponivel()).isEqualTo(15);
     }
 
     @Test
     void deveCriarEstoqueQuandoNaoExiste() {
-        Peca peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("30.00"), true);
         MovimentarPecaEstoqueRequest request = new MovimentarPecaEstoqueRequest(5);
 
-        when(pecaRepository.findActiveById(1L)).thenReturn(peca);
-        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(null);
-        when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of());
+        when(pecaRepository.existsActiveById(1L)).thenReturn(true);
+        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.empty());
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
+        when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of());
         when(assembler.toResponse(any(PecaEstoque.class))).thenAnswer(i -> {
             PecaEstoque e = i.getArgument(0);
-            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada());
+            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada(), e.getQuantidadeDisponivel());
         });
 
         PecaEstoqueResponse response = useCase.execute(1L, request);
 
         assertThat(response.quantidadeArmazenada()).isEqualTo(5);
+        assertThat(response.quantidadeDisponivel()).isEqualTo(5);
+    }
+
+    @Test
+    void deveMovimentarReservasPendentesAoAdicionar() {
+        PecaEstoque estoque = new PecaEstoque(1L, 0, 0);
+        MovimentarPecaEstoqueRequest request = new MovimentarPecaEstoqueRequest(10);
+        PecaAlocada pendente = new PecaAlocada(5L, 1L, 99L, 4, 0, 4, StatusPecaAlocada.PARCIAL, LocalDateTime.now());
+
+        when(pecaRepository.existsActiveById(1L)).thenReturn(true);
+        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.of(estoque));
+        when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
+        when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of(pendente));
+        when(pecaAlocadaRepository.save(any(PecaAlocada.class))).thenAnswer(i -> i.getArgument(0));
+        when(assembler.toResponse(any(PecaEstoque.class))).thenAnswer(i -> {
+            PecaEstoque e = i.getArgument(0);
+            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada(), e.getQuantidadeDisponivel());
+        });
+
+        PecaEstoqueResponse response = useCase.execute(1L, request);
+
+        assertThat(response.quantidadeArmazenada()).isEqualTo(10);
+        assertThat(response.quantidadeDisponivel()).isEqualTo(6);
+        assertThat(pendente.getStatus()).isEqualTo(StatusPecaAlocada.RESERVADA);
     }
 }

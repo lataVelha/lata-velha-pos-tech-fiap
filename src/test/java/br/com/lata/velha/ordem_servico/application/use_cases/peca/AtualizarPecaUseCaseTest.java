@@ -16,9 +16,7 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AtualizarPecaUseCaseTest {
@@ -39,7 +37,7 @@ class AtualizarPecaUseCaseTest {
         var peca = new Peca(1L, "Pastilha", "Pastilha comum", new BigDecimal("130.00"), true);
         var response = new PecaResponse(1L, "Pastilha premium", "Pastilha cerâmica", new BigDecimal("180.00"), true);
 
-        when(repository.findActiveById(1L)).thenReturn(peca);
+        when(repository.getActiveById(1L)).thenReturn(peca);
         when(repository.save(peca)).thenReturn(peca);
         when(assembler.toResponse(peca)).thenReturn(response);
 
@@ -56,7 +54,7 @@ class AtualizarPecaUseCaseTest {
     @DisplayName("Deve falhar quando peça não existir")
     void deveFalharQuandoPecaNaoExistir() {
         var request = new AtualizarPecaRequest("Nome", "Descrição", new BigDecimal("50.00"));
-        when(repository.findActiveById(99L)).thenThrow(new IllegalArgumentException("Peça não encontrada"));
+        when(repository.getActiveById(99L)).thenThrow(new IllegalArgumentException("Peça não encontrada"));
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(99L, request));
         verify(repository, never()).save(org.mockito.ArgumentMatchers.any());

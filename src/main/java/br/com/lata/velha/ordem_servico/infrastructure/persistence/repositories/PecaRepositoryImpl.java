@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 @RequiredArgsConstructor
 public class PecaRepositoryImpl implements PecaRepository {
@@ -25,17 +23,10 @@ public class PecaRepositoryImpl implements PecaRepository {
     }
 
     @Override
-    public Peca findActiveById(Long id) {
+    public Peca getActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> new IllegalArgumentException("Peça não encontrada"));
-    }
-
-    @Override
-    public List<Peca> findAllActive() {
-        return jpaRepository.findByAtivoTrue().stream()
-                .map(mapper::toDomain)
-                .toList();
     }
 
     @Override
@@ -50,5 +41,10 @@ public class PecaRepositoryImpl implements PecaRepository {
                 result.getTotalElements(),
                 result.getTotalPages()
         );
+    }
+
+    @Override
+    public boolean existsActiveById(Long pecaId) {
+        return jpaRepository.existsByIdAndAtivoTrue(pecaId);
     }
 }

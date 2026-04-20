@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExecucaoServico {
-
     private Long id;
     private StatusExecucaoServico status;
     private Servico servico;
@@ -39,14 +38,12 @@ public class ExecucaoServico {
     ========================= */
 
     public void aprovar(Long atendenteId) {
-
         if (status != StatusExecucaoServico.PENDENTE) {
             throw new IllegalStateException("Só serviços pendentes podem ser aprovados");
         }
 
         this.status = StatusExecucaoServico.APROVADO;
         this.atendenteId = atendenteId;
-        this.iniciadoEm = LocalDateTime.now();
         touch();
     }
 
@@ -86,23 +83,27 @@ public class ExecucaoServico {
         touch();
     }
 
-    public boolean finalizar(Long mecanicoId) {
+    public void iniciar(Long mecanicoResponsavelId) {
+        if (status != StatusExecucaoServico.APROVADO)
+            throw new IllegalStateException("Só serviços aprovados podem ser iniciados");
 
-        if (status != StatusExecucaoServico.EM_EXECUCAO) {
-                return false;
-            }
+        this.status = StatusExecucaoServico.EM_EXECUCAO;
+        this.mecanicoResponsavelId = mecanicoResponsavelId;
+        this.iniciadoEm = LocalDateTime.now();
+        touch();
+    }
 
-        if (pecas.stream().anyMatch(p -> !p.isProcessada())) {
+    public void finalizar() {
+        if (status != StatusExecucaoServico.EM_EXECUCAO)
+            throw new IllegalStateException("Não é possível finalizar um serviço que não está em execução");
+
+        if (pecas.stream().anyMatch(p -> !p.isProcessada()))
             throw new IllegalStateException("Existem peças não processadas");
-        }
 
         this.status = StatusExecucaoServico.FINALIZADO;
-        this.mecanicoResponsavelId = mecanicoId;
         this.terminadoEm = LocalDateTime.now();
 
         touch();
-
-        return true;
     }
 
     /* =========================
@@ -129,8 +130,8 @@ public class ExecucaoServico {
         pecas.add(peca);
         touch();
     }
-    public void atualizarPeca(PecaAlocada pecaAtualizada) {
 
+    public void atualizarPeca(PecaAlocada pecaAtualizada) {
         if (status == StatusExecucaoServico.FINALIZADO) {
             throw new IllegalStateException("Serviço já finalizado");
         }

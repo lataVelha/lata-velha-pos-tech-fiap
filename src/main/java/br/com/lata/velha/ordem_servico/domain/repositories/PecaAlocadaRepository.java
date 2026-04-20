@@ -15,8 +15,6 @@ public interface PecaAlocadaRepository {
 
     void delete(Long id);
 
-    Integer somarQuantidadeReservadaPorPeca(Long pecaId);
-
     List<PecaAlocada> buscarPendentesPorPecaOrdenado(Long pecaId);
 
     PecaAlocada findByPecaIdAndServicoOsId(Long pecaId, Long servicoOsId);

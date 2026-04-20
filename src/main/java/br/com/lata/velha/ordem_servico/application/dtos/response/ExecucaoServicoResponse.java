@@ -1,5 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.dtos.response;
 
+import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -18,7 +20,7 @@ public record ExecucaoServicoResponse(
         String servicoNome,
 
         @Schema(example = "APROVADO")
-        String status,
+        StatusExecucaoServico status,
 
         @Schema(example = "134")
         Long mecanicoResponsavelId,
@@ -32,4 +34,19 @@ public record ExecucaoServicoResponse(
 
         List<PecaServicoResponse> pecas
 
-) {}
+) {
+    public static ExecucaoServicoResponse from(ExecucaoServico domain) {
+        return new ExecucaoServicoResponse(
+                domain.getId(),
+                domain.getServico().getId(),
+                domain.getServico().getNome(),
+                domain.getStatus(),
+                domain.getMecanicoResponsavelId(),
+                domain.getValorMaoDeObra(),
+                domain.getIniciadoEm(),
+                domain.getTerminadoEm(),
+                domain.getAtualizadoEm(),
+                null
+        );
+    }
+}

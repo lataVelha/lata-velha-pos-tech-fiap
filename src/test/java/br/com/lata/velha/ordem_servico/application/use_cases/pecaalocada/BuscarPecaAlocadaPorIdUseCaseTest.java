@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada;
 
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaAlocadaResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,9 +10,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BuscarPecaAlocadaPorIdUseCaseTest {
@@ -25,8 +28,7 @@ class BuscarPecaAlocadaPorIdUseCaseTest {
     @Test
     void deveBuscarPecaAlocadaComSucesso() {
         // Arrange
-        PecaAlocada pecaAlocada = new PecaAlocada(2L, 99L, 2);
-        pecaAlocada.setId(1L);
+        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 99L, 2, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
         
         when(pecaAlocadaRepository.findById(1L)).thenReturn(pecaAlocada);
 

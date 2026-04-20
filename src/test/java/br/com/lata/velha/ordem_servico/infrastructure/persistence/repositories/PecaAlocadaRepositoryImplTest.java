@@ -1,10 +1,10 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaAlocadaEntity;
-import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.PecaAlocadaPersistenceMapper;
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,13 +13,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PecaAlocadaRepositoryImplTest {
@@ -27,126 +28,160 @@ class PecaAlocadaRepositoryImplTest {
     @Mock
     private PecaAlocadaJpaRepository jpaRepository;
 
-    @Mock
-    private PecaAlocadaPersistenceMapper mapper;
-
     @InjectMocks
     private PecaAlocadaRepositoryImpl repository;
 
-    @Test
-    @DisplayName("deve salvar peca alocada")
-    void deveSalvarPecaAlocada() {
-        PecaAlocada domain = new PecaAlocada(1L, 2L, 3);
-        PecaAlocadaEntity entity = new PecaAlocadaEntity();
-        PecaAlocadaEntity saved = new PecaAlocadaEntity();
-        PecaAlocada expected = new PecaAlocada(10L, 1L, 2L, 3, 0, 0, null, null);
-
-        when(mapper.toEntity(domain)).thenReturn(entity);
-        when(jpaRepository.save(entity)).thenReturn(saved);
-        when(mapper.toDomain(saved)).thenReturn(expected);
-
-        PecaAlocada result = repository.save(domain);
-
-        assertThat(result.getId()).isEqualTo(10L);
+    private PecaAlocada domainPeca() {
+        return new PecaAlocada(1L, 10L, 99L, 3, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
     }
 
-    @Test
-    @DisplayName("deve buscar por id existente")
-    void deveBuscarPorIdExistente() {
-        PecaAlocadaEntity entity = new PecaAlocadaEntity();
-        PecaAlocada expected = new PecaAlocada(1L, 2L, 3L, 4, 1, 3, null, null);
-
-        when(jpaRepository.findById(1L)).thenReturn(Optional.of(entity));
-        when(mapper.toDomain(entity)).thenReturn(expected);
-
-        PecaAlocada result = repository.findById(1L);
-
-        assertThat(result.getId()).isEqualTo(1L);
+    private PecaAlocadaEntity entityPeca() {
+        return new PecaAlocadaEntity(1L, 10L, 99L, 3, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
     }
 
-    @Test
-    @DisplayName("deve lançar erro ao buscar por id inexistente")
-    void deveLancarErroAoBuscarPorIdInexistente() {
-        when(jpaRepository.findById(99L)).thenReturn(Optional.empty());
+    @Nested
+    @DisplayName("save")
+    class Save {
 
-        assertThatThrownBy(() -> repository.findById(99L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Peça alocada não encontrada");
+        @Test
+        @DisplayName("deve salvar e retornar domínio mapeado")
+        void deveSalvarERetornarDominio() {
+            PecaAlocadaEntity saved = entityPeca();
+            when(jpaRepository.save(any())).thenReturn(saved);
+
+            PecaAlocada result = repository.save(domainPeca());
+
+            assertThat(result.getId()).isEqualTo(1L);
+            assertThat(result.getPecaId()).isEqualTo(10L);
+            assertThat(result.getExecucaoServicoId()).isEqualTo(99L);
+            assertThat(result.getQuantidadeSolicitada()).isEqualTo(3);
+            assertThat(result.getStatus()).isEqualTo(StatusPecaAlocada.ORCAMENTO);
+            verify(jpaRepository).save(any());
+        }
     }
 
-    @Test
-    @DisplayName("deve retornar pagina de pecas alocadas por servico")
-    void deveRetornarPaginaPorServico() {
-        PecaAlocadaEntity e1 = new PecaAlocadaEntity();
-        PecaAlocadaEntity e2 = new PecaAlocadaEntity();
-        var pageable = PageRequest.of(0, 2);
-        var page = new PageImpl<>(List.of(e1, e2), pageable, 4);
+    @Nested
+    @DisplayName("findById")
+    class FindById {
 
-        when(jpaRepository.findByExecucaoServico_Id(3L, pageable)).thenReturn(page);
-        when(mapper.toDomain(e1)).thenReturn(new PecaAlocada(1L, 1L, 3L, 5, 1, 4, null, null));
-        when(mapper.toDomain(e2)).thenReturn(new PecaAlocada(2L, 2L, 3L, 2, 2, 0, null, null));
+        @Test
+        @DisplayName("deve retornar domínio quando encontrado")
+        void deveRetornarQuandoEncontrado() {
+            when(jpaRepository.findById(1L)).thenReturn(Optional.of(entityPeca()));
 
-        PaginatedResult<PecaAlocada> result = repository.findByServicoOsId(3L, 0, 2);
+            PecaAlocada result = repository.findById(1L);
 
-        assertThat(result.content()).hasSize(2);
-        assertThat(result.totalElements()).isEqualTo(4);
-        assertThat(result.totalPages()).isEqualTo(2);
+            assertThat(result.getId()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("deve lançar IllegalArgumentException quando não encontrado")
+        void deveLancarExcecaoQuandoNaoEncontrado() {
+            when(jpaRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> repository.findById(99L))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Peça alocada não encontrada");
+        }
     }
 
-    @Test
-    @DisplayName("deve delegar delete")
-    void deveDelegarDelete() {
-        repository.delete(7L);
+    @Nested
+    @DisplayName("findByServicoOsId")
+    class FindByServicoOsId {
 
-        verify(jpaRepository).deleteById(7L);
+        @Test
+        @DisplayName("deve retornar PaginatedResult com registros")
+        void deveRetornarPaginatedResult() {
+            var entity = entityPeca();
+            var page = new PageImpl<>(List.of(entity), PageRequest.of(0, 10), 1);
+            when(jpaRepository.findByExecucaoServicoId(eq(99L), any())).thenReturn(page);
+
+            var result = repository.findByServicoOsId(99L, 0, 10);
+
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.totalElements()).isEqualTo(1);
+            assertThat(result.page()).isZero();
+            assertThat(result.size()).isEqualTo(10);
+        }
+
+        @Test
+        @DisplayName("deve retornar PaginatedResult vazio quando não há registros")
+        void deveRetornarVazioQuandoSemRegistros() {
+            var page = new PageImpl<PecaAlocadaEntity>(List.of(), PageRequest.of(0, 10), 0);
+            when(jpaRepository.findByExecucaoServicoId(eq(99L), any())).thenReturn(page);
+
+            var result = repository.findByServicoOsId(99L, 0, 10);
+
+            assertThat(result.content()).isEmpty();
+            assertThat(result.totalElements()).isZero();
+        }
     }
 
-    @Test
-    @DisplayName("deve delegar soma de quantidade reservada")
-    void deveDelegarSomaDeQuantidadeReservada() {
-        when(jpaRepository.somarQuantidadeReservadaPorPeca(5L)).thenReturn(12);
+    @Nested
+    @DisplayName("delete")
+    class Delete {
 
-        Integer result = repository.somarQuantidadeReservadaPorPeca(5L);
+        @Test
+        @DisplayName("deve chamar deleteById no JPA repository")
+        void deveChamarDeleteById() {
+            repository.delete(1L);
 
-        assertThat(result).isEqualTo(12);
+            verify(jpaRepository).deleteById(1L);
+        }
     }
 
-    @Test
-    @DisplayName("deve buscar pendentes por peca e mapear")
-    void deveBuscarPendentesPorPecaEMapear() {
-        PecaAlocadaEntity e1 = new PecaAlocadaEntity();
-        PecaAlocadaEntity e2 = new PecaAlocadaEntity();
+    @Nested
+    @DisplayName("buscarPendentesPorPecaOrdenado")
+    class BuscarPendentesPorPecaOrdenado {
 
-        when(jpaRepository.buscarPendentesPorPecaOrdenado(9L)).thenReturn(List.of(e1, e2));
-        when(mapper.toDomain(e1)).thenReturn(new PecaAlocada(1L, 9L, 1L, 5, 2, 3, null, null));
-        when(mapper.toDomain(e2)).thenReturn(new PecaAlocada(2L, 9L, 2L, 4, 0, 4, null, null));
+        @Test
+        @DisplayName("deve retornar lista de peças pendentes")
+        void deveRetornarPecasPendentes() {
+            var entity = new PecaAlocadaEntity(2L, 10L, 99L, 5, 2, 3, StatusPecaAlocada.PARCIAL, LocalDateTime.now());
+            when(jpaRepository.buscarPendentesPorPecaOrdenado(10L)).thenReturn(List.of(entity));
 
-        List<PecaAlocada> result = repository.buscarPendentesPorPecaOrdenado(9L);
+            List<PecaAlocada> result = repository.buscarPendentesPorPecaOrdenado(10L);
 
-        assertThat(result).hasSize(2);
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getStatus()).isEqualTo(StatusPecaAlocada.PARCIAL);
+        }
+
+        @Test
+        @DisplayName("deve retornar lista vazia quando não há pendentes")
+        void deveRetornarListaVaziaQuandoNaoHaPendentes() {
+            when(jpaRepository.buscarPendentesPorPecaOrdenado(10L)).thenReturn(List.of());
+
+            List<PecaAlocada> result = repository.buscarPendentesPorPecaOrdenado(10L);
+
+            assertThat(result).isEmpty();
+        }
     }
 
-    @Test
-    @DisplayName("deve buscar por peca e servico quando existir")
-    void deveBuscarPorPecaEServicoQuandoExistir() {
-        PecaAlocadaEntity entity = new PecaAlocadaEntity();
-        PecaAlocada expected = new PecaAlocada(3L, 5L, 7L, 2, 1, 1, null, null);
+    @Nested
+    @DisplayName("findByPecaIdAndServicoOsId")
+    class FindByPecaIdAndServicoOsId {
 
-        when(jpaRepository.findByPeca_IdAndExecucaoServico_Id(5L, 7L)).thenReturn(Optional.of(entity));
-        when(mapper.toDomain(entity)).thenReturn(expected);
+        @Test
+        @DisplayName("deve retornar domínio quando encontrado")
+        void deveRetornarQuandoEncontrado() {
+            when(jpaRepository.findByPecaIdAndExecucaoServicoId(10L, 99L))
+                    .thenReturn(Optional.of(entityPeca()));
 
-        PecaAlocada result = repository.findByPecaIdAndServicoOsId(5L, 7L);
+            PecaAlocada result = repository.findByPecaIdAndServicoOsId(10L, 99L);
 
-        assertThat(result.getId()).isEqualTo(3L);
-    }
+            assertThat(result.getPecaId()).isEqualTo(10L);
+            assertThat(result.getExecucaoServicoId()).isEqualTo(99L);
+        }
 
-    @Test
-    @DisplayName("deve lançar erro ao buscar por peca e servico inexistentes")
-    void deveLancarErroAoBuscarPorPecaEServicoInexistentes() {
-        when(jpaRepository.findByPeca_IdAndExecucaoServico_Id(5L, 7L)).thenReturn(Optional.empty());
+        @Test
+        @DisplayName("deve lançar IllegalArgumentException quando não encontrado")
+        void deveLancarExcecaoQuandoNaoEncontrado() {
+            when(jpaRepository.findByPecaIdAndExecucaoServicoId(10L, 99L))
+                    .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> repository.findByPecaIdAndServicoOsId(5L, 7L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Peça alocada não encontrada");
+            assertThatThrownBy(() -> repository.findByPecaIdAndServicoOsId(10L, 99L))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Peça alocada não encontrada");
+        }
     }
 }

@@ -1,9 +1,8 @@
 package br.com.lata.velha.authentication.api.controllers;
 
-import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarFuncionarioRequest;
+import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioUseCase;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
-import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -22,7 +21,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc

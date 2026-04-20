@@ -1,9 +1,10 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,18 +14,26 @@ public class IniciarDiagnosticoUseCase {
 
     private final OrdemServicoRepository repository;
     private final FuncionarioRepository funcionarioRepository;
-    private final OrdemServicoAssembler ordemServicoAssembler;
+    private final ProprietarioRepository proprietarioRepository;
+    private final VeiculoRepository veiculoRepository;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
-
-        var ordemServico = repository.findById(idOs);
+        var ordemServico = repository.getById(idOs);
 
         var mecanico = funcionarioRepository.getById(idMecanico);
 
         ordemServico.iniciarDiagnostico(mecanico.getId());
 
-        var ordemServicoIniciada = repository.save(ordemServico);
+        var saved = repository.save(ordemServico);
+        notificarUseCase.execute(saved);
 
-        return ordemServicoAssembler.toResponse(ordemServicoIniciada,null, null,null,null,null);
+        var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
+        var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
+
+        return OrdemServicoResponse.from(saved,
+                proprietario.getNome(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
+                null, null, null);
     }
 }

@@ -1,14 +1,14 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,14 +16,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class IniciarServicoUseCase {
 
-    private final OrdemServicoAssembler ordemServicoAssembler;
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final PecaAlocadaRepository pecaAlocadaRepository;
+    private final ProprietarioRepository proprietarioRepository;
+    private final VeiculoRepository veiculoRepository;
 
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
-
-        var ordemServico = ordemServicoRepository.findById(idOs);
+        var ordemServico = ordemServicoRepository.getById(idOs);
         var mecanico = funcionarioRepository.getById(idMecanico);
 
         if (!StatusOrdemServico.EM_EXECUCAO.equals(ordemServico.getStatus())) {
@@ -35,44 +35,34 @@ public class IniciarServicoUseCase {
         ordemServico.getExecucaoServicos()
                 .forEach(execucao -> processarPecas(execucao, mecanico.getId()));
 
-        return ordemServicoAssembler.toResponse(
-                ordemServicoRepository.save(ordemServico),
-                null, null, null, null, null
-        );
+        var saved = ordemServicoRepository.save(ordemServico);
+        var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
+        var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
+
+        return OrdemServicoResponse.from(saved,
+                proprietario.getNome(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
+                null, null, null);
     }
 
     private void processarPecas(ExecucaoServico execucaoServico, Long mecanicoId) {
-
         boolean temReservada = false;
         boolean temNaoReservada = false;
 
         for (var peca : execucaoServico.getPecas()) {
-
             var alocada = pecaAlocadaRepository
                     .findByPecaIdAndServicoOsId(peca.getPecaId(), execucaoServico.getId());
 
             if (alocada == null) continue;
 
             switch (alocada.getStatus()) {
-
                 case RESERVADA -> {
                     temReservada = true;
-
-                    execucaoServico.processarPeca(
-                            peca,
-                            peca.getQuantidadeReservada(),
-                            mecanicoId
-                    );
+                    execucaoServico.processarPeca(peca, peca.getQuantidadeReservada(), mecanicoId);
                 }
-
                 case ENCOMENDA, PARCIAL -> {
                     temNaoReservada = true;
-
-                    execucaoServico.processarPeca(
-                            peca,
-                            peca.getQuantidadeReservada(),
-                            mecanicoId
-                    );
+                    execucaoServico.processarPeca(peca, peca.getQuantidadeReservada(), mecanicoId);
                 }
             }
         }

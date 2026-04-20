@@ -3,8 +3,8 @@ package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.PecaPersistenceMapper;
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PecaRepositoryImplTest {
@@ -34,81 +34,120 @@ class PecaRepositoryImplTest {
     @InjectMocks
     private PecaRepositoryImpl repository;
 
-    @Test
-    @DisplayName("deve salvar peca e retornar dominio mapeado")
-    void deveSalvarPeca() {
-        Peca domain = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("30.00"));
-        PecaEntity entity = new PecaEntity();
-        PecaEntity saved = new PecaEntity();
-        Peca expected = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("30.00"));
-
-        when(mapper.toEntity(domain)).thenReturn(entity);
-        when(jpaRepository.save(entity)).thenReturn(saved);
-        when(mapper.toDomain(saved)).thenReturn(expected);
-
-        Peca result = repository.save(domain);
-
-        assertThat(result.getNome()).isEqualTo("Filtro");
-        assertThat(result.getValor()).isEqualByComparingTo("30.00");
+    private Peca domainPeca() {
+        return new Peca(1L, "Filtro de óleo", "Filtro", new BigDecimal("50.00"));
     }
 
-    @Test
-    @DisplayName("deve buscar peca ativa por id")
-    void deveBuscarPecaAtivaPorId() {
-        PecaEntity entity = new PecaEntity();
-        Peca expected = new Peca(2L, "Pastilha", "Pastilha dianteira", new BigDecimal("120.00"));
-
-        when(jpaRepository.findByIdAndAtivoTrue(2L)).thenReturn(Optional.of(entity));
-        when(mapper.toDomain(entity)).thenReturn(expected);
-
-        Peca result = repository.findActiveById(2L);
-
-        assertThat(result.getId()).isEqualTo(2L);
+    private PecaEntity entityPeca() {
+        var e = new PecaEntity();
+        e.setId(1L);
+        e.setNome("Filtro de óleo");
+        e.setDescricao("Filtro");
+        e.setValor(new BigDecimal("50.00"));
+        e.setAtivo(true);
+        return e;
     }
 
-    @Test
-    @DisplayName("deve lancar erro ao buscar peca ativa inexistente")
-    void deveLancarErroAoBuscarPecaAtivaInexistente() {
-        when(jpaRepository.findByIdAndAtivoTrue(99L)).thenReturn(Optional.empty());
+    @Nested
+    @DisplayName("save")
+    class Save {
 
-        assertThatThrownBy(() -> repository.findActiveById(99L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Peça não encontrada");
+        @Test
+        @DisplayName("deve salvar e retornar domínio mapeado")
+        void deveSalvarERetornarDominio() {
+            PecaEntity entity = entityPeca();
+            when(mapper.toEntity(any())).thenReturn(entity);
+            when(jpaRepository.save(entity)).thenReturn(entity);
+            when(mapper.toDomain(entity)).thenReturn(domainPeca());
+
+            Peca result = repository.save(domainPeca());
+
+            assertThat(result.getId()).isEqualTo(1L);
+            assertThat(result.getNome()).isEqualTo("Filtro de óleo");
+            verify(jpaRepository).save(entity);
+        }
     }
 
-    @Test
-    @DisplayName("deve listar pecas ativas")
-    void deveListarPecasAtivas() {
-        PecaEntity e1 = new PecaEntity();
-        PecaEntity e2 = new PecaEntity();
+    @Nested
+    @DisplayName("getActiveById")
+    class GetActiveById {
 
-        when(jpaRepository.findByAtivoTrue()).thenReturn(List.of(e1, e2));
-        when(mapper.toDomain(e1)).thenReturn(new Peca(1L, "A", "A", new BigDecimal("1.00")));
-        when(mapper.toDomain(e2)).thenReturn(new Peca(2L, "B", "B", new BigDecimal("2.00")));
+        @Test
+        @DisplayName("deve retornar domínio quando encontrado")
+        void deveRetornarQuandoEncontrado() {
+            PecaEntity entity = entityPeca();
+            when(jpaRepository.findByIdAndAtivoTrue(1L)).thenReturn(Optional.of(entity));
+            when(mapper.toDomain(entity)).thenReturn(domainPeca());
 
-        List<Peca> result = repository.findAllActive();
+            Peca result = repository.getActiveById(1L);
 
-        assertThat(result).hasSize(2);
+            assertThat(result.getId()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("deve lançar IllegalArgumentException quando não encontrado")
+        void deveLancarExcecaoQuandoNaoEncontrado() {
+            when(jpaRepository.findByIdAndAtivoTrue(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> repository.getActiveById(99L))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Peça não encontrada");
+
+            verify(mapper, never()).toDomain(any());
+        }
     }
 
-    @Test
-    @DisplayName("deve retornar pagina de pecas ativas")
-    void deveRetornarPaginaDePecasAtivas() {
-        PecaEntity e1 = new PecaEntity();
-        PecaEntity e2 = new PecaEntity();
-        var pageable = PageRequest.of(0, 2);
-        var page = new PageImpl<>(List.of(e1, e2), pageable, 5);
+    @Nested
+    @DisplayName("findAllActivePaginated")
+    class FindAllActivePaginated {
 
-        when(jpaRepository.findByAtivoTrue(pageable)).thenReturn(page);
-        when(mapper.toDomain(e1)).thenReturn(new Peca(1L, "A", "A", new BigDecimal("1.00")));
-        when(mapper.toDomain(e2)).thenReturn(new Peca(2L, "B", "B", new BigDecimal("2.00")));
+        @Test
+        @DisplayName("deve retornar PaginatedResult com registros")
+        void deveRetornarPaginatedResult() {
+            PecaEntity entity = entityPeca();
+            var page = new PageImpl<>(List.of(entity), PageRequest.of(0, 10), 1);
+            when(jpaRepository.findByAtivoTrue(any())).thenReturn(page);
+            when(mapper.toDomain(entity)).thenReturn(domainPeca());
 
-        PaginatedResult<Peca> result = repository.findAllActivePaginated(0, 2);
+            var result = repository.findAllActivePaginated(0, 10);
 
-        assertThat(result.content()).hasSize(2);
-        assertThat(result.page()).isZero();
-        assertThat(result.size()).isEqualTo(2);
-        assertThat(result.totalElements()).isEqualTo(5);
-        assertThat(result.totalPages()).isEqualTo(3);
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.totalElements()).isEqualTo(1);
+            assertThat(result.page()).isZero();
+            assertThat(result.size()).isEqualTo(10);
+        }
+
+        @Test
+        @DisplayName("deve retornar PaginatedResult vazio quando não há registros")
+        void deveRetornarVazioQuandoSemRegistros() {
+            var page = new PageImpl<PecaEntity>(List.of(), PageRequest.of(0, 10), 0);
+            when(jpaRepository.findByAtivoTrue(any())).thenReturn(page);
+
+            var result = repository.findAllActivePaginated(0, 10);
+
+            assertThat(result.content()).isEmpty();
+            assertThat(result.totalElements()).isZero();
+        }
+    }
+
+    @Nested
+    @DisplayName("existsActiveById")
+    class ExistsActiveById {
+
+        @Test
+        @DisplayName("deve retornar true quando peça ativa existe")
+        void deveRetornarTrueQuandoExiste() {
+            when(jpaRepository.existsByIdAndAtivoTrue(1L)).thenReturn(true);
+
+            assertThat(repository.existsActiveById(1L)).isTrue();
+        }
+
+        @Test
+        @DisplayName("deve retornar false quando peça não existe ou está inativa")
+        void deveRetornarFalseQuandoNaoExiste() {
+            when(jpaRepository.existsByIdAndAtivoTrue(99L)).thenReturn(false);
+
+            assertThat(repository.existsActiveById(99L)).isFalse();
+        }
     }
 }

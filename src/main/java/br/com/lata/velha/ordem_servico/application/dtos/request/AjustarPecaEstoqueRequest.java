@@ -6,6 +6,10 @@ import jakarta.validation.constraints.PositiveOrZero;
 public record AjustarPecaEstoqueRequest(
         @NotNull(message = "Quantidade armazenada é obrigatória")
         @PositiveOrZero(message = "Quantidade armazenada não pode ser negativa")
-        Integer quantidadeArmazenada
+        Integer quantidadeArmazenada,
+
+        @NotNull(message = "Quantidade disponível é obrigatória")
+        @PositiveOrZero(message = "Quantidade disponível não pode ser negativa")
+        Integer quantidadeDisponivel
 ) {
 }

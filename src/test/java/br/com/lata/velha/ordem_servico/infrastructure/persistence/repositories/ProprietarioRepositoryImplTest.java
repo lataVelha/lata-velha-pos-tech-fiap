@@ -1,25 +1,26 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
-import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
-import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.valueObjects.Documento;
 import br.com.lata.velha.ordem_servico.domain.valueObjects.Endereco;
 import br.com.lata.velha.ordem_servico.domain.valueObjects.NumeroCelular;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.ProprietarioPersistenceMapper;
+import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -89,10 +90,10 @@ class ProprietarioRepositoryImplTest {
 
     @Test
     @DisplayName("deve encontrar proprietário ativo por id")
-    void shouldFindActiveById() {
+    void shouldGetActiveById() {
         Proprietario saved = repository.save(proprietario);
 
-        Proprietario found = repository.findActiveById(saved.getId());
+        Proprietario found = repository.getActiveById(saved.getId());
 
         assertThat(found.getId()).isEqualTo(saved.getId());
         assertThat(found.isAtivo()).isTrue();
@@ -100,19 +101,20 @@ class ProprietarioRepositoryImplTest {
 
     @Test
     @DisplayName("deve lançar exceção ao buscar proprietário ativo por id inexistente")
-    void shouldThrowWhenFindActiveByIdNotFound() {
-        assertThatThrownBy(() -> repository.findActiveById(999L))
+    void shouldThrowWhenGetActiveByIdNotFound() {
+        assertThatThrownBy(() -> repository.getActiveById(999L))
                 .isInstanceOf(ProprietarioNotFoundException.class);
     }
 
     @Test
     @DisplayName("deve lançar exceção ao buscar ativo por id de proprietário inativo")
-    void shouldThrowWhenFindActiveByIdButProprietarioIsInactive() {
+    void shouldThrowWhenGetActiveByIdButProprietarioIsInactive() {
         Proprietario saved = repository.save(proprietario);
         saved.deactivate();
         repository.save(saved);
+        var id = saved.getId();
 
-        assertThatThrownBy(() -> repository.findActiveById(saved.getId()))
+        assertThatThrownBy(() -> repository.getActiveById(id))
                 .isInstanceOf(ProprietarioNotFoundException.class);
     }
 

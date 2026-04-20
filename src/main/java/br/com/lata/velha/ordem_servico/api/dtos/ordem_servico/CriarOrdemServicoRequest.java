@@ -1,12 +1,12 @@
-package br.com.lata.velha.ordem_servico.application.dtos.request;
+package br.com.lata.velha.ordem_servico.api.dtos.ordem_servico;
 
+import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.CriarOrdemServicoUseCase;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Schema(name = "OrdemServicoRequest", description = "Dados para criação da Ordem de Serviço")
-public record OrdemServicoRequest(
-
+public record CriarOrdemServicoRequest(
         @NotNull(message = "Veículo Id é obrigatório!")
         @Schema(description = "Id do veículo", example = "4")
         Long veiculoId,
@@ -26,4 +26,8 @@ public record OrdemServicoRequest(
         )
         String reclamacaoCliente
 
-) {}
+) {
+        public CriarOrdemServicoUseCase.Input toCriarOsUseCaseInput() {
+                return new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, atendenteInicioId, reclamacaoCliente);
+        }
+}

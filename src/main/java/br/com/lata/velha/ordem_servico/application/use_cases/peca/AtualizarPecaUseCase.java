@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.peca;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarPecaRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
@@ -16,11 +15,8 @@ public class AtualizarPecaUseCase {
     private final PecaAssembler assembler;
 
     public PecaResponse execute(Long id, AtualizarPecaRequest request) {
-        Peca peca = repository.findActiveById(id);
-
+        Peca peca = repository.getActiveById(id);
         peca.atualizar(request.nome(), request.descricao(), request.valor());
-
-        Peca saved = repository.save(peca);
-        return assembler.toResponse(saved);
+        return PecaResponse.from(repository.save(peca));
     }
 }

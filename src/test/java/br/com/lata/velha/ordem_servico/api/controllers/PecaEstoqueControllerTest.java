@@ -57,7 +57,7 @@ class PecaEstoqueControllerTest {
     private JwtAuthenticationConverter jwtAuthenticationConverter;
 
     private PecaEstoqueResponse buildResponse(int quantidade) {
-        return new PecaEstoqueResponse(1L, quantidade);
+        return new PecaEstoqueResponse(1L, quantidade, quantidade);
     }
 
     @Test
@@ -130,7 +130,7 @@ class PecaEstoqueControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /pecas/{pecaId}/estoque/ajuste deve retornar 200 com estoque ajustado")
     void shouldReturn200OnAjuste() throws Exception {
-        var request = new AjustarPecaEstoqueRequest(100);
+        var request = new AjustarPecaEstoqueRequest(100, 100);
 
         when(ajustarPecaEstoqueUseCase.execute(eq(1L), any())).thenReturn(buildResponse(100));
 
@@ -145,7 +145,7 @@ class PecaEstoqueControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /pecas/{pecaId}/estoque/ajuste com quantidade negativa deve retornar 400")
     void shouldReturn400OnAjusteWithNegativeQuantidade() throws Exception {
-        var invalid = new AjustarPecaEstoqueRequest(-5);
+        var invalid = new AjustarPecaEstoqueRequest(-5, -5);
 
         mockMvc.perform(patch("/pecas/1/estoque/ajuste")
                         .contentType(MediaType.APPLICATION_JSON)

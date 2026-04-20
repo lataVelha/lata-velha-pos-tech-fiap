@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,15 +39,15 @@ class SaidaPecaEstoqueUseCaseTest {
     @Test
     void deveBaixarEstoqueComSucesso() {
         Peca peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("30.00"), true);
-        PecaEstoque estoque = new PecaEstoque(1L, 10);
+        PecaEstoque estoque = new PecaEstoque(1L, 10, 10);
         MovimentarPecaEstoqueRequest request = new MovimentarPecaEstoqueRequest(3);
 
-        when(pecaRepository.findActiveById(1L)).thenReturn(peca);
-        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(estoque);
+        when(pecaRepository.getActiveById(1L)).thenReturn(peca);
+        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.of(estoque));
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
         when(assembler.toResponse(any(PecaEstoque.class))).thenAnswer(i -> {
             PecaEstoque e = i.getArgument(0);
-            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada());
+            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada(), e.getQuantidadeDisponivel());
         });
 
         PecaEstoqueResponse response = useCase.execute(1L, request);
@@ -57,14 +58,27 @@ class SaidaPecaEstoqueUseCaseTest {
     @Test
     void deveLancarExcecaoQuandoEstoqueInsuficiente() {
         Peca peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("30.00"), true);
-        PecaEstoque estoque = new PecaEstoque(1L, 2);
+        PecaEstoque estoque = new PecaEstoque(1L, 2, 2);
         MovimentarPecaEstoqueRequest request = new MovimentarPecaEstoqueRequest(3);
 
-        when(pecaRepository.findActiveById(1L)).thenReturn(peca);
-        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(estoque);
+        when(pecaRepository.getActiveById(1L)).thenReturn(peca);
+        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.of(estoque));
 
         assertThatThrownBy(() -> useCase.execute(1L, request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Estoque insuficiente para a peça informada");
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoEstoqueNaoExiste() {
+        Peca peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("30.00"), true);
+        MovimentarPecaEstoqueRequest request = new MovimentarPecaEstoqueRequest(3);
+
+        when(pecaRepository.getActiveById(1L)).thenReturn(peca);
+        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> useCase.execute(1L, request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Estoque da peça não encontrado");
     }
 }

@@ -13,12 +13,12 @@ import java.util.Optional;
 
 @Repository
 public interface PecaAlocadaJpaRepository extends JpaRepository<PecaAlocadaEntity, Long> {
-    Page<PecaAlocadaEntity> findByExecucaoServico_Id(Long servicoOsId, Pageable pageable);
+    Page<PecaAlocadaEntity> findByExecucaoServicoId(Long servicoOsId, Pageable pageable);
 
     @Query("""
                 select coalesce(sum(p.quantidadeReservada),0)
                 from PecaAlocadaEntity p
-                where p.peca.id = :pecaId
+                where p.pecaId = :pecaId
                   and p.status in ('RESERVADA','PARCIAL')
             """)
     Integer somarQuantidadeReservadaPorPeca(@Param("pecaId") Long pecaId);
@@ -26,12 +26,11 @@ public interface PecaAlocadaJpaRepository extends JpaRepository<PecaAlocadaEntit
     @Query("""
                 select p
                 from PecaAlocadaEntity p
-                where p.peca.id = :pecaId
+                where p.pecaId = :pecaId
                   and p.status in ('PARCIAL','ENCOMENDADA')
                 order by p.atualizado asc
             """)
     List<PecaAlocadaEntity> buscarPendentesPorPecaOrdenado(@Param("pecaId") Long pecaId);
 
-    Optional<PecaAlocadaEntity> findByPeca_IdAndExecucaoServico_Id(Long pecaId, Long servicoId);
-
+    Optional<PecaAlocadaEntity> findByPecaIdAndExecucaoServicoId(Long pecaId, Long servicoId);
 }

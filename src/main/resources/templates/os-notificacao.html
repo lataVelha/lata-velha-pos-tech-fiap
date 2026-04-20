@@ -33,17 +33,17 @@
             <!-- Header -->
             <tr>
               <td
-                style="
-                  background-color: #1a1a2e;
-                  padding: 30px;
-                  text-align: center;
-                "
+                th:style="${reprovada ? 'background-color: #dc3545; padding: 30px; text-align: center;' : 'background-color: #1a1a2e; padding: 30px; text-align: center;'}"
               >
                 <h1 style="color: #ffffff; margin: 0; font-size: 28px">
                   🚗 Lata Velha
                 </h1>
                 <p
-                  style="color: #a0a0b0; margin: 8px 0 0; font-size: 14px"
+                  style="
+                    color: rgba(255, 255, 255, 0.7);
+                    margin: 8px 0 0;
+                    font-size: 14px;
+                  "
                   th:text="${subtitulo}"
                 >
                   Ordem de Serviço
@@ -253,6 +253,7 @@
                   th:if="${servicosRecusados != null and !servicosRecusados.isEmpty()}"
                 >
                   <p
+                    th:text="${reprovada ? '❌ Serviços recusados:' : '❌ Serviços não aprovados:'}"
                     style="
                       color: #dc3545;
                       font-size: 16px;
@@ -393,7 +394,7 @@
 
                 <!-- Totais (opcional) -->
                 <table
-                  th:if="${valorAprovado != null or valorTotal != null}"
+                  th:if="${valorAprovado != null or valorTotal != null or valorRecusado != null}"
                   width="100%"
                   cellpadding="0"
                   cellspacing="0"
@@ -495,6 +496,7 @@
                         style="margin: 0 auto"
                       >
                         <tr>
+                          <!-- Concluído: verde -->
                           <th:block th:if="${step.status == 'CONCLUIDO'}">
                             <td
                               style="
@@ -512,6 +514,25 @@
                               ✓
                             </td>
                           </th:block>
+                          <!-- Recusado: vermelho -->
+                          <th:block th:if="${step.status == 'RECUSADO'}">
+                            <td
+                              style="
+                                width: 28px;
+                                height: 28px;
+                                background-color: #dc3545;
+                                border-radius: 50%;
+                                text-align: center;
+                                line-height: 28px;
+                                color: #fff;
+                                font-size: 14px;
+                                font-weight: bold;
+                              "
+                            >
+                              ✗
+                            </td>
+                          </th:block>
+                          <!-- Atual: amarelo -->
                           <th:block th:if="${step.status == 'ATUAL'}">
                             <td
                               style="
@@ -528,6 +549,7 @@
                               ⏳
                             </td>
                           </th:block>
+                          <!-- Pendente: cinza -->
                           <th:block th:if="${step.status == 'PENDENTE'}">
                             <td
                               style="
@@ -550,10 +572,23 @@
                       </table>
                     </td>
                     <td style="padding: 0 0 0 12px">
+                      <!-- Título com cor dinâmica -->
                       <p
                         th:if="${step.status == 'CONCLUIDO'}"
                         style="
                           color: #28a745;
+                          font-size: 14px;
+                          font-weight: bold;
+                          margin: 0;
+                        "
+                        th:text="${step.titulo}"
+                      >
+                        Passo
+                      </p>
+                      <p
+                        th:if="${step.status == 'RECUSADO'}"
+                        style="
+                          color: #dc3545;
                           font-size: 14px;
                           font-weight: bold;
                           margin: 0;
@@ -586,6 +621,7 @@
                       >
                         Passo
                       </p>
+                      <!-- Descrição -->
                       <p
                         th:if="${step.status == 'PENDENTE'}"
                         style="color: #bbb; font-size: 12px; margin: 2px 0 0"
@@ -594,7 +630,14 @@
                         Desc
                       </p>
                       <p
-                        th:unless="${step.status == 'PENDENTE'}"
+                        th:if="${step.status == 'RECUSADO'}"
+                        style="color: #dc3545; font-size: 12px; margin: 2px 0 0"
+                        th:text="${step.descricao}"
+                      >
+                        Desc
+                      </p>
+                      <p
+                        th:if="${step.status != 'PENDENTE' and step.status != 'RECUSADO'}"
                         style="color: #888; font-size: 12px; margin: 2px 0 0"
                         th:text="${step.descricao}"
                       >
@@ -602,7 +645,7 @@
                       </p>
                     </td>
                   </tr>
-                  <!-- Linha conectora (exceto último) -->
+                  <!-- Linha conectora -->
                   <tr th:unless="${iter.last}">
                     <td width="40" style="vertical-align: top; padding: 0">
                       <table
@@ -620,7 +663,18 @@
                               "
                             ></td>
                           </th:block>
-                          <th:block th:unless="${step.status == 'CONCLUIDO'}">
+                          <th:block th:if="${step.status == 'RECUSADO'}">
+                            <td
+                              style="
+                                width: 2px;
+                                height: 20px;
+                                background-color: #dc3545;
+                              "
+                            ></td>
+                          </th:block>
+                          <th:block
+                            th:if="${step.status != 'CONCLUIDO' and step.status != 'RECUSADO'}"
+                          >
                             <td
                               style="
                                 width: 2px;

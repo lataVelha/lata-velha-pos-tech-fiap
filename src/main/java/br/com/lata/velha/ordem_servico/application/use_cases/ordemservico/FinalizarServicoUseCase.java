@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.OrdemServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
@@ -14,16 +13,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FinalizarServicoUseCase {
 
-    private final OrdemServicoAssembler ordemServicoAssembler;
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final ProprietarioRepository proprietarioRepository;
+    private final VeiculoRepository veiculoRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
     @Transactional
     public OrdemServicoResponse execute(Long idOs, Long idMecanico) {
-
-        var ordemServico = ordemServicoRepository.findById(idOs);
+        var ordemServico = ordemServicoRepository.getById(idOs);
         var mecanico = funcionarioRepository.getById(idMecanico);
 
         if (!StatusOrdemServico.EM_EXECUCAO.equals(ordemServico.getStatus())) {
@@ -33,36 +31,28 @@ public class FinalizarServicoUseCase {
         }
 
         ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
-
-            if (!StatusExecucaoServico.EM_EXECUCAO.equals(execucaoServico.getStatus())) {
-                return;
-            }
+            if (!StatusExecucaoServico.EM_EXECUCAO.equals(execucaoServico.getStatus())) return;
 
             execucaoServico.getPecas().forEach(peca -> {
-
                 if (peca.getId() == null) return;
-
                 if (!peca.getStatus().equals(StatusPecaAlocada.RESERVADA)) return;
-
                 peca.instalada(peca.getQuantidadeSolicitada());
                 execucaoServico.atualizarPeca(peca);
             });
 
-            execucaoServico.finalizar(mecanico.getId());
+            execucaoServico.finalizar();
         });
 
         ordemServico.finalizar(mecanico.getId());
+        var saved = ordemServicoRepository.save(ordemServico);
+        notificarUseCase.execute(saved);
 
-        ordemServicoRepository.save(ordemServico);
-        notificarUseCase.execute(ordemServico);
+        var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
+        var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
 
-        return ordemServicoAssembler.toResponse(
-                ordemServico,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
+        return OrdemServicoResponse.from(saved,
+                proprietario.getNome(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
+                null, null, null);
     }
 }

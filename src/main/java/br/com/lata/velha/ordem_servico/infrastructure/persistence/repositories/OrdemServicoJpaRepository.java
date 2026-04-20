@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEntity, Long> {
 
     @Query(value = """
@@ -118,4 +120,7 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
             @Param("mecanicoId") Long mecanicoId,
             Pageable pageable
     );
+
+    @Query("SELECT os FROM OrdemServicoEntity os JOIN FETCH os.servicos WHERE os.id = :id")
+    Optional<OrdemServicoEntity> findByIdWithExecucoes(Long id);
 }

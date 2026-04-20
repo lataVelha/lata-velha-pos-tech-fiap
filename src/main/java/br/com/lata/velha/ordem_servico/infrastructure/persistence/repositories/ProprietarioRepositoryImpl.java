@@ -1,11 +1,11 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
-import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
-import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.ProprietarioPersistenceMapper;
+import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
@@ -30,7 +30,7 @@ public class ProprietarioRepositoryImpl implements ProprietarioRepository {
     }
 
     @Override
-    public Proprietario findActiveById(Long id) {
+    public Proprietario getActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> ProprietarioNotFoundException.fromId(id));

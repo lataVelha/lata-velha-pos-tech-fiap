@@ -12,7 +12,7 @@ public class DesativarPecaUseCase {
     private final PecaRepository repository;
 
     public void execute(Long id) {
-        Peca peca = repository.findActiveById(id);
+        Peca peca = repository.getActiveById(id);
 
         peca.desativar();
         repository.save(peca);

@@ -1,14 +1,15 @@
 package br.com.lata.velha.ordem_servico.api.controllers;
 
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoRequest;
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoResponse;
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.request.AprovarOrdemSevicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.request.OrdemServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.AprovarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
-import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,16 +40,17 @@ public class OrdemServicoController {
     private final RetirarVeiculoUseCase retirarVeiculoUseCase;
     private final BuscarTempoMedioExecucaoServicosFinalizadosUseCase buscarTempoMedioExecucaoServicosFinalizadosUseCase;
 
-    @PostMapping("/create")
+    @PostMapping
     @Operation(summary = "Criar ordem de serviço")
     @ApiResponse(responseCode = "201", description = "Ordem de Serviço criada")
     @ApiResponse(responseCode = "409", description = "Ordem de Serviço cadastrado")
-    public ResponseEntity<OrdemServicoResponse> create(
-            @Valid @RequestBody OrdemServicoRequest request) {
-
+    public ResponseEntity<CriarOrdemServicoResponse> create(@Valid @RequestBody CriarOrdemServicoRequest request) {
+        var input = request.toCriarOsUseCaseInput();
+        var output = criarOrdemServicoUseCase.execute(input);
+        var response = CriarOrdemServicoResponse.fromCriarOsUseCaseOutput(output);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(criarOrdemServicoUseCase.execute(request));
+                .body(response);
     }
 
     @GetMapping
@@ -115,8 +117,9 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "200", description = "Ordem de Serviço aprovada")
     @ApiResponse(responseCode = "404", description = "Ordem de Serviço não encontrada")
     @ApiResponse(responseCode = "409", description = "Ordem de Serviço já aprovada ou em status inválido")
-    public ResponseEntity<AprovarOrdemServicoResponse> approve(@Valid @RequestBody AprovarOrdemSevicoRequest request) {
-        return ResponseEntity.ok(aprovarOrdemServicoUseCase.execute(request));
+    public ResponseEntity<AprovarOrdemServicoResponse> approve(@Valid @RequestBody AprovarOrdemServicoRequest request) {
+        var output = aprovarOrdemServicoUseCase.execute(request.toInput());
+        return ResponseEntity.ok(AprovarOrdemServicoResponse.fromOutput(output));
     }
 
     @PatchMapping("/{idOs}/{idFunc}/iniciar-servico")
