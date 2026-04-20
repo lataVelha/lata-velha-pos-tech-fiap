@@ -8,6 +8,8 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.ServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResumoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResumoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoServicoItemResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResumoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
@@ -27,6 +29,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -77,6 +80,9 @@ class OrdemServicoControllerTest {
 
     @MockBean
     private RetirarVeiculoUseCase retirarVeiculoUseCase;
+
+        @MockBean
+        private BuscarTempoMedioExecucaoServicosFinalizadosUseCase buscarTempoMedioExecucaoServicosFinalizadosUseCase;
 
     @MockBean
     private JwtDecoder jwtDecoder;
@@ -137,6 +143,36 @@ class OrdemServicoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("GET /ordens-servico/metricas/tempo-medio-execucao deve retornar 200 para ADMIN")
+    void shouldReturn200OnGetAverageExecutionTimeForAdmin() throws Exception {
+        var response = new TempoMedioExecucaoResponse(
+                List.of(new TempoMedioExecucaoServicoItemResponse(5L, "Troca freio", new BigDecimal("32.50"))),
+                LocalDate.parse("2026-01-01"),
+                LocalDate.parse("2026-01-31"),
+                "America/Sao_Paulo"
+        );
+
+        when(buscarTempoMedioExecucaoServicosFinalizadosUseCase.execute(any(), any())).thenReturn(response);
+
+        mockMvc.perform(get("/ordens-servico/metricas/tempo-medio-execucao")
+                        .param("dataInicio", "01/01/2026")
+                        .param("dataFim", "31/01/2026"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.servicos[0].servicoId").value(5))
+                .andExpect(jsonPath("$.servicos[0].servicoNome").value("Troca freio"))
+                .andExpect(jsonPath("$.servicos[0].tempoMedioMinutos").value(32.5));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    @DisplayName("GET /ordens-servico/metricas/tempo-medio-execucao deve retornar 403 para USER")
+    void shouldReturn403OnGetAverageExecutionTimeForUser() throws Exception {
+        mockMvc.perform(get("/ordens-servico/metricas/tempo-medio-execucao"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
