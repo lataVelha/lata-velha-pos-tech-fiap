@@ -1,8 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.peca;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarPecaRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.PecaResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -14,18 +12,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AtualizarPecaUseCaseTest {
 
     @Mock
     private PecaRepository repository;
-
-    @Mock
-    private PecaAssembler assembler;
 
     @InjectMocks
     private AtualizarPecaUseCase useCase;
@@ -35,18 +33,16 @@ class AtualizarPecaUseCaseTest {
     void deveAtualizarPecaComSucesso() {
         var request = new AtualizarPecaRequest("Pastilha premium", "Pastilha cerâmica", new BigDecimal("180.00"));
         var peca = new Peca(1L, "Pastilha", "Pastilha comum", new BigDecimal("130.00"), true);
-        var response = new PecaResponse(1L, "Pastilha premium", "Pastilha cerâmica", new BigDecimal("180.00"), true);
 
         when(repository.getActiveById(1L)).thenReturn(peca);
         when(repository.save(peca)).thenReturn(peca);
-        when(assembler.toResponse(peca)).thenReturn(response);
 
         var result = useCase.execute(1L, request);
 
-        assertEquals("Pastilha premium", peca.getNome());
-        assertEquals("Pastilha cerâmica", peca.getDescricao());
-        assertEquals(new BigDecimal("180.00"), peca.getValor());
-        assertEquals("Pastilha premium", result.nome());
+        assertThat(peca.getNome()).isEqualTo("Pastilha premium");
+        assertThat(peca.getDescricao()).isEqualTo("Pastilha cerâmica");
+        assertThat(peca.getValor()).isEqualByComparingTo("180.00");
+        assertThat(result.nome()).isEqualTo("Pastilha premium");
         verify(repository).save(peca);
     }
 
@@ -56,7 +52,8 @@ class AtualizarPecaUseCaseTest {
         var request = new AtualizarPecaRequest("Nome", "Descrição", new BigDecimal("50.00"));
         when(repository.getActiveById(99L)).thenThrow(new IllegalArgumentException("Peça não encontrada"));
 
-        assertThrows(IllegalArgumentException.class, () -> useCase.execute(99L, request));
-        verify(repository, never()).save(org.mockito.ArgumentMatchers.any());
+        assertThatThrownBy(() -> useCase.execute(99L, request))
+                .isInstanceOf(IllegalArgumentException.class);
+        verify(repository, never()).save(any());
     }
 }

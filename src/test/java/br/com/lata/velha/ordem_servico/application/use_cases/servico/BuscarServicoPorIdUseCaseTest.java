@@ -1,7 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.ServicoAssembler;
-import br.com.lata.velha.ordem_servico.application.dtos.response.ServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -21,9 +19,6 @@ class BuscarServicoPorIdUseCaseTest {
     @Mock
     private ServicoRepository repository;
 
-    @Mock
-    private ServicoAssembler assembler;
-
     @InjectMocks
     private BuscarServicoPorIdUseCase useCase;
 
@@ -31,10 +26,7 @@ class BuscarServicoPorIdUseCaseTest {
     @DisplayName("Deve buscar serviço ativo por ID")
     void deveBuscarServicoAtivoPorId() {
         var servico = new Servico(1L, "Alinhamento", "Alinhamento completo", true);
-        var response = new ServicoResponse(1L, "Alinhamento", "Alinhamento completo");
-
         when(repository.findActiveById(1L)).thenReturn(servico);
-        when(assembler.toResponse(servico)).thenReturn(response);
 
         var result = useCase.execute(1L);
 

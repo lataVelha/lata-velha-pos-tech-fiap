@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class UserIdTests {
+class UserIdTests {
 
     @Test
     @DisplayName("create deve criar UserId a partir de um UUID")

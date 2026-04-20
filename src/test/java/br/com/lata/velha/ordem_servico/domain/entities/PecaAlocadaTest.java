@@ -190,8 +190,9 @@ class PecaAlocadaTest {
         PecaAlocada b = new PecaAlocada(1L, 20L, 88L, 2, 0, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
         PecaAlocada c = new PecaAlocada(2L, 10L, 99L, 3, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
 
-        assertThat(a).isEqualTo(b);
-        assertThat(a).isNotEqualTo(c);
+        assertThat(a)
+                .isEqualTo(b)
+                .isNotEqualTo(c);
         assertThat(a.hashCode()).isEqualTo(b.hashCode());
     }
 

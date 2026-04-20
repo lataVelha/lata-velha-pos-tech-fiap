@@ -5,10 +5,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoRes
 import br.com.lata.velha.ordem_servico.application.use_cases.peca.BuscarPecaPorIdUseCase;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
-import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +18,7 @@ public class AdicionarServicoUseCase {
     private final ServicoRepository servicoRepository;
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
+    private final ExecucaoServicoRepository execucaoServicoRepository;
 
     public OrdemServicoResponse execute(AddServicoRequest request) {
         var ordemServico = ordemServicoRepository.getById(request.idOs());
@@ -32,7 +30,7 @@ public class AdicionarServicoUseCase {
 
             servicoRequest.pecas().forEach(pecaRequest -> {
                 var peca = buscarPecaPorIdUseCase.execute(pecaRequest.pecaId());
-                execucaoServico.adicionarPeca(new PecaAlocada(peca.id(), pecaRequest.quantidade()));
+                execucaoServico.adicionarPeca(PecaAlocada.create(peca.id(), execucaoServico.getId(), pecaRequest.quantidade()));
             });
 
             ordemServico.adicionarServico(execucaoServico);

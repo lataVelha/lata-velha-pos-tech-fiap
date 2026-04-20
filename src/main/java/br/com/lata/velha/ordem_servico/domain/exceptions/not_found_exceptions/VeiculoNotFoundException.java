@@ -1,7 +1,7 @@
 package br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import br.com.lata.velha.shared.domain.exceptions.NotFoundException;
 
 public class VeiculoNotFoundException extends NotFoundException {

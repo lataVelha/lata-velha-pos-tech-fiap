@@ -1,8 +1,8 @@
 package br.com.lata.velha.ordem_servico.domain.entities;
 
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Documento;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Endereco;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.NumeroCelular;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Endereco;
+import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,8 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaEstoqueAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEstoqueRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
@@ -30,9 +28,6 @@ class SaidaPecaEstoqueUseCaseTest {
     @Mock
     private PecaEstoqueRepository pecaEstoqueRepository;
 
-    @Mock
-    private PecaEstoqueAssembler assembler;
-
     @InjectMocks
     private SaidaPecaEstoqueUseCase useCase;
 
@@ -45,12 +40,8 @@ class SaidaPecaEstoqueUseCaseTest {
         when(pecaRepository.getActiveById(1L)).thenReturn(peca);
         when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.of(estoque));
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
-        when(assembler.toResponse(any(PecaEstoque.class))).thenAnswer(i -> {
-            PecaEstoque e = i.getArgument(0);
-            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada(), e.getQuantidadeDisponivel());
-        });
 
-        PecaEstoqueResponse response = useCase.execute(1L, request);
+        var response = useCase.execute(1L, request);
 
         assertThat(response.quantidadeArmazenada()).isEqualTo(7);
     }

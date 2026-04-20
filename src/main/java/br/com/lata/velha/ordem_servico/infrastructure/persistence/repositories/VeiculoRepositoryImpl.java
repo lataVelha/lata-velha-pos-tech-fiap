@@ -4,7 +4,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.VeiculoNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ProprietarioEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.VeiculoPersistenceMapper;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;

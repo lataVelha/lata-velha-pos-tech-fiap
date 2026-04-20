@@ -2,10 +2,10 @@ package br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Documento;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Endereco;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.NumeroCelular;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Endereco;
+import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.EnderecoEmbeddable;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ProprietarioEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.VeiculoEntity;

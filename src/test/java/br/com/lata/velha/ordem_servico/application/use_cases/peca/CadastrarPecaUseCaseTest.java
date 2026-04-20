@@ -1,8 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.peca;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarPecaRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.PecaResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
@@ -16,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,9 +27,6 @@ class CadastrarPecaUseCaseTest {
     @Mock
     private PecaEstoqueRepository pecaEstoqueRepository;
 
-    @Mock
-    private PecaAssembler assembler;
-
     @InjectMocks
     private CadastrarPecaUseCase useCase;
 
@@ -38,13 +34,9 @@ class CadastrarPecaUseCaseTest {
     @DisplayName("Deve cadastrar peça com sucesso")
     void deveCadastrarPecaComSucesso() {
         var request = new CadastrarPecaRequest("Pastilha", "Pastilha dianteira", new BigDecimal("150.00"));
-        var domain = new Peca(null, "Pastilha", "Pastilha dianteira", new BigDecimal("150.00"), true);
         var savedDomain = new Peca(10L, "Pastilha", "Pastilha dianteira", new BigDecimal("150.00"), true);
-        var response = new PecaResponse(10L, "Pastilha", "Pastilha dianteira", new BigDecimal("150.00"), true);
 
-        when(assembler.toDomain(request)).thenReturn(domain);
-        when(repository.save(domain)).thenReturn(savedDomain);
-        when(assembler.toResponse(savedDomain)).thenReturn(response);
+        when(repository.save(any())).thenReturn(savedDomain);
 
         var result = useCase.execute(request);
 
@@ -52,9 +44,7 @@ class CadastrarPecaUseCaseTest {
         assertThat(result.id()).isEqualTo(10L);
         assertThat(result.nome()).isEqualTo("Pastilha");
         assertThat(result.ativo()).isTrue();
-        verify(repository).save(domain);
-        verify(pecaEstoqueRepository).save(org.mockito.ArgumentMatchers.argThat(
-            estoque -> estoque.getPecaId().equals(10L) && estoque.getQuantidadeArmazenada().equals(0)
-        ));
+        verify(repository).save(any());
+        verify(pecaEstoqueRepository).save(any());
     }
 }

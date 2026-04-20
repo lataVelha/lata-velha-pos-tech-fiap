@@ -1,7 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.dtos.request;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
-import br.com.lata.velha.ordem_servico.domain.valueObjects.Placa;
+import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
