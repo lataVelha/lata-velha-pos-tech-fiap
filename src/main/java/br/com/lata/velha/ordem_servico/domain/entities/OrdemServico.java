@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.domain.entities;
 
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 
 import java.math.BigDecimal;
@@ -64,6 +65,12 @@ public final class OrdemServico {
 
     public void aprovar(Long atendenteId) {
         validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
+
+        boolean nenhumAprovado = execucaoServicos.stream()
+                .noneMatch(e -> e.getStatus() == StatusExecucaoServico.APROVADO);
+        if (nenhumAprovado) {
+            throw new IllegalStateException("É necessário pelo menos um serviço aprovado para aprovar a OS.");
+        }
 
         this.atendenteInicioId = atendenteId;
         this.status = StatusOrdemServico.APROVADA;

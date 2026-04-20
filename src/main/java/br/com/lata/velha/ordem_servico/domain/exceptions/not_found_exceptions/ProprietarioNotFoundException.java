@@ -1,10 +1,11 @@
 package br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions;
 
+import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.shared.domain.exceptions.NotFoundException;
 
 public class ProprietarioNotFoundException extends NotFoundException {
     private ProprietarioNotFoundException(String param, String value) {
-        super(ProprietarioNotFoundException.class, param, value);
+        super(Proprietario.class, param, value);
     }
 
     public static ProprietarioNotFoundException fromId(Long value) {

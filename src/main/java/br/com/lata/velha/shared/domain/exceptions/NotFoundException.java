@@ -12,22 +12,19 @@ public class NotFoundException extends DomainException {
     }
 
     private static String composeMessage(Type type, String paramName, String paramValue) {
-        var message = new StringBuilder()
-                .append("Entidade");
-        if(type != null) {
-            message.append(type.getClass().getName());
+        var message = new StringBuilder().append("Entidade");
+        if (type instanceof Class<?> clazz) {
+            message.append(" ").append(clazz.getSimpleName());
         }
         message.append(" não encontrada.");
 
         var isValidParamName = paramName != null && !paramName.isBlank();
-        if(isValidParamName) {
-            message.append("\nBuscando por ")
-                    .append(paramName);
+        if (isValidParamName) {
+            message.append(" Buscando por ").append(paramName);
 
             var isValidParamValue = paramValue != null && !paramValue.isBlank();
-            if(isValidParamValue) {
-                message.append(" com valor")
-                        .append(paramValue);
+            if (isValidParamValue) {
+                message.append(" com valor ").append(paramValue);
             }
         }
         return message.toString();
