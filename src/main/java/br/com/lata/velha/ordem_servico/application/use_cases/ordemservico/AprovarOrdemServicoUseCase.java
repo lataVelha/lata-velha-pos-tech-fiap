@@ -32,6 +32,17 @@ public class AprovarOrdemServicoUseCase {
         var funcionario = funcionarioRepository.getByUserId(input.userId());
 
         var statusPorId = input.getServiceStatusMap();
+
+        var idsValidos = ordemServico.getExecucaoServicos().stream()
+                .map(ExecucaoServico::getId)
+                .collect(Collectors.toSet());
+        var idsInvalidos = statusPorId.keySet().stream()
+                .filter(id -> !idsValidos.contains(id))
+                .toList();
+        if (!idsInvalidos.isEmpty()) {
+            throw new IllegalArgumentException("Serviços não pertencem à OS " + input.idOs() + ": " + idsInvalidos);
+        }
+
         var pecasEstoque = getStockMap(ordemServico.getExecucaoServicos());
 
         ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
