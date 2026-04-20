@@ -44,11 +44,14 @@ public class RetirarVeiculoUseCase {
         var saved = ordemServicoRepository.save(ordemServico);
         var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
         var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
+        String mecanicoNome = saved.getMecanicoResponsavelId() != null
+                ? funcionarioRepository.getById(saved.getMecanicoResponsavelId()).getNome()
+                : null;
 
         return OrdemServicoResponse.from(
                 saved,
                 funcionario.getNome(),
-                null,
+                mecanicoNome,
                 proprietario.getNome(),
                 veiculo.getMarca() + " " + veiculo.getModelo(),
                 totalServicos,

@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoRes
 import br.com.lata.velha.ordem_servico.application.use_cases.peca.BuscarPecaPorIdUseCase;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
+import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
@@ -19,6 +20,7 @@ public class AdicionarServicoUseCase {
     private final OrdemServicoRepository ordemServicoRepository;
     private final BuscarPecaPorIdUseCase buscarPecaPorIdUseCase;
     private final ServicoRepository servicoRepository;
+    private final FuncionarioRepository funcionarioRepository;
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
 
@@ -50,12 +52,16 @@ public class AdicionarServicoUseCase {
         });
 
         var saved = ordemServicoRepository.save(savedComServicos);
+        var atendente = funcionarioRepository.getById(saved.getAtendenteInicioId());
         var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
         var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
+        String mecanicoNome = saved.getMecanicoResponsavelId() != null
+                ? funcionarioRepository.getById(saved.getMecanicoResponsavelId()).getNome()
+                : null;
 
         return OrdemServicoResponse.from(saved,
-                null,
-                null,
+                atendente.getNome(),
+                mecanicoNome,
                 proprietario.getNome(),
                 veiculo.getMarca() + " " + veiculo.getModelo(),
                 null, null, null);
