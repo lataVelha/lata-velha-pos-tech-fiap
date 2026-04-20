@@ -1,7 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.peca;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PaginatedAssembler;
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaResponse;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
@@ -25,13 +23,10 @@ class BuscarPecasUseCaseTest {
     @Mock
     private PecaRepository repository;
 
-    @Mock
-    private PecaAssembler assembler;
-
     @Test
     @DisplayName("Deve listar peças ativas de forma paginada")
     void deveListarPecasAtivasDeFormaPaginada() {
-        var useCase = new BuscarPecasUseCase(repository, assembler, new PaginatedAssembler());
+        var useCase = new BuscarPecasUseCase(repository);
 
         var peca1 = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("30.00"), true);
         var peca2 = new Peca(2L, "Óleo", "Óleo sintético", new BigDecimal("59.90"), true);
@@ -39,12 +34,6 @@ class BuscarPecasUseCaseTest {
         var page = new PaginatedResult<>(List.of(peca1, peca2), 0, 10, 2, 1);
 
         when(repository.findAllActivePaginated(0, 10)).thenReturn(page);
-        when(assembler.toResponse(peca1)).thenReturn(
-            new PecaResponse(1L, "Filtro", "Filtro de óleo", new BigDecimal("30.00"), true)
-        );
-        when(assembler.toResponse(peca2)).thenReturn(
-            new PecaResponse(2L, "Óleo", "Óleo sintético", new BigDecimal("59.90"), true)
-        );
 
         PaginatedResult<PecaResponse> result = useCase.execute(0, 10);
 

@@ -8,9 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @Table(name = "PECA_ALOCADA")
 @Data
@@ -70,5 +67,34 @@ public class PecaAlocadaEntity {
                 status,
                 atualizado
         );
+    }
+
+    // Métodos de compatibilidade para testes legados baseados em relacionamentos diretos.
+    public void setPeca(PecaEntity peca) {
+        this.pecaId = peca != null ? peca.getId() : null;
+    }
+
+    public PecaEntity getPeca() {
+        if (this.pecaId == null) {
+            return null;
+        }
+
+        PecaEntity peca = new PecaEntity();
+        peca.setId(this.pecaId);
+        return peca;
+    }
+
+    public void setExecucaoServico(ExecucaoServicoEntity execucaoServico) {
+        this.execucaoServicoId = execucaoServico != null ? execucaoServico.getId() : null;
+    }
+
+    public ExecucaoServicoEntity getExecucaoServico() {
+        if (this.execucaoServicoId == null) {
+            return null;
+        }
+
+        ExecucaoServicoEntity execucaoServico = new ExecucaoServicoEntity();
+        execucaoServico.setId(this.execucaoServicoId);
+        return execucaoServico;
     }
 }

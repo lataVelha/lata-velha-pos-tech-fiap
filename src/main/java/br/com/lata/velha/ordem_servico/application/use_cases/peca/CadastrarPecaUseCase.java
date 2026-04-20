@@ -19,7 +19,7 @@ public class CadastrarPecaUseCase {
 
     @Transactional
     public PecaResponse execute(CadastrarPecaRequest request) {
-        Peca peca = assembler.toDomain(request);
+        Peca peca = request.toDomain();
         Peca saved = repository.save(peca);
         pecaEstoqueRepository.save(PecaEstoque.create(saved.getId()));
         return PecaResponse.from(saved);

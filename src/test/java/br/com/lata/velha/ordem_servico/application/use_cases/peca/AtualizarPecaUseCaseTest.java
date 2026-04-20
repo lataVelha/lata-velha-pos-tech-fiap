@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.peca;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarPecaRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
@@ -24,9 +23,6 @@ class AtualizarPecaUseCaseTest {
     @Mock
     private PecaRepository repository;
 
-    @Mock
-    private PecaAssembler assembler;
-
     @InjectMocks
     private AtualizarPecaUseCase useCase;
 
@@ -35,11 +31,9 @@ class AtualizarPecaUseCaseTest {
     void deveAtualizarPecaComSucesso() {
         var request = new AtualizarPecaRequest("Pastilha premium", "Pastilha cerâmica", new BigDecimal("180.00"));
         var peca = new Peca(1L, "Pastilha", "Pastilha comum", new BigDecimal("130.00"), true);
-        var response = new PecaResponse(1L, "Pastilha premium", "Pastilha cerâmica", new BigDecimal("180.00"), true);
 
         when(repository.getActiveById(1L)).thenReturn(peca);
         when(repository.save(peca)).thenReturn(peca);
-        when(assembler.toResponse(peca)).thenReturn(response);
 
         var result = useCase.execute(1L, request);
 

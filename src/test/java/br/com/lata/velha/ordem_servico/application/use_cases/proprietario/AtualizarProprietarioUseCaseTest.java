@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.ProprietarioAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
@@ -23,9 +22,6 @@ class AtualizarProprietarioUseCaseTest {
     @Mock
     private ProprietarioRepository repository;
 
-    @Mock
-    private ProprietarioAssembler assembler;
-
     @InjectMocks
     private AtualizarProprietarioUseCase useCase;
 
@@ -37,19 +33,15 @@ class AtualizarProprietarioUseCaseTest {
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
         Proprietario saved = new Proprietario(1L, "Maria", "maria@email.com",
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
-        ProprietarioResponse response = mock(ProprietarioResponse.class);
 
         when(repository.getActiveById(1L)).thenReturn(existing);
-        doNothing().when(assembler).updateDomain(existing, request);
         when(repository.save(existing)).thenReturn(saved);
-        when(assembler.toResponse(saved)).thenReturn(response);
 
         ProprietarioResponse result = useCase.execute(1L, request);
 
         assertNotNull(result);
         verify(repository).getActiveById(1L);
-        verify(assembler).updateDomain(existing, request);
+        verify(request).updateDomain(existing);
         verify(repository).save(existing);
-        verify(assembler).toResponse(saved);
     }
 }

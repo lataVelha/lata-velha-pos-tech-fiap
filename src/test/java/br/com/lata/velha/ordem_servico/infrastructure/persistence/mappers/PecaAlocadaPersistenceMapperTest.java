@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PecaAlocadaPersistenceMapperTest {
 
@@ -61,10 +62,9 @@ class PecaAlocadaPersistenceMapperTest {
         entity.setQuantidadeEncomendada(4);
         entity.setStatus(StatusPecaAlocada.ENCOMENDA);
 
-        PecaAlocada domain = mapper.toDomain(entity);
-
-        assertThat(domain.getPecaId()).isNull();
-        assertThat(domain.getExecucaoServicoId()).isNull();
+        assertThatThrownBy(() -> mapper.toDomain(entity))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Peça obrigatória");
     }
 
     @Test
@@ -94,11 +94,8 @@ class PecaAlocadaPersistenceMapperTest {
 
     @Test
     void deveMapearDomainParaEntitySemIdsRelacionados() {
-        PecaAlocada domain = new PecaAlocada(1L, null, null, 6, 0, 6, StatusPecaAlocada.ENCOMENDA, null);
-
-        PecaAlocadaEntity entity = mapper.toEntity(domain);
-
-        assertThat(entity.getPeca()).isNull();
-        assertThat(entity.getExecucaoServico()).isNull();
+        assertThatThrownBy(() -> new PecaAlocada(1L, null, null, 6, 0, 6, StatusPecaAlocada.ENCOMENDA, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Peça obrigatória");
     }
 }

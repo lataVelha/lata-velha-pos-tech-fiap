@@ -68,18 +68,6 @@ class OrdemServicoControllerTest {
     @MockBean
     private FinalizarDiagnosticoUseCase finalizarDiagnosticoUseCase;
 
-        @MockBean
-        private IniciarServicoUseCase iniciarServicoUseCase;
-
-        @MockBean
-        private FinalizarServicoUseCase finalizarServicoUseCase;
-
-        @MockBean
-        private RetirarVeiculoUseCase retirarVeiculoUseCase;
-
-        @MockBean
-        private BuscarTempoMedioExecucaoServicosFinalizadosUseCase buscarTempoMedioExecucaoServicosFinalizadosUseCase;
-
     @MockBean
     private IniciarServicoUseCase iniciarServicoUseCase;
 
@@ -88,6 +76,9 @@ class OrdemServicoControllerTest {
 
     @MockBean
     private RetirarVeiculoUseCase retirarVeiculoUseCase;
+
+        @MockBean
+        private BuscarTempoMedioExecucaoServicosFinalizadosUseCase buscarTempoMedioExecucaoServicosFinalizadosUseCase;
 
     @MockBean
     private JwtDecoder jwtDecoder;

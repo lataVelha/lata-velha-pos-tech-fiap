@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.veiculo;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.VeiculoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
@@ -21,9 +20,6 @@ class ReativarVeiculoUseCaseTest {
     @Mock
     private VeiculoRepository repository;
 
-    @Mock
-    private VeiculoAssembler assembler;
-
     @InjectMocks
     private ReativarVeiculoUseCase useCase;
 
@@ -32,11 +28,9 @@ class ReativarVeiculoUseCaseTest {
     void shouldReactivateVeiculo() {
         Veiculo veiculo = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
         veiculo.deactivate();
-        VeiculoResponse response = mock(VeiculoResponse.class);
 
         when(repository.findInactiveById(1L)).thenReturn(veiculo);
         when(repository.save(veiculo)).thenReturn(veiculo);
-        when(assembler.toResponse(veiculo)).thenReturn(response);
 
         VeiculoResponse result = useCase.execute(1L);
 

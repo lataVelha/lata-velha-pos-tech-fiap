@@ -1,7 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PaginatedAssembler;
-import br.com.lata.velha.ordem_servico.application.assemblers.ServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ServicoResponse;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
@@ -24,13 +22,10 @@ class BuscarServicosUseCaseTest {
     @Mock
     private ServicoRepository repository;
 
-    @Mock
-    private ServicoAssembler assembler;
-
     @Test
     @DisplayName("Deve listar serviços ativos de forma paginada")
     void deveListarServicosAtivosDeFormaPaginada() {
-        var useCase = new BuscarServicosUseCase(repository, assembler, new PaginatedAssembler());
+        var useCase = new BuscarServicosUseCase(repository);
 
         var servico1 = new Servico(1L, "Balanceamento", "Balanceamento das rodas", true);
         var servico2 = new Servico(2L, "Troca de óleo", "Substituição do óleo", true);
@@ -38,12 +33,6 @@ class BuscarServicosUseCaseTest {
         var page = new PaginatedResult<>(List.of(servico1, servico2), 0, 10, 2, 1);
 
         when(repository.findAllActivePaginated(0, 10)).thenReturn(page);
-        when(assembler.toResponse(servico1)).thenReturn(
-            new ServicoResponse(1L, "Balanceamento", "Balanceamento das rodas")
-        );
-        when(assembler.toResponse(servico2)).thenReturn(
-            new ServicoResponse(2L, "Troca de óleo", "Substituição do óleo")
-        );
 
         PaginatedResult<ServicoResponse> result = useCase.execute(0, 10);
 

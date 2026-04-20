@@ -20,12 +20,14 @@ class PecaEstoquePersistenceMapperTest {
         PecaEstoqueEntity entity = new PecaEstoqueEntity();
         entity.setPecaId(3L);
         entity.setQuantidadeArmazenada(11);
+        entity.setQuantidadeDisponivel(7);
 
         PecaEstoque domain = mapper.toDomain(entity);
 
         assertThat(domain).isNotNull();
         assertThat(domain.getPecaId()).isEqualTo(3L);
         assertThat(domain.getQuantidadeArmazenada()).isEqualTo(11);
+        assertThat(domain.getQuantidadeDisponivel()).isEqualTo(7);
     }
 
     @Test
@@ -35,12 +37,13 @@ class PecaEstoquePersistenceMapperTest {
 
     @Test
     void deveMapearDomainParaEntity() {
-        PecaEstoque domain = new PecaEstoque(4L, 9);
+        PecaEstoque domain = new PecaEstoque(4L, 9, 5);
 
         PecaEstoqueEntity entity = mapper.toEntity(domain);
 
         assertThat(entity).isNotNull();
         assertThat(entity.getPecaId()).isEqualTo(4L);
         assertThat(entity.getQuantidadeArmazenada()).isEqualTo(9);
+        assertThat(entity.getQuantidadeDisponivel()).isEqualTo(5);
     }
 }

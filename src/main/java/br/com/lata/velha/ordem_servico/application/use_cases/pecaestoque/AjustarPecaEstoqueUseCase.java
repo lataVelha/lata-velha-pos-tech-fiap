@@ -25,7 +25,6 @@ public class AjustarPecaEstoqueUseCase {
         estoque.ajustar(request.quantidadeArmazenada(), request.quantidadeDisponivel());
         PecaEstoque saved = pecaEstoqueRepository.save(estoque);
 
-        return assembler.toResponse(saved);
-        return PecaEstoqueResponse.from(pecaEstoqueRepository.save(estoque));
+        return PecaEstoqueResponse.from(saved);
     }
 }

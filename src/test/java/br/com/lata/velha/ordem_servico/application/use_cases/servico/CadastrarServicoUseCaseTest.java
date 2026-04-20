@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.ServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
@@ -13,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -22,9 +22,6 @@ class CadastrarServicoUseCaseTest {
     @Mock
     private ServicoRepository repository;
 
-    @Mock
-    private ServicoAssembler assembler;
-
     @InjectMocks
     private CadastrarServicoUseCase useCase;
 
@@ -32,13 +29,9 @@ class CadastrarServicoUseCaseTest {
     @DisplayName("Deve cadastrar serviço com sucesso")
     void deveCadastrarServicoComSucesso() {
         var request = new CadastrarServicoRequest("Alinhamento", "Alinhamento completo");
-        var domain = new Servico(null, "Alinhamento", "Alinhamento completo", true);
         var savedDomain = new Servico(10L, "Alinhamento", "Alinhamento completo", true);
-        var response = new ServicoResponse(10L, "Alinhamento", "Alinhamento completo");
 
-        when(assembler.toDomain(request)).thenReturn(domain);
-        when(repository.save(domain)).thenReturn(savedDomain);
-        when(assembler.toResponse(savedDomain)).thenReturn(response);
+        when(repository.save(any(Servico.class))).thenReturn(savedDomain);
 
         var result = useCase.execute(request);
 
@@ -46,6 +39,6 @@ class CadastrarServicoUseCaseTest {
         assertThat(result.id()).isEqualTo(10L);
         assertThat(result.nome()).isEqualTo("Alinhamento");
         assertThat(result.descricao()).isEqualTo("Alinhamento completo");
-        verify(repository).save(domain);
+        verify(repository).save(any(Servico.class));
     }
 }

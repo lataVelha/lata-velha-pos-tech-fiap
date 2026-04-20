@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.ServicoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
@@ -24,9 +23,6 @@ class AtualizarServicoUseCaseTest {
     @Mock
     private ServicoRepository repository;
 
-    @Mock
-    private ServicoAssembler assembler;
-
     @InjectMocks
     private AtualizarServicoUseCase useCase;
 
@@ -35,11 +31,9 @@ class AtualizarServicoUseCaseTest {
     void deveAtualizarServicoComSucesso() {
         var request = new AtualizarServicoRequest("Alinhamento 3D", "Alinhamento eletrônico completo");
         var servico = new Servico(1L, "Alinhamento", "Alinhamento comum", true);
-        var response = new ServicoResponse(1L, "Alinhamento 3D", "Alinhamento eletrônico completo");
 
         when(repository.findActiveById(1L)).thenReturn(servico);
         when(repository.save(servico)).thenReturn(servico);
-        when(assembler.toResponse(servico)).thenReturn(response);
 
         var result = useCase.execute(1L, request);
 

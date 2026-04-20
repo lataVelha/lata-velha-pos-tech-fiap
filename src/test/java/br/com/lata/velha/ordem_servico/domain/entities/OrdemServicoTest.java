@@ -175,13 +175,13 @@ class OrdemServicoTest {
     class Reprovar {
 
         @Test
-        @DisplayName("deve transitar para FINALIZADA e definir finalizadoEm")
+        @DisplayName("deve transitar para REPROVADA e definir finalizadoEm")
         void deveReprovarComSucesso() {
             OrdemServico os = aguardandoAprovacao();
 
             os.reprovar(2L);
 
-            assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.FINALIZADA);
+            assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.REPROVADA);
             assertThat(os.getFinalizadoEm()).isNotNull();
         }
 

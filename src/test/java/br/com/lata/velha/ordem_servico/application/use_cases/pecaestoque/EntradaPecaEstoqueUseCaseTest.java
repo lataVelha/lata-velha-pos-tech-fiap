@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PecaEstoqueAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEstoqueRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
@@ -35,9 +34,6 @@ class EntradaPecaEstoqueUseCaseTest {
     @Mock
     private PecaAlocadaRepository pecaAlocadaRepository;
 
-    @Mock
-    private PecaEstoqueAssembler assembler;
-
     @InjectMocks
     private EntradaPecaEstoqueUseCase useCase;
 
@@ -50,10 +46,6 @@ class EntradaPecaEstoqueUseCaseTest {
         when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.of(estoque));
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
         when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of());
-        when(assembler.toResponse(any(PecaEstoque.class))).thenAnswer(i -> {
-            PecaEstoque e = i.getArgument(0);
-            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada(), e.getQuantidadeDisponivel());
-        });
 
         PecaEstoqueResponse response = useCase.execute(1L, request);
 
@@ -69,10 +61,6 @@ class EntradaPecaEstoqueUseCaseTest {
         when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.empty());
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
         when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of());
-        when(assembler.toResponse(any(PecaEstoque.class))).thenAnswer(i -> {
-            PecaEstoque e = i.getArgument(0);
-            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada(), e.getQuantidadeDisponivel());
-        });
 
         PecaEstoqueResponse response = useCase.execute(1L, request);
 
@@ -91,10 +79,6 @@ class EntradaPecaEstoqueUseCaseTest {
         when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
         when(pecaAlocadaRepository.buscarPendentesPorPecaOrdenado(1L)).thenReturn(List.of(pendente));
         when(pecaAlocadaRepository.save(any(PecaAlocada.class))).thenAnswer(i -> i.getArgument(0));
-        when(assembler.toResponse(any(PecaEstoque.class))).thenAnswer(i -> {
-            PecaEstoque e = i.getArgument(0);
-            return new PecaEstoqueResponse(e.getPecaId(), e.getQuantidadeArmazenada(), e.getQuantidadeDisponivel());
-        });
 
         PecaEstoqueResponse response = useCase.execute(1L, request);
 

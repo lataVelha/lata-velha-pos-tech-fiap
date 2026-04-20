@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.veiculo;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.VeiculoAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.request.VeiculoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
@@ -29,9 +28,6 @@ class CriarVeiculoUseCaseTest {
     @Mock
     private ProprietarioRepository proprietarioRepository;
 
-    @Mock
-    private VeiculoAssembler assembler;
-
     @InjectMocks
     private CriarVeiculoUseCase useCase;
 
@@ -43,19 +39,17 @@ class CriarVeiculoUseCaseTest {
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
         Veiculo domain = new Veiculo(null, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
         Veiculo saved = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
-        VeiculoResponse response = mock(VeiculoResponse.class);
 
         when(request.proprietarioId()).thenReturn(1L);
+        when(request.toDomain()).thenReturn(domain);
         when(proprietarioRepository.getActiveById(1L)).thenReturn(proprietario);
-        when(assembler.toDomain(request)).thenReturn(domain);
         when(veiculoRepository.save(domain)).thenReturn(saved);
-        when(assembler.toResponse(saved)).thenReturn(response);
 
         VeiculoResponse result = useCase.execute(request);
 
         assertNotNull(result);
         verify(proprietarioRepository).getActiveById(1L);
         verify(veiculoRepository).save(domain);
-        verify(assembler).toResponse(saved);
+        verify(request).toDomain();
     }
 }

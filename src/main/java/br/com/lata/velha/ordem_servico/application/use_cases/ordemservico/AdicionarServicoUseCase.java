@@ -28,12 +28,14 @@ public class AdicionarServicoUseCase {
         request.servicoRequests().forEach(servicoRequest -> {
 
             var servico = servicoRepository.findActiveById(servicoRequest.servicoId());
-            var execucaoServico = execucaoServicoRepository.save(new ExecucaoServico(servico, servicoRequest.valorMaoDeObra()));
+            var execucaoServico = new ExecucaoServico(servico, servicoRequest.valorMaoDeObra());
 
-            servicoRequest.pecas().forEach(pecaRequest -> {
-                var peca = buscarPecaPorIdUseCase.execute(pecaRequest.pecaId());
-                execucaoServico.adicionarPeca(new PecaAlocada(peca.id(), pecaRequest.quantidade()));
-            });
+            if (servicoRequest.pecas() != null) {
+                servicoRequest.pecas().forEach(pecaRequest -> {
+                    var peca = buscarPecaPorIdUseCase.execute(pecaRequest.pecaId());
+                    execucaoServico.adicionarPeca(PecaAlocada.create(peca.id(), ordemServico.getId(), pecaRequest.quantidade()));
+                });
+            }
 
             ordemServico.adicionarServico(execucaoServico);
         });

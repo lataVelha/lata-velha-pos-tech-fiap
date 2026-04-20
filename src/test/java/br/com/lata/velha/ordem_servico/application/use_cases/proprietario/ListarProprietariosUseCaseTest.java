@@ -1,7 +1,5 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
-import br.com.lata.velha.ordem_servico.application.assemblers.PaginatedAssembler;
-import br.com.lata.velha.ordem_servico.application.assemblers.ProprietarioAssembler;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
@@ -16,12 +14,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,12 +24,6 @@ class ListarProprietariosUseCaseTest {
 
     @Mock
     private ProprietarioRepository repository;
-
-    @Mock
-    private ProprietarioAssembler proprietarioAssembler;
-
-    @Mock
-    private PaginatedAssembler paginatedAssembler;
 
     @InjectMocks
     private ListarProprietariosUseCase useCase;
@@ -46,18 +35,7 @@ class ListarProprietariosUseCaseTest {
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
         PaginatedResult<Proprietario> paginatedResult = new PaginatedResult<>(
                 List.of(domain), 0, 10, 1, 1);
-        PaginatedResult<ProprietarioResponse> paginatedResponse =
-                new PaginatedResult<>(
-                        List.of(mock(ProprietarioResponse.class)),
-                        0,
-                        10,
-                        1,
-                        1
-                );
-
         when(repository.findAllActivePaginated(0, 10)).thenReturn(paginatedResult);
-        when(paginatedAssembler.toResponse(eq(paginatedResult), any(Function.class)))
-                .thenReturn(paginatedResponse);
 
         PaginatedResult<ProprietarioResponse> result = useCase.execute(0, 10);
 
