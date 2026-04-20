@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.dtos.response.TotaisOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
@@ -11,8 +12,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -26,7 +29,7 @@ public class AprovarOrdemServicoUseCase {
     @Transactional
     public Output execute(Input input) {
         var ordemServico = ordemServicoRepository.getByIdWithExecucoes(input.idOs());
-        var funcionario = funcionarioRepository.getById(input.funcionarioId());
+        var funcionario = funcionarioRepository.getByUserId(input.userId());
 
         var statusPorId = input.getServiceStatusMap();
         var pecasEstoque = getStockMap(ordemServico.getExecucaoServicos());
@@ -67,7 +70,11 @@ public class AprovarOrdemServicoUseCase {
                 .map(s -> new Output.Servico(s.getId(), s.getStatus().name()))
                 .toList();
 
-        return new Output(saved.getId(), saved.getStatus().name(), servicos);
+        var maoDeObraAprovada = saved.calcularTotalAprovados();
+        var totalRecusado = saved.calcularTotalRecusados();
+        var totais = new TotaisOrdemServicoResponse(maoDeObraAprovada, BigDecimal.ZERO, maoDeObraAprovada, totalRecusado);
+
+        return new Output(saved.getId(), saved.getStatus().name(), servicos, totais);
     }
 
     private Map<Long, PecaEstoque> getStockMap(List<ExecucaoServico> execucaoServicos) {
@@ -92,7 +99,7 @@ public class AprovarOrdemServicoUseCase {
         );
     }
 
-    public record Input(Long idOs, Long funcionarioId, List<Servicos> servicos) {
+    public record Input(Long idOs, UUID userId, List<Servicos> servicos) {
         public Map<Long, StatusExecucaoServico> getServiceStatusMap() {
             return servicos.stream()
                     .collect(Collectors.toMap(
@@ -104,7 +111,7 @@ public class AprovarOrdemServicoUseCase {
         public record Servicos(Long servicoOsId, StatusExecucaoServico status) {}
     }
 
-    public record Output(Long idOs, String status, List<Servico> servicos) {
+    public record Output(Long idOs, String status, List<Servico> servicos, TotaisOrdemServicoResponse totais) {
         public record Servico(Long idServicoOs, String statusServico) {}
     }
 }

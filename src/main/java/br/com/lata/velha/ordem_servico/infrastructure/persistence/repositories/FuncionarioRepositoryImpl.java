@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -32,5 +33,12 @@ public class FuncionarioRepositoryImpl implements FuncionarioRepository {
     public Funcionario getById(Long id) {
         return findById(id)
                 .orElseThrow(() -> FuncionarioNotFoundException.fromId(id));
+    }
+
+    @Override
+    public Funcionario getByUserId(UUID userId) {
+        return jpaRepository.findByUserId(userId)
+                .map(mapper::toDomain)
+                .orElseThrow(() -> FuncionarioNotFoundException.fromUserId(userId));
     }
 }

@@ -1,9 +1,12 @@
 package br.com.lata.velha.ordem_servico.application.dtos.response;
 
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
+import br.com.lata.velha.ordem_servico.domain.entities.Peca;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.infrastructure.repositories.projection.OrdemServicoProjection;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Schema(name = "OrdemServicoResponse", description = "Resposta da Ordem de Serviço")
 public record OrdemServicoResponse(
@@ -63,7 +67,8 @@ public record OrdemServicoResponse(
     // O ObjectMapper do Spring (para a resposta HTTP) continua respeitando @JsonFormat normalmente.
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .findAndRegisterModules()
-            .configure(MapperFeature.USE_ANNOTATIONS, false);
+            .configure(MapperFeature.USE_ANNOTATIONS, false)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public static OrdemServicoResponse from(
             OrdemServico domain,
@@ -71,19 +76,31 @@ public record OrdemServicoResponse(
             String mecanicoNome,
             String proprietarioNome,
             String veiculoDescricao,
-            BigDecimal totalServicos,
-            BigDecimal totalPecas,
-            BigDecimal totalOrdemServico
+            BigDecimal ignorado1,
+            BigDecimal ignorado2,
+            BigDecimal ignorado3
+    ) {
+        return from(domain, atendenteNome, mecanicoNome, proprietarioNome, veiculoDescricao,
+                ignorado1, ignorado2, ignorado3, Map.of(), Map.of());
+    }
+
+    public static OrdemServicoResponse from(
+            OrdemServico domain,
+            String atendenteNome,
+            String mecanicoNome,
+            String proprietarioNome,
+            String veiculoDescricao,
+            BigDecimal ignorado1,
+            BigDecimal ignorado2,
+            BigDecimal ignorado3,
+            Map<Long, String> mecanicoNomes,
+            Map<Long, Peca> pecaMap
     ) {
         List<ExecucaoServicoResponse> servicos = domain.getExecucaoServicos() != null
                 ? domain.getExecucaoServicos().stream()
-                        .map(ExecucaoServicoResponse::from)
+                        .map(e -> ExecucaoServicoResponse.from(e, mecanicoNomes, pecaMap))
                         .toList()
                 : List.of();
-
-        TotaisOrdemServicoResponse totais = (totalServicos != null || totalPecas != null || totalOrdemServico != null)
-                ? new TotaisOrdemServicoResponse(totalServicos, totalPecas, totalOrdemServico)
-                : null;
 
         return new OrdemServicoResponse(
                 domain.getId(),
@@ -98,7 +115,7 @@ public record OrdemServicoResponse(
                 domain.getEntregueEm(),
                 domain.getAtualizadoEm(),
                 servicos,
-                totais
+                calcularTotais(servicos)
         );
     }
 
@@ -128,7 +145,38 @@ public record OrdemServicoResponse(
                 p.getEntregueEm(),
                 p.getAtualizadoEm(),
                 servicos,
-                null
+                calcularTotais(servicos)
+        );
+    }
+
+    private static TotaisOrdemServicoResponse calcularTotais(List<ExecucaoServicoResponse> servicos) {
+        if (servicos == null || servicos.isEmpty()) return null;
+
+        BigDecimal maoDeObraAprovada = servicos.stream()
+                .filter(s -> s.status() != StatusExecucaoServico.RECUSADO && s.status() != StatusExecucaoServico.PENDENTE)
+                .map(s -> s.valorMaoDeObra() != null ? s.valorMaoDeObra() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal pecasAprovadas = servicos.stream()
+                .filter(s -> s.status() != StatusExecucaoServico.RECUSADO && s.status() != StatusExecucaoServico.PENDENTE)
+                .flatMap(s -> s.pecas() != null ? s.pecas().stream() : java.util.stream.Stream.empty())
+                .map(p -> {
+                    BigDecimal valor = p.valor() != null ? p.valor() : BigDecimal.ZERO;
+                    int qtd = p.quantidadeSolicitada() != null ? p.quantidadeSolicitada() : 0;
+                    return valor.multiply(BigDecimal.valueOf(qtd));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalRecusado = servicos.stream()
+                .filter(s -> s.status() == StatusExecucaoServico.RECUSADO)
+                .map(s -> s.valorMaoDeObra() != null ? s.valorMaoDeObra() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new TotaisOrdemServicoResponse(
+                maoDeObraAprovada,
+                pecasAprovadas,
+                maoDeObraAprovada.add(pecasAprovadas),
+                totalRecusado
         );
     }
 }

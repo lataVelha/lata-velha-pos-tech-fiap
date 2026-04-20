@@ -11,4 +11,8 @@ public class FuncionarioNotFoundException extends NotFoundException {
     public static FuncionarioNotFoundException fromId(Long id) {
         return new FuncionarioNotFoundException("id", id.toString());
     }
+
+    public static FuncionarioNotFoundException fromUserId(java.util.UUID userId) {
+        return new FuncionarioNotFoundException("userId", userId.toString());
+    }
 }

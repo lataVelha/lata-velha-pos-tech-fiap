@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -24,9 +25,9 @@ public class RetirarVeiculoUseCase {
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
 
-    public OrdemServicoResponse execute(Long idOs, Long idFuncionario) {
+    public OrdemServicoResponse execute(Long idOs, UUID userId) {
         var ordemServico = ordemServicoRepository.getById(idOs);
-        var funcionario = funcionarioRepository.getById(idFuncionario);
+        var funcionario = funcionarioRepository.getByUserId(userId);
 
         if (!StatusOrdemServico.FINALIZADA.equals(ordemServico.getStatus())) {
             throw new ResourceAlreadyExistsException(

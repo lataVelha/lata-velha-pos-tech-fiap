@@ -9,6 +9,8 @@ import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class CriarOrdemServicoUseCase {
@@ -21,7 +23,7 @@ public class CriarOrdemServicoUseCase {
     public OrdemServicoResponse execute(Input input) {
         var veiculo = veiculoRepository.getActiveById(input.veiculoId());
         var proprietario = proprietarioRepository.getActiveById(input.proprietarioId());
-        var funcionario = funcionarioRepository.getById(input.atendenteInicioId());
+        var funcionario = funcionarioRepository.getByUserId(input.userId());
 
         var ordemServico = OrdemServico.create(
                 proprietario.getId(),
@@ -41,5 +43,5 @@ public class CriarOrdemServicoUseCase {
                 null, null, null);
     }
 
-    public record Input(Long veiculoId, Long proprietarioId, Long atendenteInicioId, String reclamacaoCliente) {}
+    public record Input(Long veiculoId, Long proprietarioId, UUID userId, String reclamacaoCliente) {}
 }

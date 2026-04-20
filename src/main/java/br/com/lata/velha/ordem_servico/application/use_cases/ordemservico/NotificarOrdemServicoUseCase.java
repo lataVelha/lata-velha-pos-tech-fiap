@@ -86,10 +86,15 @@ public class NotificarOrdemServicoUseCase {
                     "O diagnóstico do seu veículo foi finalizado. Confira abaixo os serviços identificados.",
                     "Diagnóstico Finalizado"
             );
-            case EM_EXECUCAO -> new StatusConfig(
+            case APROVADA -> new StatusConfig(
                     "Serviços Aprovados",
-                    "Os serviços foram aprovados e nossa equipe já está trabalhando no seu veículo.",
+                    "Os serviços foram aprovados. Em breve nossa equipe iniciará a execução.",
                     "Serviços Aprovados"
+            );
+            case EM_EXECUCAO -> new StatusConfig(
+                    "Serviços em Execução",
+                    "Nossa equipe já está trabalhando no seu veículo.",
+                    "Serviços em Execução"
             );
             case FINALIZADA -> new StatusConfig(
                     "Serviços Finalizados",
@@ -138,7 +143,7 @@ public class NotificarOrdemServicoUseCase {
     }
 
     private void addAprovadosRecusados(Map<String, Object> variables, OrdemServico os) {
-        if (os.getStatus() != StatusOrdemServico.EM_EXECUCAO
+        if ((os.getStatus() != StatusOrdemServico.EM_EXECUCAO && os.getStatus() != StatusOrdemServico.APROVADA)
                 || os.getExecucaoServicos().isEmpty()) {
             return;
         }
@@ -207,9 +212,10 @@ public class NotificarOrdemServicoUseCase {
                     new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
                     new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliando o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
                     new TimelineStep(3, "Aguardando Aprovação", "Aprovação dos serviços identificados", StatusOrdemServico.AGUARDANDO_APROVACAO),
-                    new TimelineStep(4, "Em Execução", "Próximo passo: mecânico irá executar os serviços", StatusOrdemServico.EM_EXECUCAO),
-                    new TimelineStep(5, "Finalizada", "Serviços concluídos", StatusOrdemServico.FINALIZADA),
-                    new TimelineStep(6, "Entregue", "Veículo retirado pelo cliente", StatusOrdemServico.ENTREGUE)
+                    new TimelineStep(4, "Aprovada", "Serviços aprovados, aguardando início da execução", StatusOrdemServico.APROVADA),
+                    new TimelineStep(5, "Em Execução", "Mecânico executando os serviços", StatusOrdemServico.EM_EXECUCAO),
+                    new TimelineStep(6, "Finalizada", "Serviços concluídos", StatusOrdemServico.FINALIZADA),
+                    new TimelineStep(7, "Entregue", "Veículo retirado pelo cliente", StatusOrdemServico.ENTREGUE)
             );
         }
 
@@ -219,15 +225,11 @@ public class NotificarOrdemServicoUseCase {
                 .findFirst()
                 .orElse(1);
 
-        int lastCompletedIndex;
-        if (statusAtual == StatusOrdemServico.FINALIZADA
+        boolean isStepConcluido = statusAtual == StatusOrdemServico.RECEBIDA
+                || statusAtual == StatusOrdemServico.FINALIZADA
                 || statusAtual == StatusOrdemServico.ENTREGUE
-                || statusAtual == StatusOrdemServico.RECEBIDA
-                || statusAtual == StatusOrdemServico.REPROVADA) {
-            lastCompletedIndex = currentIndex;
-        } else {
-            lastCompletedIndex = currentIndex - 1;
-        }
+                || statusAtual == StatusOrdemServico.REPROVADA
+                || statusAtual == StatusOrdemServico.APROVADA;
 
         List<Map<String, Object>> timeline = new ArrayList<>();
         for (TimelineStep step : steps) {
@@ -236,10 +238,14 @@ public class NotificarOrdemServicoUseCase {
             map.put("titulo", step.titulo());
             map.put("descricao", step.descricao());
 
-            if (step.numero() <= lastCompletedIndex) {
-                map.put("status", isReprovada && step.status() == StatusOrdemServico.REPROVADA ? "RECUSADO" : "CONCLUIDO");
-            } else if (step.numero() == lastCompletedIndex + 1) {
-                map.put("status", "ATUAL");
+            if (step.numero() < currentIndex) {
+                map.put("status", "CONCLUIDO");
+            } else if (step.numero() == currentIndex) {
+                if (isStepConcluido) {
+                    map.put("status", isReprovada && step.status() == StatusOrdemServico.REPROVADA ? "RECUSADO" : "CONCLUIDO");
+                } else {
+                    map.put("status", "ATUAL");
+                }
             } else {
                 map.put("status", "PENDENTE");
             }
