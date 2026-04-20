@@ -139,32 +139,34 @@ public class OrdemServicoController {
         return ResponseEntity.ok(reprovarOrdemServicoUseCase.execute(idOs, UUID.fromString(jwt.getSubject())));
     }
 
-    @PatchMapping("/{idOs}/iniciar-servico")
+    @PatchMapping("/{idOs}/iniciar-servico/{servicoId}")
     @Operation(
-            summary = "Iniciar execução dos serviços",
-            description = "Mecânico inicia a execução dos serviços aprovados, reservando as peças do estoque. Status: EM_EXECUCAO (sem transição de OS, apenas inicia os serviços internos)."
+            summary = "Iniciar execução de um serviço",
+            description = "Mecânico inicia a execução de um serviço específico aprovado, reservando as peças do estoque. Status: EM_EXECUCAO (sem transição de OS, apenas inicia o serviço informado)."
     )
     @ApiResponse(responseCode = "200", description = "Execução iniciada com sucesso")
     @ApiResponse(responseCode = "404", description = "OS ou mecânico não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status EM_EXECUCAO")
     public ResponseEntity<OrdemServicoResponse> startService(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
+            @Parameter(description = "ID do serviço a iniciar", example = "5") @PathVariable Long servicoId,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(iniciarServicoUseCase.execute(idOs, UUID.fromString(jwt.getSubject())));
+        return ResponseEntity.ok(iniciarServicoUseCase.execute(idOs, servicoId, UUID.fromString(jwt.getSubject())));
     }
 
-    @PatchMapping("/{idOs}/finalizar-servico")
+    @PatchMapping("/{idOs}/finalizar-servico/{servicoId}")
     @Operation(
-            summary = "Finalizar execução dos serviços",
-            description = "Mecânico conclui todos os serviços e finaliza a OS. As peças reservadas são marcadas como instaladas. Status: EM_EXECUCAO → FINALIZADA."
+            summary = "Finalizar execução de um serviço",
+            description = "Mecânico conclui um serviço específico. Quando todos os serviços estiverem finalizados ou recusados, a OS é fechada e o cliente é notificado. Status: EM_EXECUCAO → FINALIZADA (ao concluir o último serviço)."
     )
-    @ApiResponse(responseCode = "200", description = "OS finalizada com sucesso")
-    @ApiResponse(responseCode = "404", description = "OS ou mecânico não encontrado")
-    @ApiResponse(responseCode = "422", description = "OS não está no status EM_EXECUCAO ou há serviços/peças pendentes")
+    @ApiResponse(responseCode = "200", description = "Serviço finalizado com sucesso")
+    @ApiResponse(responseCode = "404", description = "OS, serviço ou mecânico não encontrado")
+    @ApiResponse(responseCode = "422", description = "OS não está no status EM_EXECUCAO ou serviço não está EM_EXECUCAO")
     public ResponseEntity<OrdemServicoResponse> finishService(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
+            @Parameter(description = "ID do serviço a finalizar", example = "5") @PathVariable Long servicoId,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(finalizarServicoUseCase.execute(idOs, UUID.fromString(jwt.getSubject())));
+        return ResponseEntity.ok(finalizarServicoUseCase.execute(idOs, servicoId, UUID.fromString(jwt.getSubject())));
     }
 
     @PatchMapping("/{idOs}/retirar-veiculo")

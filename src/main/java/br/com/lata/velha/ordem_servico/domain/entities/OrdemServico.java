@@ -66,6 +66,13 @@ public final class OrdemServico {
         validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
 
         this.atendenteInicioId = atendenteId;
+        this.status = StatusOrdemServico.APROVADA;
+        touch();
+    }
+
+    public void iniciarExecucao() {
+        validarStatus(StatusOrdemServico.APROVADA);
+
         this.status = StatusOrdemServico.EM_EXECUCAO;
         touch();
     }
@@ -146,6 +153,20 @@ public final class OrdemServico {
 
     public BigDecimal calcularValorTotal() {
         return execucaoServicos.stream()
+                .map(ExecucaoServico::calcularTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal calcularTotalAprovados() {
+        return execucaoServicos.stream()
+                .filter(e -> !e.isRecusado())
+                .map(ExecucaoServico::calcularTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal calcularTotalRecusados() {
+        return execucaoServicos.stream()
+                .filter(ExecucaoServico::isRecusado)
                 .map(ExecucaoServico::calcularTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }

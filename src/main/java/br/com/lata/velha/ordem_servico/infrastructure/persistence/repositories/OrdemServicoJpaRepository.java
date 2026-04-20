@@ -37,7 +37,10 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
                                'servicoId', srv.id,
                                'servicoNome', srv.nome,
                                'status', so.status_servico,
-                               'mecanicoResponsavelId', so.mecanico_responsavel_id,
+                               'mecanico', JSONB_BUILD_OBJECT(
+                                   'id', so.mecanico_responsavel_id,
+                                   'nome', mec_servico.nome
+                               ),
                                'valorMaoDeObra', so.valor_mao_de_obra,
                                'iniciadoEm', so.iniciado_em,
                                'terminadoEm', so.terminado_em,
@@ -49,6 +52,7 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
                                                'alocacaoId', sp.id,
                                                'id', peca.id,
                                                'nome', peca.nome,
+                                               'valor', peca.valor,
                                                'quantidadeSolicitada', sp.qtd_solicitada,
                                                'quantidadeReservada', sp.qtd_reservada,
                                                'quantidadeEncomendada', sp.qtd_encomendada,
@@ -81,6 +85,8 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
                     ON so.os_id = os.id
                LEFT JOIN servico srv
                    ON srv.id = so.servico_id
+               LEFT JOIN funcionario mec_servico
+                   ON mec_servico.id = so.mecanico_responsavel_id
                WHERE (:id IS NULL OR os.id = :id)
                  AND (:status IS NULL OR os.status = :status)
                  AND (:proprietarioId IS NULL OR os.proprietario_id = :proprietarioId)

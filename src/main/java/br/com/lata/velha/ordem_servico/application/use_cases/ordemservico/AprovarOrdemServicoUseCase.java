@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.dtos.response.TotaisOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
@@ -11,6 +12,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -68,7 +70,11 @@ public class AprovarOrdemServicoUseCase {
                 .map(s -> new Output.Servico(s.getId(), s.getStatus().name()))
                 .toList();
 
-        return new Output(saved.getId(), saved.getStatus().name(), servicos);
+        var maoDeObraAprovada = saved.calcularTotalAprovados();
+        var totalRecusado = saved.calcularTotalRecusados();
+        var totais = new TotaisOrdemServicoResponse(maoDeObraAprovada, BigDecimal.ZERO, maoDeObraAprovada, totalRecusado);
+
+        return new Output(saved.getId(), saved.getStatus().name(), servicos, totais);
     }
 
     private Map<Long, PecaEstoque> getStockMap(List<ExecucaoServico> execucaoServicos) {
@@ -105,7 +111,7 @@ public class AprovarOrdemServicoUseCase {
         public record Servicos(Long servicoOsId, StatusExecucaoServico status) {}
     }
 
-    public record Output(Long idOs, String status, List<Servico> servicos) {
+    public record Output(Long idOs, String status, List<Servico> servicos, TotaisOrdemServicoResponse totais) {
         public record Servico(Long idServicoOs, String statusServico) {}
     }
 }
