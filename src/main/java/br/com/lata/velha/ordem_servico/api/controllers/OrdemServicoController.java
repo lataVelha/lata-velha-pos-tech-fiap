@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServic
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
@@ -16,10 +17,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -38,6 +41,7 @@ public class OrdemServicoController {
     private final IniciarServicoUseCase iniciarServicoUseCase;
     private final FinalizarServicoUseCase finalizarServicoUseCase;
     private final RetirarVeiculoUseCase retirarVeiculoUseCase;
+    private final BuscarTempoMedioExecucaoServicosFinalizadosUseCase buscarTempoMedioExecucaoServicosFinalizadosUseCase;
 
     @PostMapping
     @Operation(
@@ -68,6 +72,23 @@ public class OrdemServicoController {
             @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(buscarOrdemServicoUseCase.execute(id, status, proprietarioId, mecanicoId, page, size));
+    }
+
+    @GetMapping("/metricas/tempo-medio-execucao")
+    @Operation(summary = "Tempo médio de execução por serviço finalizado [ADMIN] - formato de data: dd/MM/aaaa")
+    @ApiResponse(responseCode = "200", description = "Métrica calculada com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros de período inválidos")
+    public ResponseEntity<TempoMedioExecucaoResponse> getAverageExecutionTime(
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "dd/MM/yyyy")
+            LocalDate dataInicio,
+            @RequestParam(required = false)
+            @DateTimeFormat(pattern = "dd/MM/yyyy")
+            LocalDate dataFim) {
+
+        return ResponseEntity.ok(
+                buscarTempoMedioExecucaoServicosFinalizadosUseCase.execute(dataInicio, dataFim)
+        );
     }
 
     @PatchMapping("/{idOs}/iniciar-diagnostico")
