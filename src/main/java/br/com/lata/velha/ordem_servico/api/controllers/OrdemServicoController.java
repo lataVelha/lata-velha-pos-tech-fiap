@@ -24,7 +24,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/ordens-servico")
@@ -100,10 +99,14 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "200", description = "Diagnóstico iniciado com sucesso")
     @ApiResponse(responseCode = "404", description = "OS ou mecânico não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status RECEBIDA")
-    public ResponseEntity<OrdemServicoResponse> startDiagnostic(
+    public ResponseEntity<Void> startDiagnostic(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(iniciarDiagnosticoUseCase.execute(idOs, UserId.fromString(jwt.getSubject())));
+        var jwtSubject = jwt.getSubject();
+        var userId = UserId.fromString(jwtSubject);
+        var input = new IniciarDiagnosticoUseCase.Input(idOs, userId);
+        iniciarDiagnosticoUseCase.execute(input);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/adiciona-servico")
