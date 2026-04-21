@@ -8,6 +8,7 @@ import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,5 +42,12 @@ public class FuncionarioRepositoryImpl implements FuncionarioRepository {
         return jpaRepository.findByUserId(userId.getValue())
                 .map(mapper::toDomain)
                 .orElseThrow(() -> FuncionarioNotFoundException.fromUserId(userId));
+    }
+
+    @Override
+    public List<Funcionario> findAllByCargoNome(String cargoNome) {
+        return jpaRepository.findAllByCargo_Nome(cargoNome).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }

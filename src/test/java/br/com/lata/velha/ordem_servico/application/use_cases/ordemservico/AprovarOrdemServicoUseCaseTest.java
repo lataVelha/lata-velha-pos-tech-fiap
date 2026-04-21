@@ -36,6 +36,7 @@ class AprovarOrdemServicoUseCaseTest {
     @Mock private PecaEstoqueRepository pecaEstoqueRepository;
     @Mock private NotificarOrdemServicoUseCase notificarUseCase;
     @Mock private CalcularTotaisOrdemServicoUseCase calcularTotaisUseCase;
+    @Mock private NotificarAdminEncomendaPecaUseCase notificarAdminEncomendaUseCase;
 
     @InjectMocks
     private AprovarOrdemServicoUseCase useCase;
