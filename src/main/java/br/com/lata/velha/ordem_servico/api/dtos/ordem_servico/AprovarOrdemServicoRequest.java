@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
+import java.util.UUID;
 
 @Schema(name = "AprovarOrdemServicoRequest", description = "Dados para aprovação da Ordem de Serviço")
 public record AprovarOrdemServicoRequest(
@@ -22,8 +23,8 @@ public record AprovarOrdemServicoRequest(
         List<@Valid Servico> servicos
 ) {
         public AprovarOrdemServicoUseCase.Input toInput(UserId userId) {
-                List<AprovarOrdemServicoUseCase.Input.ServicoAprovacao> servicosInput = servicos.stream()
-                        .map(s -> new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(s.servicoOsId(), s.status()))
+                List<AprovarOrdemServicoUseCase.Input.Servicos> servicosInput = servicos.stream()
+                        .map(s -> new AprovarOrdemServicoUseCase.Input.Servicos(s.servicoOsId(), s.status()))
                         .toList();
                 return new AprovarOrdemServicoUseCase.Input(idOs, userId, servicosInput);
         }
