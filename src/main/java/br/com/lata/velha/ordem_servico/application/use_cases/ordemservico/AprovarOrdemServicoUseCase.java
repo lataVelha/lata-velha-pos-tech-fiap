@@ -33,6 +33,8 @@ public class AprovarOrdemServicoUseCase {
         var funcionario = funcionarioRepository.getByUserId(input.userId());
 
         validateServicos(ordemServico, input.servicos());
+        validateAprovacao(input);
+
         var statusPorId = input.getServiceStatusMap();
         var pecasEstoque = getStockMap(ordemServico.getExecucaoServicos());
 
@@ -99,7 +101,7 @@ public class AprovarOrdemServicoUseCase {
         );
     }
 
-    private void validateServicos(OrdemServico ordemServico, List<Input.Servicos> servicos) {
+    private void validateServicos(OrdemServico ordemServico, List<Input.ServicoAprovacao> servicos) {
         var registeredIds = ordemServico.getExecucaoServicos().stream()
                 .map(ExecucaoServico::getId)
                 .collect(Collectors.toSet());
@@ -110,16 +112,24 @@ public class AprovarOrdemServicoUseCase {
             throw new IllegalArgumentException("Serviços não pertencem à OS " + ordemServico.getId() + ": " + idsInvalidos);
     }
 
-    public record Input(Long idOs, UserId userId, List<Servicos> servicos) {
+    private void validateAprovacao(Input input) {
+        var noneApproved = input.servicos()
+                .stream()
+                .noneMatch(servico -> servico.status == StatusExecucaoServico.APROVADO);
+        if(noneApproved)
+            throw new IllegalArgumentException("Deve haver pelo menos um serviço aprovado! Se deseja cancelar todos reprove a OS");
+    }
+
+    public record Input(Long idOs, UserId userId, List<ServicoAprovacao> servicos) {
         public Map<Long, StatusExecucaoServico> getServiceStatusMap() {
             return servicos.stream()
                     .collect(Collectors.toMap(
-                            Servicos::execucaoServicoId,
-                            Servicos::status
+                            ServicoAprovacao::execucaoServicoId,
+                            ServicoAprovacao::status
                     ));
         }
 
-        public record Servicos(Long execucaoServicoId, StatusExecucaoServico status) {}
+        public record ServicoAprovacao(Long execucaoServicoId, StatusExecucaoServico status) {}
     }
 
     public record Output(Long idOs, String status, List<Servico> servicos, TotaisOrdemServicoResponse totais) {
