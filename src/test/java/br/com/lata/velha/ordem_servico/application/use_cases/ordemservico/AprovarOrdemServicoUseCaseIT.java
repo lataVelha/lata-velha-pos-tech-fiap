@@ -18,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,6 +44,7 @@ class AprovarOrdemServicoUseCaseIT {
     @MockBean private EmailTemplateProvider emailTemplateProvider;
 
     private Long funcionarioId;
+    private UUID funcionarioUserId;
     private Long osId;
     private Long execucaoId;
     private Long pecaId;
@@ -60,7 +62,8 @@ class AprovarOrdemServicoUseCaseIT {
         FuncionarioEntity funcionario = new FuncionarioEntity();
         funcionario.setNome("Ana Atendente");
         funcionario.setCargo(cargo);
-        funcionario.setUserId(UUID.randomUUID());
+        funcionarioUserId = UUID.randomUUID();
+        funcionario.setUserId(funcionarioUserId);
         em.persist(funcionario);
         funcionarioId = funcionario.getId();
 
@@ -137,18 +140,18 @@ class AprovarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve aprovar OS e serviço com estoque suficiente e persistir no banco")
     void deveAprovarOsComEstoqueSuficiente() {
-        var input = new AprovarOrdemServicoUseCase.Input(osId, funcionarioId,
+        var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
                 List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
 
         var output = useCase.execute(input);
 
-        assertThat(output.status()).isEqualTo(StatusOrdemServico.EM_EXECUCAO.name());
+        assertThat(output.status()).isEqualTo(StatusOrdemServico.APROVADA.name());
 
         em.flush();
         em.clear();
 
         OrdemServicoEntity osEntity = em.find(OrdemServicoEntity.class, osId);
-        assertThat(osEntity.getStatus()).isEqualTo(StatusOrdemServico.EM_EXECUCAO);
+        assertThat(osEntity.getStatus()).isEqualTo(StatusOrdemServico.APROVADA);
 
         ExecucaoServicoEntity execEntity = em.find(ExecucaoServicoEntity.class, execucaoId);
         assertThat(execEntity.getStatusExecucaoServico()).isEqualTo(StatusExecucaoServico.APROVADO);
@@ -160,7 +163,23 @@ class AprovarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve recusar execução quando não informada no input e persistir status RECUSADO")
     void deveRecusarExecucaoNaoInformada() {
-        var input = new AprovarOrdemServicoUseCase.Input(osId, funcionarioId, List.of());
+        ServicoEntity servico2 = new ServicoEntity();
+        servico2.setNome("Alinhamento");
+        servico2.setDescricao("Alinhamento completo");
+        em.persist(servico2);
+
+        OrdemServicoEntity osEntity = em.find(OrdemServicoEntity.class, osId);
+        ExecucaoServicoEntity execucao2 = new ExecucaoServicoEntity();
+        execucao2.setOrdemServico(osEntity);
+        execucao2.setServico(servico2);
+        execucao2.setStatusExecucaoServico(StatusExecucaoServico.PENDENTE);
+        execucao2.setValorMaoDeObra(new BigDecimal("100.00"));
+        execucao2.setAtualizadoEm(LocalDateTime.now());
+        em.persist(execucao2);
+        em.flush();
+
+        var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
+                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucao2.getId(), StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -170,8 +189,8 @@ class AprovarOrdemServicoUseCaseIT {
         ExecucaoServicoEntity execEntity = em.find(ExecucaoServicoEntity.class, execucaoId);
         assertThat(execEntity.getStatusExecucaoServico()).isEqualTo(StatusExecucaoServico.RECUSADO);
 
-        OrdemServicoEntity osEntity = em.find(OrdemServicoEntity.class, osId);
-        assertThat(osEntity.getStatus()).isEqualTo(StatusOrdemServico.EM_EXECUCAO);
+        OrdemServicoEntity osAtualizada = em.find(OrdemServicoEntity.class, osId);
+        assertThat(osAtualizada.getStatus()).isEqualTo(StatusOrdemServico.APROVADA);
     }
 
     @Test
@@ -182,7 +201,7 @@ class AprovarOrdemServicoUseCaseIT {
         estoqueEntity.setQuantidadeDisponivel(2);
         em.flush();
 
-        var input = new AprovarOrdemServicoUseCase.Input(osId, funcionarioId,
+        var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
                 List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
@@ -208,7 +227,7 @@ class AprovarOrdemServicoUseCaseIT {
         estoqueEntity.setQuantidadeDisponivel(0);
         em.flush();
 
-        var input = new AprovarOrdemServicoUseCase.Input(osId, funcionarioId,
+        var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
                 List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
@@ -226,7 +245,7 @@ class AprovarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve persistir atendenteId na execução após aprovação")
     void devePersistirAtendenteNaExecucao() {
-        var input = new AprovarOrdemServicoUseCase.Input(osId, funcionarioId,
+        var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
                 List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);

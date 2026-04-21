@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.*;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,7 @@ public class FinalizarServicoUseCase {
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
     @Transactional
-    public OrdemServicoResponse execute(Long idOs, Long servicoId, UUID userId) {
+    public OrdemServicoResponse execute(Long idOs, Long servicoId, UserId userId) {
         var ordemServico = ordemServicoRepository.getById(idOs);
         var mecanico = funcionarioRepository.getByUserId(userId);
 

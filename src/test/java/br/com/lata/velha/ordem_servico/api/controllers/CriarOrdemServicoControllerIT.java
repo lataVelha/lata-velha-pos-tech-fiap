@@ -9,6 +9,8 @@ import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +25,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -85,7 +89,7 @@ class CriarOrdemServicoControllerIT {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico deve retornar 201 com a OrdemServico criada")
     void shouldReturn201WhenCreatingOrdemServico() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, 2L, "Barulho ao frear");
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear");
         var osResponse = new OrdemServicoResponse(
                 1L, "RECEBIDA", "Barulho ao frear",
                 new FuncionarioResumoResponse(2L, "Maria Atendente"),
@@ -98,6 +102,7 @@ class CriarOrdemServicoControllerIT {
         when(criarOrdemServicoUseCase.execute(any())).thenReturn(osResponse);
 
         mockMvc.perform(post("/ordens-servico")
+                        .with(jwt().jwt(b -> b.subject(UUID.randomUUID().toString())).authorities(new SimpleGrantedAuthority("ROLE_USER")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -108,7 +113,7 @@ class CriarOrdemServicoControllerIT {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico com campos obrigatórios nulos deve retornar 400")
     void shouldReturn400WhenRequiredFieldsAreNull() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(null, null, null, "Motivo");
+        var invalid = new CriarOrdemServicoRequest(null, null, "Motivo");
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -120,7 +125,7 @@ class CriarOrdemServicoControllerIT {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico com reclamação acima de 500 caracteres deve retornar 400")
     void shouldReturn400WhenReclamacaoExceedsMaxLength() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(3L, 4L, 2L, "x".repeat(501));
+        var invalid = new CriarOrdemServicoRequest(3L, 4L, "x".repeat(501));
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -131,7 +136,7 @@ class CriarOrdemServicoControllerIT {
     @Test
     @DisplayName("POST /ordens-servico sem autenticação deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, 2L, "Barulho ao frear");
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear");
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)

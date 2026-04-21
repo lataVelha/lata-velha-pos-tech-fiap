@@ -10,6 +10,7 @@ import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,10 +45,12 @@ class CriarOrdemServicoUseCaseTest {
     private Funcionario funcionario;
     private CriarOrdemServicoUseCase.Input input;
     private OrdemServico savedOs;
+    private UserId userId;
 
     @BeforeEach
     void setUp() {
-        input = new CriarOrdemServicoUseCase.Input(3L, 4L, 2L, "Barulho ao frear");
+        userId = UserId.random();
+        input = new CriarOrdemServicoUseCase.Input(3L, 4L, userId, "Barulho ao frear");
 
         veiculo = mock(Veiculo.class);
         proprietario = mock(Proprietario.class);
@@ -66,7 +69,7 @@ class CriarOrdemServicoUseCaseTest {
         when(proprietario.getNome()).thenReturn("João");
         when(veiculoRepository.getActiveById(3L)).thenReturn(veiculo);
         when(proprietarioRepository.getActiveById(4L)).thenReturn(proprietario);
-        when(funcionarioRepository.getById(2L)).thenReturn(funcionario);
+        when(funcionarioRepository.getByUserId(userId)).thenReturn(funcionario);
         when(repository.save(any(OrdemServico.class))).thenReturn(savedOs);
     }
 
@@ -140,7 +143,7 @@ class CriarOrdemServicoUseCaseTest {
     void deveLancarExcecaoQuandoFuncionarioNaoEncontrado() {
         when(veiculoRepository.getActiveById(3L)).thenReturn(veiculo);
         when(proprietarioRepository.getActiveById(4L)).thenReturn(proprietario);
-        when(funcionarioRepository.getById(2L)).thenThrow(new RuntimeException("Funcionário não encontrado"));
+        when(funcionarioRepository.getByUserId(userId)).thenThrow(new RuntimeException("Funcionário não encontrado"));
 
         assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)

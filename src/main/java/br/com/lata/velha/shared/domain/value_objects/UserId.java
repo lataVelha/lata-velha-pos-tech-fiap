@@ -19,6 +19,11 @@ public final class UserId {
         return UserId.create(id);
     }
 
+    public static UserId fromString(String userId) {
+        var id = UUID.fromString(userId);
+        return UserId.create(id);
+    }
+
     public UUID getValue() {
         return id;
     }

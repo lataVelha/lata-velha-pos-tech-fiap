@@ -28,13 +28,17 @@ class OrdemServicoTest {
 
     private static OrdemServico aguardandoAprovacao() {
         OrdemServico os = emDiagnostico();
-        os.finalizarDiagnostico(10L);
+        os.finalizarDiagnostico();
         return os;
     }
 
     private static OrdemServico emExecucao() {
         OrdemServico os = aguardandoAprovacao();
+        ExecucaoServico exec = execucaoServico(999L);
+        exec.aprovar(2L);
+        os.adicionarServico(exec);
         os.aprovar(2L);
+        os.iniciarExecucao();
         return os;
     }
 
@@ -130,7 +134,7 @@ class OrdemServicoTest {
         void deveFinalizarDiagnosticoComSucesso() {
             OrdemServico os = emDiagnostico();
 
-            os.finalizarDiagnostico(10L);
+            os.finalizarDiagnostico();
 
             assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
             assertThat(os.getMecanicoResponsavelId()).isEqualTo(10L);
@@ -141,7 +145,7 @@ class OrdemServicoTest {
         void deveLancarExcecaoSeStatusInvalido() {
             OrdemServico os = recebida();
 
-            assertThatThrownBy(() -> os.finalizarDiagnostico(10L))
+            assertThatThrownBy(os::finalizarDiagnostico)
                     .isInstanceOf(IllegalStateException.class);
         }
     }
@@ -151,13 +155,16 @@ class OrdemServicoTest {
     class Aprovar {
 
         @Test
-        @DisplayName("deve transitar para EM_EXECUCAO")
+        @DisplayName("deve transitar para APROVADA")
         void deveAprovarComSucesso() {
             OrdemServico os = aguardandoAprovacao();
+            ExecucaoServico exec = execucaoServico(1L);
+            exec.aprovar(2L);
+            os.adicionarServico(exec);
 
             os.aprovar(2L);
 
-            assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.EM_EXECUCAO);
+            assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.APROVADA);
         }
 
         @Test

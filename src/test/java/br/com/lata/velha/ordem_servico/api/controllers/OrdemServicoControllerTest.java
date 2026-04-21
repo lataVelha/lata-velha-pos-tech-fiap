@@ -5,12 +5,7 @@ import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServic
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.ServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResumoResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResumoResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoServicoItemResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResumoResponse;
+import br.com.lata.velha.ordem_servico.application.dtos.response.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
@@ -23,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -33,10 +29,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,6 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(OrdemServicoController.class)
 @Import(SecurityConfig.class)
 class OrdemServicoControllerTest {
+
+    private static final String TEST_USER_ID = "00000000-0000-0000-0000-000000000001";
 
     @Autowired
     private MockMvc mockMvc;
@@ -106,11 +104,12 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico deve retornar 201 com a ordem criada")
     void shouldReturn201OnCreate() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, 2L, "Barulho ao frear");
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear");
 
         when(criarOrdemServicoUseCase.execute(any())).thenReturn(buildOrdemResponse());
 
         mockMvc.perform(post("/ordens-servico")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -121,7 +120,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico com body inválido deve retornar 400")
     void shouldReturn400OnInvalidCreateRequest() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(null, null, null, "x".repeat(501));
+        var invalid = new CriarOrdemServicoRequest(null, null, "x".repeat(501));
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -206,12 +205,9 @@ class OrdemServicoControllerTest {
                 LocalDateTime.now(), null, null, LocalDateTime.now(),
                 List.of(), null
         );
-
-        when(iniciarDiagnosticoUseCase.execute(1L, 5L)).thenReturn(response);
-
-        mockMvc.perform(patch("/ordens-servico/1/5/iniciar-diagnostico"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("EM_DIAGNOSTICO"));
+        mockMvc.perform(patch("/ordens-servico/1/iniciar-diagnostico")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_MECANICO"))))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -256,9 +252,10 @@ class OrdemServicoControllerTest {
                 List.of(), null
         );
 
-        when(finalizarDiagnosticoUseCase.execute(1L, 5L)).thenReturn(response);
+        when(finalizarDiagnosticoUseCase.execute(eq(1L), any())).thenReturn(response);
 
-        mockMvc.perform(patch("/ordens-servico/1/5/finalizar-diagnostico"))
+        mockMvc.perform(patch("/ordens-servico/1/finalizar-diagnostico")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_MECANICO"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("AGUARDANDO_APROVACAO"));
     }
@@ -268,13 +265,14 @@ class OrdemServicoControllerTest {
     @DisplayName("PATCH /ordens-servico/aprovar deve retornar 200")
     void shouldReturn200OnAprovar() throws Exception {
         var servico = new AprovarOrdemServicoRequest.Servico(10L, StatusExecucaoServico.APROVADO);
-        var request = new AprovarOrdemServicoRequest(1L, 2L, List.of(servico));
+        var request = new AprovarOrdemServicoRequest(1L, List.of(servico));
         var output = new AprovarOrdemServicoUseCase.Output(1L, "EM_EXECUCAO",
-                List.of(new AprovarOrdemServicoUseCase.Output.Servico(10L, "APROVADO")));
+                List.of(new AprovarOrdemServicoUseCase.Output.Servico(10L, "APROVADO")), null);
 
         when(aprovarOrdemServicoUseCase.execute(any())).thenReturn(output);
 
         mockMvc.perform(patch("/ordens-servico/aprovar")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -286,7 +284,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /ordens-servico/aprovar com body inválido deve retornar 400")
     void shouldReturn400OnAprovarWithInvalidRequest() throws Exception {
-        var invalid = new AprovarOrdemServicoRequest(null, null, List.of());
+        var invalid = new AprovarOrdemServicoRequest(null, List.of());
 
         mockMvc.perform(patch("/ordens-servico/aprovar")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -308,9 +306,10 @@ class OrdemServicoControllerTest {
                 List.of(), null
         );
 
-        when(reprovarOrdemServicoUseCase.execute(1L, 2L)).thenReturn(response);
+        when(reprovarOrdemServicoUseCase.execute(eq(1L), any())).thenReturn(response);
 
-        mockMvc.perform(patch("/ordens-servico/1/2/reprovar"))
+        mockMvc.perform(patch("/ordens-servico/1/reprovar")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("REPROVADA"));
     }
@@ -319,14 +318,14 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /ordens-servico/{idOs}/{idMecanico}/iniciar com role USER deve retornar 403")
     void shouldReturn403OnIniciarDiagnosticoForUserRole() throws Exception {
-        mockMvc.perform(patch("/ordens-servico/1/5/iniciar-diagnostico"))
+        mockMvc.perform(patch("/ordens-servico/1/iniciar-diagnostico"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @DisplayName("POST /ordens-servico/create sem autenticação deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, 2L, "Test");
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Test");
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -2,6 +2,9 @@ package br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.shared.domain.exceptions.NotFoundException;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
+
+import java.util.UUID;
 
 public class FuncionarioNotFoundException extends NotFoundException {
     private FuncionarioNotFoundException(String paramName, String paramValue) {
@@ -12,7 +15,7 @@ public class FuncionarioNotFoundException extends NotFoundException {
         return new FuncionarioNotFoundException("id", id.toString());
     }
 
-    public static FuncionarioNotFoundException fromUserId(java.util.UUID userId) {
+    public static FuncionarioNotFoundException fromUserId(UserId userId) {
         return new FuncionarioNotFoundException("userId", userId.toString());
     }
 }
