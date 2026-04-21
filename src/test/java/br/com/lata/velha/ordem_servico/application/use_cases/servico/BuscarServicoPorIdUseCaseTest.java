@@ -26,12 +26,12 @@ class BuscarServicoPorIdUseCaseTest {
     @DisplayName("Deve buscar serviço ativo por ID")
     void deveBuscarServicoAtivoPorId() {
         var servico = new Servico(1L, "Alinhamento", "Alinhamento completo", true);
-        when(repository.findActiveById(1L)).thenReturn(servico);
+        when(repository.getActiveById(1L)).thenReturn(servico);
 
         var result = useCase.execute(1L);
 
         assertThat(result.id()).isEqualTo(1L);
         assertThat(result.nome()).isEqualTo("Alinhamento");
-        verify(repository).findActiveById(1L);
+        verify(repository).getActiveById(1L);
     }
 }

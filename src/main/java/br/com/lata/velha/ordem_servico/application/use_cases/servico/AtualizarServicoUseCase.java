@@ -14,7 +14,7 @@ public class AtualizarServicoUseCase {
     private final ServicoRepository repository;
 
     public ServicoResponse execute(Long id, AtualizarServicoRequest request) {
-        Servico servico = repository.findActiveById(id);
+        Servico servico = repository.getActiveById(id);
         servico.atualizar(request.nome(), request.descricao());
         return ServicoResponse.from(repository.save(servico));
     }

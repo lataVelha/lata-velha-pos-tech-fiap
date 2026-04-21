@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class ServicoRepositoryImpl implements ServicoRepository {
-
     private final ServicoJpaRepository jpaRepository;
     private final ServicoPersistenceMapper mapper;
 
@@ -24,7 +23,7 @@ public class ServicoRepositoryImpl implements ServicoRepository {
     }
 
     @Override
-    public Servico findActiveById(Long id) {
+    public Servico getActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> ServicoNotFoundException.fromId(id));

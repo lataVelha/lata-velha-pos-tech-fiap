@@ -12,7 +12,7 @@ public class DesativarServicoUseCase {
     private final ServicoRepository repository;
 
     public void execute(Long id) {
-        Servico servico = repository.findActiveById(id);
+        Servico servico = repository.getActiveById(id);
 
         servico.desativar();
         repository.save(servico);

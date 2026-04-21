@@ -78,7 +78,7 @@ class ServicoRepositoryImplTest {
             when(jpaRepository.findByIdAndAtivoTrue(1L)).thenReturn(Optional.of(entity));
             when(mapper.toDomain(entity)).thenReturn(domainServico());
 
-            Servico result = repository.findActiveById(1L);
+            Servico result = repository.getActiveById(1L);
 
             assertThat(result.getId()).isEqualTo(1L);
         }
@@ -88,7 +88,7 @@ class ServicoRepositoryImplTest {
         void deveLancarExcecaoQuandoNaoEncontrado() {
             when(jpaRepository.findByIdAndAtivoTrue(99L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> repository.findActiveById(99L))
+            assertThatThrownBy(() -> repository.getActiveById(99L))
                     .isInstanceOf(ServicoNotFoundException.class)
                     .hasMessageContaining("99");
 

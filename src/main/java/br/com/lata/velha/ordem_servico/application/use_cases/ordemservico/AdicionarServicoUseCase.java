@@ -35,7 +35,7 @@ public class AdicionarServicoUseCase {
 
         // Fase 1: adiciona os serviços sem peças para obter os IDs após o save
         request.servicoRequests().forEach(servicoRequest -> {
-            var servico = servicoRepository.findActiveById(servicoRequest.servicoId());
+            var servico = servicoRepository.getActiveById(servicoRequest.servicoId());
             ordemServico.adicionarServico(new ExecucaoServico(servico, servicoRequest.valorMaoDeObra()));
         });
 

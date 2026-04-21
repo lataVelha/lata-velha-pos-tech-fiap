@@ -7,7 +7,7 @@ public interface ServicoRepository {
 
     Servico save(Servico servico);
 
-    Servico findActiveById(Long id);
+    Servico getActiveById(Long id);
 
     PaginatedResult<Servico> findAllActivePaginated(int page, int size);
 }

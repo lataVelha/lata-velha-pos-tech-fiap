@@ -12,6 +12,6 @@ public class BuscarServicoPorIdUseCase {
     private final ServicoRepository repository;
 
     public ServicoResponse execute(Long id) {
-        return ServicoResponse.from(repository.findActiveById(id));
+        return ServicoResponse.from(repository.getActiveById(id));
     }
 }

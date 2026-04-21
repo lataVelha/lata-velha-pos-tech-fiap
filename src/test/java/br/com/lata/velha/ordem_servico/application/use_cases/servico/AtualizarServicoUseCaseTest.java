@@ -32,7 +32,7 @@ class AtualizarServicoUseCaseTest {
         var request = new AtualizarServicoRequest("Alinhamento 3D", "Alinhamento eletrônico completo");
         var servico = new Servico(1L, "Alinhamento", "Alinhamento comum", true);
 
-        when(repository.findActiveById(1L)).thenReturn(servico);
+        when(repository.getActiveById(1L)).thenReturn(servico);
         when(repository.save(servico)).thenReturn(servico);
 
         var result = useCase.execute(1L, request);
@@ -47,7 +47,7 @@ class AtualizarServicoUseCaseTest {
     @DisplayName("Deve falhar quando serviço não existir")
     void deveFalharQuandoServicoNaoExistir() {
         var request = new AtualizarServicoRequest("Nome", "Descrição");
-        when(repository.findActiveById(99L)).thenThrow(new IllegalArgumentException("Serviço não encontrado"));
+        when(repository.getActiveById(99L)).thenThrow(new IllegalArgumentException("Serviço não encontrado"));
 
         assertThatThrownBy(() -> useCase.execute(99L, request))
                 .isInstanceOf(IllegalArgumentException.class);
