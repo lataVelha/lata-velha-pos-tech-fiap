@@ -94,7 +94,7 @@ class AprovarOrdemServicoUseCaseTest {
         stubSave(os);
 
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         var output = useCase.execute(input);
 
@@ -117,7 +117,7 @@ class AprovarOrdemServicoUseCaseTest {
         stubSave(os);
 
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(11L, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(11L, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -137,8 +137,8 @@ class AprovarOrdemServicoUseCaseTest {
 
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
                 List.of(
-                        new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.RECUSADO),
-                        new AprovarOrdemServicoUseCase.Input.Servicos(11L, StatusExecucaoServico.APROVADO)));
+                        new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.RECUSADO),
+                        new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(11L, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -160,7 +160,7 @@ class AprovarOrdemServicoUseCaseTest {
         stubSave(os);
 
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -183,7 +183,7 @@ class AprovarOrdemServicoUseCaseTest {
         stubSave(os);
 
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -208,7 +208,7 @@ class AprovarOrdemServicoUseCaseTest {
         stubSave(os);
 
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -229,7 +229,7 @@ class AprovarOrdemServicoUseCaseTest {
         stubSave(os);
 
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -249,7 +249,7 @@ class AprovarOrdemServicoUseCaseTest {
         when(ordemServicoRepository.save(any())).thenReturn(savedOs);
 
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         var output = useCase.execute(input);
 
@@ -300,7 +300,7 @@ class AprovarOrdemServicoUseCaseTest {
 
         Long idInvalido = 999L;
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(idInvalido, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(idInvalido, StatusExecucaoServico.APROVADO)));
 
         assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -319,12 +319,31 @@ class AprovarOrdemServicoUseCaseTest {
 
         Long idInvalido = 999L;
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId, List.of(
-                new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO),
-                new AprovarOrdemServicoUseCase.Input.Servicos(idInvalido, StatusExecucaoServico.APROVADO)));
+                new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.APROVADO),
+                new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(idInvalido, StatusExecucaoServico.APROVADO)));
 
         assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(String.valueOf(idInvalido));
+
+        verify(ordemServicoRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("deve lançar IllegalArgumentException quando todos os serviços do input são RECUSADO")
+    void deveLancarExcecaoQuandoTodosServicosForemRecusados() {
+        stubFuncionario();
+        ExecucaoServico exec1 = buildExecucao(EXECUCAO_ID);
+        ExecucaoServico exec2 = buildExecucao(11L);
+        when(ordemServicoRepository.getByIdWithExecucoes(OS_ID)).thenReturn(buildOs(List.of(exec1, exec2)));
+
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId, List.of(
+                new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.RECUSADO),
+                new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(11L, StatusExecucaoServico.RECUSADO)));
+
+        assertThatThrownBy(() -> useCase.execute(input))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("pelo menos um serviço aprovado");
 
         verify(ordemServicoRepository, never()).save(any());
     }
@@ -343,8 +362,8 @@ class AprovarOrdemServicoUseCaseTest {
         stubSave(os);
 
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId, List.of(
-                new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO),
-                new AprovarOrdemServicoUseCase.Input.Servicos(execId2, StatusExecucaoServico.RECUSADO)
+                new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.APROVADO),
+                new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execId2, StatusExecucaoServico.RECUSADO)
         ));
 
         useCase.execute(input);
