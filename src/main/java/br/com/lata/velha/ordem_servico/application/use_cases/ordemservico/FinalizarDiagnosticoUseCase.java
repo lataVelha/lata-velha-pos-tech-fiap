@@ -30,7 +30,7 @@ public class FinalizarDiagnosticoUseCase {
         var ordemServico = ordemServicoRepository.getById(idOs);
         var mecanico = funcionarioRepository.getByUserId(userId);
 
-        ordemServico.finalizarDiagnostico(mecanico.getId());
+        ordemServico.finalizarDiagnostico();
 
         var saved = ordemServicoRepository.save(ordemServico);
         notificarUseCase.execute(saved);

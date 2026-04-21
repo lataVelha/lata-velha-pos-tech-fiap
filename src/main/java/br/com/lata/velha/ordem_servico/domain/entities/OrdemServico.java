@@ -55,10 +55,8 @@ public final class OrdemServico {
         touch();
     }
 
-    public void finalizarDiagnostico(Long mecanicoId) {
+    public void finalizarDiagnostico() {
         validarStatus(StatusOrdemServico.EM_DIAGNOSTICO);
-
-        this.mecanicoResponsavelId = mecanicoId;
         this.status = StatusOrdemServico.AGUARDANDO_APROVACAO;
         touch();
     }

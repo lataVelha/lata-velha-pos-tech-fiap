@@ -28,7 +28,7 @@ class OrdemServicoTest {
 
     private static OrdemServico aguardandoAprovacao() {
         OrdemServico os = emDiagnostico();
-        os.finalizarDiagnostico(10L);
+        os.finalizarDiagnostico();
         return os;
     }
 
@@ -134,7 +134,7 @@ class OrdemServicoTest {
         void deveFinalizarDiagnosticoComSucesso() {
             OrdemServico os = emDiagnostico();
 
-            os.finalizarDiagnostico(10L);
+            os.finalizarDiagnostico();
 
             assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
             assertThat(os.getMecanicoResponsavelId()).isEqualTo(10L);
@@ -145,7 +145,7 @@ class OrdemServicoTest {
         void deveLancarExcecaoSeStatusInvalido() {
             OrdemServico os = recebida();
 
-            assertThatThrownBy(() -> os.finalizarDiagnostico(10L))
+            assertThatThrownBy(os::finalizarDiagnostico)
                     .isInstanceOf(IllegalStateException.class);
         }
     }
