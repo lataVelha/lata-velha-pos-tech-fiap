@@ -25,6 +25,7 @@ public class AprovarOrdemServicoUseCase {
     private final PecaEstoqueRepository pecaEstoqueRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
     private final CalcularTotaisOrdemServicoUseCase calcularTotaisUseCase;
+    private final NotificarAdminEncomendaPecaUseCase notificarAdminEncomendaUseCase;
 
     @Transactional
     public Output execute(Input input) {
@@ -57,12 +58,13 @@ public class AprovarOrdemServicoUseCase {
                         alocacaoPeca.reservar(estoque);
 
                         if (alocacaoPeca.getQuantidadeEncomendada() != null && alocacaoPeca.getQuantidadeEncomendada() > 0) {
-                            gerarEncomendaPeca(
+                            notificarAdminEncomendaUseCase.execute(new NotificarAdminEncomendaPecaUseCase.Input(
                                     ordemServico.getId(),
                                     execucaoServico.getId(),
                                     alocacaoPeca.getPecaId(),
-                                    alocacaoPeca.getQuantidadeEncomendada()
-                            );
+                                    alocacaoPeca.getQuantidadeEncomendada(),
+                                    execucaoServico.getServico().getNome()
+                            ));
                         }
                     });
                 }
@@ -97,15 +99,6 @@ public class AprovarOrdemServicoUseCase {
                 .collect(Collectors
                                 .toMap(PecaEstoque::getPecaId, p -> p)
                 );
-    }
-
-    private void gerarEncomendaPeca(Long osId, Long servicoId, Long pecaId, Integer quantidadeFaltante) {
-        System.out.println(
-                "Encomendar peça -> OS: " + osId +
-                        " | Serviço: " + servicoId +
-                        " | Peça: " + pecaId +
-                        " | Quantidade: " + quantidadeFaltante
-        );
     }
 
     public record Input(Long idOs, UUID userId, List<Servicos> servicos) {

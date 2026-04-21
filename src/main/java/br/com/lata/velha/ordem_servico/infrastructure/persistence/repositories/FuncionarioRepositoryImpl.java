@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.Funcio
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,5 +41,12 @@ public class FuncionarioRepositoryImpl implements FuncionarioRepository {
         return jpaRepository.findByUserId(userId)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> FuncionarioNotFoundException.fromUserId(userId));
+    }
+
+    @Override
+    public List<Funcionario> findAllByCargoNome(String cargoNome) {
+        return jpaRepository.findAllByCargo_Nome(cargoNome).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }
