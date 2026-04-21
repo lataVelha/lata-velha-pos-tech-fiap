@@ -292,6 +292,44 @@ class AprovarOrdemServicoUseCaseTest {
     }
 
     @Test
+    @DisplayName("deve lançar IllegalArgumentException quando serviço do input não pertence à OS")
+    void deveLancarExcecaoQuandoServicoNaoPertenceAOs() {
+        stubFuncionario();
+        ExecucaoServico exec = buildExecucao(EXECUCAO_ID);
+        when(ordemServicoRepository.getByIdWithExecucoes(OS_ID)).thenReturn(buildOs(List.of(exec)));
+
+        Long idInvalido = 999L;
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
+                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(idInvalido, StatusExecucaoServico.APROVADO)));
+
+        assertThatThrownBy(() -> useCase.execute(input))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(String.valueOf(OS_ID))
+                .hasMessageContaining(String.valueOf(idInvalido));
+
+        verify(ordemServicoRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("deve lançar IllegalArgumentException quando um dos serviços do input é inválido e outro é válido")
+    void deveLancarExcecaoQuandoAlgumServicoNaoPertenceAOs() {
+        stubFuncionario();
+        ExecucaoServico exec = buildExecucao(EXECUCAO_ID);
+        when(ordemServicoRepository.getByIdWithExecucoes(OS_ID)).thenReturn(buildOs(List.of(exec)));
+
+        Long idInvalido = 999L;
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId, List.of(
+                new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO),
+                new AprovarOrdemServicoUseCase.Input.Servicos(idInvalido, StatusExecucaoServico.APROVADO)));
+
+        assertThatThrownBy(() -> useCase.execute(input))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(String.valueOf(idInvalido));
+
+        verify(ordemServicoRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("deve aprovar múltiplas execuções com tratamentos distintos")
     void deveProcessarMultiplasExecucoesComStatusDistintos() {
         stubFuncionario();

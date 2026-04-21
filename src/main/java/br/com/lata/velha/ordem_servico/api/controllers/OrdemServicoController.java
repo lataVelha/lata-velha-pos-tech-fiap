@@ -141,9 +141,10 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos")
     @ApiResponse(responseCode = "404", description = "OS ou funcionário não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status AGUARDANDO_APROVACAO")
-    public ResponseEntity<AprovarOrdemServicoResponse> approve(@Valid @RequestBody AprovarOrdemServicoRequest request,
-                                                               @AuthenticationPrincipal Jwt jwt) {
-        var output = aprovarOrdemServicoUseCase.execute(request.toInput(UserId.fromString(jwt.getSubject())));
+    public ResponseEntity<AprovarOrdemServicoResponse> approve(@Valid @RequestBody AprovarOrdemServicoRequest request, @AuthenticationPrincipal Jwt jwt) {
+        var userId = UserId.fromString(jwt.getSubject());
+        var input = request.toInput(userId);
+        var output = aprovarOrdemServicoUseCase.execute(input);
         return ResponseEntity.ok(AprovarOrdemServicoResponse.fromOutput(output));
     }
 
