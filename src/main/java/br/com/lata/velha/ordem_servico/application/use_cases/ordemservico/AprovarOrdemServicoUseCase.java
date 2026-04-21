@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.dtos.response.TotaisOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
+import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -32,18 +32,8 @@ public class AprovarOrdemServicoUseCase {
         var ordemServico = ordemServicoRepository.getByIdWithExecucoes(input.idOs());
         var funcionario = funcionarioRepository.getByUserId(input.userId());
 
+        validateServicos(ordemServico, input.servicos());
         var statusPorId = input.getServiceStatusMap();
-
-        var idsValidos = ordemServico.getExecucaoServicos().stream()
-                .map(ExecucaoServico::getId)
-                .collect(Collectors.toSet());
-        var idsInvalidos = statusPorId.keySet().stream()
-                .filter(id -> !idsValidos.contains(id))
-                .toList();
-        if (!idsInvalidos.isEmpty()) {
-            throw new IllegalArgumentException("Serviços não pertencem à OS " + input.idOs() + ": " + idsInvalidos);
-        }
-
         var pecasEstoque = getStockMap(ordemServico.getExecucaoServicos());
 
         ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
@@ -109,16 +99,27 @@ public class AprovarOrdemServicoUseCase {
         );
     }
 
+    private void validateServicos(OrdemServico ordemServico, List<Input.Servicos> servicos) {
+        var registeredIds = ordemServico.getExecucaoServicos().stream()
+                .map(ExecucaoServico::getId)
+                .collect(Collectors.toSet());
+        var idsInvalidos = servicos.stream()
+                .filter(servico -> !registeredIds.contains(servico.execucaoServicoId()))
+                .toList();
+        if (!idsInvalidos.isEmpty())
+            throw new IllegalArgumentException("Serviços não pertencem à OS " + ordemServico.getId() + ": " + idsInvalidos);
+    }
+
     public record Input(Long idOs, UserId userId, List<Servicos> servicos) {
         public Map<Long, StatusExecucaoServico> getServiceStatusMap() {
             return servicos.stream()
                     .collect(Collectors.toMap(
-                            Servicos::servicoOsId,
+                            Servicos::execucaoServicoId,
                             Servicos::status
                     ));
         }
 
-        public record Servicos(Long servicoOsId, StatusExecucaoServico status) {}
+        public record Servicos(Long execucaoServicoId, StatusExecucaoServico status) {}
     }
 
     public record Output(Long idOs, String status, List<Servico> servicos, TotaisOrdemServicoResponse totais) {
