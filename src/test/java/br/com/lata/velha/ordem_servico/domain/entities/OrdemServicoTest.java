@@ -34,7 +34,11 @@ class OrdemServicoTest {
 
     private static OrdemServico emExecucao() {
         OrdemServico os = aguardandoAprovacao();
+        ExecucaoServico exec = execucaoServico(999L);
+        exec.aprovar(2L);
+        os.adicionarServico(exec);
         os.aprovar(2L);
+        os.iniciarExecucao();
         return os;
     }
 
@@ -151,13 +155,16 @@ class OrdemServicoTest {
     class Aprovar {
 
         @Test
-        @DisplayName("deve transitar para EM_EXECUCAO")
+        @DisplayName("deve transitar para APROVADA")
         void deveAprovarComSucesso() {
             OrdemServico os = aguardandoAprovacao();
+            ExecucaoServico exec = execucaoServico(1L);
+            exec.aprovar(2L);
+            os.adicionarServico(exec);
 
             os.aprovar(2L);
 
-            assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.EM_EXECUCAO);
+            assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.APROVADA);
         }
 
         @Test

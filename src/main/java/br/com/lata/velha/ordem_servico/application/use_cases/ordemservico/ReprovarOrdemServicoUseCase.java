@@ -1,22 +1,18 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.domain.entities.Peca;
-import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
-import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
-import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
+import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
+import br.com.lata.velha.ordem_servico.domain.entities.Peca;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.ordem_servico.domain.repositories.*;
+import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -30,7 +26,7 @@ public class ReprovarOrdemServicoUseCase {
     private final VeiculoRepository veiculoRepository;
     private final PecaRepository pecaRepository;
 
-    public OrdemServicoResponse execute(Long osId, UUID userId) {
+    public OrdemServicoResponse execute(Long osId, UserId userId) {
         var ordemServico = ordemServicoRepository.getById(osId);
         var funcionario = funcionarioRepository.getByUserId(userId);
 

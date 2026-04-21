@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.ports.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.*;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +47,7 @@ class CriarOrdemServicoUseCaseIT {
     private Long veiculoId;
     private Long proprietarioId;
     private Long funcionarioId;
+    private FuncionarioEntity funcionario;
 
     @BeforeEach
     void setUp() {
@@ -77,7 +79,7 @@ class CriarOrdemServicoUseCaseIT {
         em.persist(veiculo);
         veiculoId = veiculo.getId();
 
-        FuncionarioEntity funcionario = new FuncionarioEntity();
+        this.funcionario = new FuncionarioEntity();
         funcionario.setNome("Maria Atendente");
         funcionario.setCargo(cargo);
         funcionario.setUserId(UUID.randomUUID());
@@ -90,7 +92,8 @@ class CriarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve criar OrdemServico com sucesso e persistir no banco")
     void deveCriarOrdemServicoComSucesso() {
-        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioId, "Barulho ao frear");
+        var funcionarioUserId = UserId.create(funcionario.getUserId());
+        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Barulho ao frear");
 
         var output = useCase.execute(input);
 
@@ -112,7 +115,8 @@ class CriarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve persistir reclamação do cliente corretamente")
     void devePersistirReclamacaoCliente() {
-        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioId, "Motor superaquecendo");
+        var funcionarioUserId = UserId.create(funcionario.getUserId());
+        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Motor superaquecendo");
 
         var output = useCase.execute(input);
 
@@ -126,7 +130,8 @@ class CriarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve persistir atendente e status RECEBIDA corretamente")
     void devePersistirAtendenteEStatus() {
-        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioId, "Freio falhando");
+        var funcionarioUserId = UserId.create(funcionario.getUserId());
+        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Freio falhando");
 
         var output = useCase.execute(input);
 

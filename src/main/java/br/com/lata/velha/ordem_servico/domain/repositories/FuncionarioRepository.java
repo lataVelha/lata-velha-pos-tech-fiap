@@ -1,6 +1,7 @@
 package br.com.lata.velha.ordem_servico.domain.repositories;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -13,5 +14,5 @@ public interface FuncionarioRepository {
 
     Funcionario getById(Long id);
 
-    Funcionario getByUserId(UUID userId);
+    Funcionario getByUserId(UserId userId);
 }

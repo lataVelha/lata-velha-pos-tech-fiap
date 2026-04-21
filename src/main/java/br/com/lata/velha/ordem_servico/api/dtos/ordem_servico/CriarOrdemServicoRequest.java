@@ -1,6 +1,7 @@
 package br.com.lata.velha.ordem_servico.api.dtos.ordem_servico;
 
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.CriarOrdemServicoUseCase;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -25,7 +26,7 @@ public record CriarOrdemServicoRequest(
         String reclamacaoCliente
 
 ) {
-        public CriarOrdemServicoUseCase.Input toCriarOsUseCaseInput(UUID userId) {
+        public CriarOrdemServicoUseCase.Input toCriarOsUseCaseInput(UserId userId) {
                 return new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, userId, reclamacaoCliente);
         }
 }

@@ -9,15 +9,16 @@ import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecu
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -55,7 +56,7 @@ public class OrdemServicoController {
                                                        @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(criarOrdemServicoUseCase.execute(request.toCriarOsUseCaseInput(UUID.fromString(jwt.getSubject()))));
+                .body(criarOrdemServicoUseCase.execute(request.toCriarOsUseCaseInput(UserId.fromString(jwt.getSubject()))));
     }
 
     @GetMapping
@@ -102,7 +103,7 @@ public class OrdemServicoController {
     public ResponseEntity<OrdemServicoResponse> startDiagnostic(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(iniciarDiagnosticoUseCase.execute(idOs, UUID.fromString(jwt.getSubject())));
+        return ResponseEntity.ok(iniciarDiagnosticoUseCase.execute(idOs, UserId.fromString(jwt.getSubject())));
     }
 
     @PatchMapping("/adiciona-servico")
@@ -129,7 +130,7 @@ public class OrdemServicoController {
     public ResponseEntity<OrdemServicoResponse> finalDiagnostic(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(finalizarDiagnosticoUseCase.execute(idOs, UUID.fromString(jwt.getSubject())));
+        return ResponseEntity.ok(finalizarDiagnosticoUseCase.execute(idOs, UserId.fromString(jwt.getSubject())));
     }
 
     @PatchMapping("/aprovar")
@@ -142,7 +143,7 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "422", description = "OS não está no status AGUARDANDO_APROVACAO")
     public ResponseEntity<AprovarOrdemServicoResponse> approve(@Valid @RequestBody AprovarOrdemServicoRequest request,
                                                                @AuthenticationPrincipal Jwt jwt) {
-        var output = aprovarOrdemServicoUseCase.execute(request.toInput(UUID.fromString(jwt.getSubject())));
+        var output = aprovarOrdemServicoUseCase.execute(request.toInput(UserId.fromString(jwt.getSubject())));
         return ResponseEntity.ok(AprovarOrdemServicoResponse.fromOutput(output));
     }
 
@@ -157,7 +158,7 @@ public class OrdemServicoController {
     public ResponseEntity<OrdemServicoResponse> reprove(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(reprovarOrdemServicoUseCase.execute(idOs, UUID.fromString(jwt.getSubject())));
+        return ResponseEntity.ok(reprovarOrdemServicoUseCase.execute(idOs, UserId.fromString(jwt.getSubject())));
     }
 
     @PatchMapping("/{idOs}/iniciar-servico/{servicoId}")
@@ -172,7 +173,7 @@ public class OrdemServicoController {
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Parameter(description = "ID do serviço a iniciar", example = "5") @PathVariable Long servicoId,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(iniciarServicoUseCase.execute(idOs, servicoId, UUID.fromString(jwt.getSubject())));
+        return ResponseEntity.ok(iniciarServicoUseCase.execute(idOs, servicoId, UserId.fromString(jwt.getSubject())));
     }
 
     @PatchMapping("/{idOs}/finalizar-servico/{servicoId}")
@@ -187,7 +188,7 @@ public class OrdemServicoController {
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Parameter(description = "ID do serviço a finalizar", example = "5") @PathVariable Long servicoId,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(finalizarServicoUseCase.execute(idOs, servicoId, UUID.fromString(jwt.getSubject())));
+        return ResponseEntity.ok(finalizarServicoUseCase.execute(idOs, servicoId, UserId.fromString(jwt.getSubject())));
     }
 
     @PatchMapping("/{idOs}/retirar-veiculo")
@@ -201,6 +202,6 @@ public class OrdemServicoController {
     public ResponseEntity<OrdemServicoResponse> removeVehicle(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(retirarVeiculoUseCase.execute(idOs, UUID.fromString(jwt.getSubject())));
+        return ResponseEntity.ok(retirarVeiculoUseCase.execute(idOs, UserId.fromString(jwt.getSubject())));
     }
 }
