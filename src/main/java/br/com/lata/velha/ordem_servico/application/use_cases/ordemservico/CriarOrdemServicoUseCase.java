@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -43,5 +44,5 @@ public class CriarOrdemServicoUseCase {
                 null, null, null);
     }
 
-    public record Input(Long veiculoId, Long proprietarioId, UUID userId, String reclamacaoCliente) {}
+    public record Input(Long veiculoId, Long proprietarioId, UserId userId, String reclamacaoCliente) {}
 }

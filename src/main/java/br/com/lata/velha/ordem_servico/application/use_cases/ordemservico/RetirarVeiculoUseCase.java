@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.*;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +26,7 @@ public class RetirarVeiculoUseCase {
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
 
-    public OrdemServicoResponse execute(Long idOs, UUID userId) {
+    public OrdemServicoResponse execute(Long idOs, UserId userId) {
         var ordemServico = ordemServicoRepository.getById(idOs);
         var funcionario = funcionarioRepository.getByUserId(userId);
 

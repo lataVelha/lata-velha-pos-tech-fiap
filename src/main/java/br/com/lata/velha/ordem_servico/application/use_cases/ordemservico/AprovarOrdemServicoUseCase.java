@@ -8,6 +8,7 @@ import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -108,7 +109,7 @@ public class AprovarOrdemServicoUseCase {
         );
     }
 
-    public record Input(Long idOs, UUID userId, List<Servicos> servicos) {
+    public record Input(Long idOs, UserId userId, List<Servicos> servicos) {
         public Map<Long, StatusExecucaoServico> getServiceStatusMap() {
             return servicos.stream()
                     .collect(Collectors.toMap(

@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,7 @@ public class IniciarDiagnosticoUseCase {
     private final VeiculoRepository veiculoRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
-    public OrdemServicoResponse execute(Long idOs, UUID userId) {
+    public OrdemServicoResponse execute(Long idOs, UserId userId) {
         var ordemServico = repository.getById(idOs);
 
         var mecanico = funcionarioRepository.getByUserId(userId);

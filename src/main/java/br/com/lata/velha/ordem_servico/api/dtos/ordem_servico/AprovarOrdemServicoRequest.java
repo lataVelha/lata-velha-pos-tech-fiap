@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.api.dtos.ordem_servico;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.AprovarOrdemServicoUseCase;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.shared.api.validators.StatusAprovacaoValido;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -21,7 +22,7 @@ public record AprovarOrdemServicoRequest(
         @Schema(description = "Serviços a aprovar ou reprovar")
         List<@Valid Servico> servicos
 ) {
-        public AprovarOrdemServicoUseCase.Input toInput(UUID userId) {
+        public AprovarOrdemServicoUseCase.Input toInput(UserId userId) {
                 List<AprovarOrdemServicoUseCase.Input.Servicos> servicosInput = servicos.stream()
                         .map(s -> new AprovarOrdemServicoUseCase.Input.Servicos(s.servicoOsId(), s.status()))
                         .toList();

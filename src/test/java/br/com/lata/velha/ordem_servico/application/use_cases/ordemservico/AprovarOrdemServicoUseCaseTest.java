@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ class AprovarOrdemServicoUseCaseTest {
     @Mock private FuncionarioRepository funcionarioRepository;
     @Mock private PecaEstoqueRepository pecaEstoqueRepository;
     @Mock private NotificarOrdemServicoUseCase notificarUseCase;
+    @Mock private CalcularTotaisOrdemServicoUseCase calcularTotaisUseCase;
 
     @InjectMocks
     private AprovarOrdemServicoUseCase useCase;
@@ -44,14 +46,16 @@ class AprovarOrdemServicoUseCaseTest {
     private static final Long PECA_ID = 20L;
 
     private Funcionario funcionario;
+    private UserId userId;
 
     @BeforeEach
     void setUp() {
         funcionario = new Funcionario(FUNCIONARIO_ID, "Ana Atendente", null, null);
+        userId = UserId.random();
     }
 
     private void stubFuncionario() {
-        when(funcionarioRepository.getById(FUNCIONARIO_ID)).thenReturn(funcionario);
+        when(funcionarioRepository.getByUserId(userId)).thenReturn(funcionario);
     }
 
     private ExecucaoServico buildExecucao(Long id) {
@@ -89,12 +93,12 @@ class AprovarOrdemServicoUseCaseTest {
                 List.of(new PecaEstoque(PECA_ID, 10, 10)));
         stubSave(os);
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID,
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
                 List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         var output = useCase.execute(input);
 
-        assertThat(output.status()).isEqualTo(StatusOrdemServico.EM_EXECUCAO.name());
+        assertThat(output.status()).isEqualTo(StatusOrdemServico.APROVADA.name());
         assertThat(exec.getStatus()).isEqualTo(StatusExecucaoServico.APROVADO);
         assertThat(peca.getStatus()).isEqualTo(StatusPecaAlocada.RESERVADA);
         assertThat(peca.getQuantidadeReservada()).isEqualTo(3);
@@ -106,12 +110,14 @@ class AprovarOrdemServicoUseCaseTest {
     void deveRecusarExecucaoNaoInformadaNoInput() {
         stubFuncionario();
         ExecucaoServico exec = buildExecucao(EXECUCAO_ID);
-        OrdemServico os = buildOs(List.of(exec));
+        ExecucaoServico execAprovada = buildExecucao(11L);
+        OrdemServico os = buildOs(List.of(exec, execAprovada));
         when(ordemServicoRepository.getByIdWithExecucoes(OS_ID)).thenReturn(os);
         when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(List.of());
         stubSave(os);
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID, List.of());
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
+                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(11L, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -123,13 +129,16 @@ class AprovarOrdemServicoUseCaseTest {
     void deveRecusarExecucaoExplicitamente() {
         stubFuncionario();
         ExecucaoServico exec = buildExecucao(EXECUCAO_ID);
-        OrdemServico os = buildOs(List.of(exec));
+        ExecucaoServico execAprovada = buildExecucao(11L);
+        OrdemServico os = buildOs(List.of(exec, execAprovada));
         when(ordemServicoRepository.getByIdWithExecucoes(OS_ID)).thenReturn(os);
         when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(List.of());
         stubSave(os);
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID,
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.RECUSADO)));
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
+                List.of(
+                        new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.RECUSADO),
+                        new AprovarOrdemServicoUseCase.Input.Servicos(11L, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -150,7 +159,7 @@ class AprovarOrdemServicoUseCaseTest {
                 List.of(new PecaEstoque(PECA_ID, 3, 3)));
         stubSave(os);
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID,
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
                 List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
@@ -173,7 +182,7 @@ class AprovarOrdemServicoUseCaseTest {
         when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(List.of());
         stubSave(os);
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID,
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
                 List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
@@ -198,7 +207,7 @@ class AprovarOrdemServicoUseCaseTest {
         when(pecaEstoqueRepository.saveAll(any())).thenReturn(List.of(estoque));
         stubSave(os);
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID,
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
                 List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
@@ -219,7 +228,8 @@ class AprovarOrdemServicoUseCaseTest {
         when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(List.of());
         stubSave(os);
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID, List.of());
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
+                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -238,7 +248,8 @@ class AprovarOrdemServicoUseCaseTest {
         OrdemServico savedOs = buildOs(List.of(exec));
         when(ordemServicoRepository.save(any())).thenReturn(savedOs);
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID, List.of());
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
+                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
 
         var output = useCase.execute(input);
 
@@ -253,7 +264,7 @@ class AprovarOrdemServicoUseCaseTest {
         when(ordemServicoRepository.getByIdWithExecucoes(OS_ID))
                 .thenThrow(new RuntimeException("OS não encontrada"));
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID, List.of());
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId, List.of());
 
         assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
@@ -266,12 +277,12 @@ class AprovarOrdemServicoUseCaseTest {
     @Test
     @DisplayName("deve propagar exceção quando funcionário não encontrado")
     void deveLancarExcecaoQuandoFuncionarioNaoEncontrado() {
-        when(funcionarioRepository.getById(FUNCIONARIO_ID))
+        when(funcionarioRepository.getByUserId(userId))
                 .thenThrow(new RuntimeException("Funcionário não encontrado"));
         when(ordemServicoRepository.getByIdWithExecucoes(OS_ID))
                 .thenReturn(buildOs(List.of()));
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID, List.of());
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId, List.of());
 
         assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
@@ -293,7 +304,7 @@ class AprovarOrdemServicoUseCaseTest {
         when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(List.of());
         stubSave(os);
 
-        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, FUNCIONARIO_ID, List.of(
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId, List.of(
                 new AprovarOrdemServicoUseCase.Input.Servicos(EXECUCAO_ID, StatusExecucaoServico.APROVADO),
                 new AprovarOrdemServicoUseCase.Input.Servicos(execId2, StatusExecucaoServico.RECUSADO)
         ));

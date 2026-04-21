@@ -4,6 +4,7 @@ import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.Fu
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.FuncionarioPersistenceMapper;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -36,8 +37,8 @@ public class FuncionarioRepositoryImpl implements FuncionarioRepository {
     }
 
     @Override
-    public Funcionario getByUserId(UUID userId) {
-        return jpaRepository.findByUserId(userId)
+    public Funcionario getByUserId(UserId userId) {
+        return jpaRepository.findByUserId(userId.getValue())
                 .map(mapper::toDomain)
                 .orElseThrow(() -> FuncionarioNotFoundException.fromUserId(userId));
     }
