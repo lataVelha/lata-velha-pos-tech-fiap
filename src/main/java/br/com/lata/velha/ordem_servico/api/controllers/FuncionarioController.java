@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/funcionarios")
-@Tag(name = "Funcionários", description = "Gerenciamento de Funcionários")
+@Tag(name = "Funcionários", description = "Cadastro e gerenciamento de funcionários. O cargo define as permissões: ATENDENTE, MECANICO ou ADMIN.")
 public class FuncionarioController {
 
     private final CadastrarFuncionarioUseCase cadastrarUseCase;
@@ -28,8 +28,9 @@ public class FuncionarioController {
     private final DesativarFuncionarioUseCase desativarUseCase;
 
     @PostMapping
-    @Operation(summary = "Cadastrar novo funcionário", description = "Cria um novo funcionário associado a um cargo")
-    @ApiResponse(responseCode = "201", description = "Funcionário criado")
+    @Operation(summary = "Cadastrar novo funcionário", description = "Cria funcionário e usuário de acesso (login/senha) vinculados a um cargo existente.")
+    @ApiResponse(responseCode = "201", description = "Funcionário criado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos")
     @ApiResponse(responseCode = "404", description = "Cargo não encontrado")
     public ResponseEntity<FuncionarioResponse> cadastrar(@Valid @RequestBody CadastrarFuncionarioRequest request) {
         var output = cadastrarUseCase.execute(request.toCadastrarInput());
@@ -46,8 +47,9 @@ public class FuncionarioController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar informações do funcionário")
-    @ApiResponse(responseCode = "200", description = "Funcionário atualizado")
+    @Operation(summary = "Atualizar funcionário", description = "Atualiza nome e cargo. Senha e username não são alterados por este endpoint.")
+    @ApiResponse(responseCode = "200", description = "Funcionário atualizado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos")
     @ApiResponse(responseCode = "404", description = "Funcionário ou cargo não encontrado")
     public ResponseEntity<FuncionarioResponse> atualizar(
             @PathVariable Long id,
@@ -57,8 +59,8 @@ public class FuncionarioController {
     }
 
     @PatchMapping("/{id}/desativar")
-    @Operation(summary = "Desativar funcionário", description = "Inativa (Soft Delete) o funcionário no sistema")
-    @ApiResponse(responseCode = "204", description = "Funcionário desativado")
+    @Operation(summary = "Desativar funcionário", description = "Soft delete — o funcionário é inativado e não poderá fazer login.")
+    @ApiResponse(responseCode = "204", description = "Funcionário desativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Funcionário não encontrado")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
         desativarUseCase.execute(id);

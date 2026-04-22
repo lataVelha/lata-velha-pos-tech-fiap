@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/servicos")
-@Tag(name = "Serviços", description = "Gerenciamento de Serviços")
+@Tag(name = "Serviços", description = "Catálogo de serviços disponíveis na oficina. Os serviços cadastrados aqui são os que o mecânico pode adicionar a uma Ordem de Serviço durante o diagnóstico.")
 public class ServicoController {
 
     private final CadastrarServicoUseCase cadastrarUseCase;
@@ -40,7 +40,7 @@ public class ServicoController {
     private final DesativarServicoUseCase desativarUseCase;
 
     @PostMapping
-    @Operation(summary = "Cadastrar novo serviço", description = "Cria um novo serviço para execução em ordens de serviço")
+    @Operation(summary = "Cadastrar novo serviço", description = "Adiciona um novo tipo de serviço ao catálogo da oficina. Ex: 'Troca de óleo', 'Alinhamento', 'Balanceamento'. O serviço pode ser associado a peças quando adicionado a uma OS.")
     @ApiResponse(responseCode = "201", description = "Serviço criado")
     public ResponseEntity<ServicoResponse> cadastrar(@Valid @RequestBody CadastrarServicoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(cadastrarUseCase.execute(request));
@@ -74,7 +74,7 @@ public class ServicoController {
     }
 
     @PatchMapping("/{id}/desativar")
-    @Operation(summary = "Desativar serviço", description = "Inativa (Soft Delete) o serviço no sistema")
+    @Operation(summary = "Desativar serviço (Soft Delete)", description = "Inativa o serviço do catálogo sem excluir o registro. Serviços desativados não podem ser adicionados a novas OS, mas OS existentes que já utilizam o serviço não são afetadas.")
     @ApiResponse(responseCode = "204", description = "Serviço desativado")
     @ApiResponse(responseCode = "404", description = "Serviço não encontrado")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
