@@ -75,13 +75,9 @@ public record OrdemServicoResponse(
             String atendenteNome,
             String mecanicoNome,
             String proprietarioNome,
-            String veiculoDescricao,
-            BigDecimal ignorado1,
-            BigDecimal ignorado2,
-            BigDecimal ignorado3
+            String veiculoDescricao
     ) {
-        return from(domain, atendenteNome, mecanicoNome, proprietarioNome, veiculoDescricao,
-                ignorado1, ignorado2, ignorado3, Map.of(), Map.of());
+        return from(domain, atendenteNome, mecanicoNome, proprietarioNome, veiculoDescricao, Map.of(), Map.of());
     }
 
     public static OrdemServicoResponse from(
@@ -90,9 +86,6 @@ public record OrdemServicoResponse(
             String mecanicoNome,
             String proprietarioNome,
             String veiculoDescricao,
-            BigDecimal ignorado1,
-            BigDecimal ignorado2,
-            BigDecimal ignorado3,
             Map<Long, String> mecanicoNomes,
             Map<Long, Peca> pecaMap
     ) {

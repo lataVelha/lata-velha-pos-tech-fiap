@@ -40,8 +40,7 @@ public class CriarOrdemServicoUseCase {
                 funcionario.getNome(),
                 null,
                 proprietario.getNome(),
-                veiculo.getMarca() + " " + veiculo.getModelo(),
-                null, null, null);
+                veiculo.getMarca() + " " + veiculo.getModelo());
     }
 
     public record Input(Long veiculoId, Long proprietarioId, UserId userId, String reclamacaoCliente) {}

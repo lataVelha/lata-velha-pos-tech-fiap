@@ -60,7 +60,6 @@ public class FinalizarDiagnosticoUseCase {
                 mecanico.getNome(),
                 proprietario.getNome(),
                 veiculo.getMarca() + " " + veiculo.getModelo(),
-                null, null, null,
                 mecanicoNomes, pecaMap);
     }
 }

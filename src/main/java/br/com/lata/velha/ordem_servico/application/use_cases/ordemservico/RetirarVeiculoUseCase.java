@@ -11,9 +11,6 @@ import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.util.UUID;
-
 @Component
 @RequiredArgsConstructor
 public class RetirarVeiculoUseCase {
@@ -21,7 +18,6 @@ public class RetirarVeiculoUseCase {
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final PecaEstoqueRepository pecaEstoqueRepository;
-    private final PecaRepository pecaRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
@@ -36,9 +32,7 @@ public class RetirarVeiculoUseCase {
             );
         }
 
-        BigDecimal totalServicos = totalServicos(ordemServico);
-        BigDecimal totalPecas = totalPecas(ordemServico);
-        BigDecimal totalOrdemServico = totalServicos.add(totalPecas);
+        processarPecas(ordemServico);
 
         ordemServico.entregar(funcionario.getId());
         notificarUseCase.execute(ordemServico);
@@ -55,33 +49,22 @@ public class RetirarVeiculoUseCase {
                 funcionario.getNome(),
                 mecanicoNome,
                 proprietario.getNome(),
-                veiculo.getMarca() + " " + veiculo.getModelo(),
-                totalServicos,
-                totalPecas,
-                totalOrdemServico
+                veiculo.getMarca() + " " + veiculo.getModelo()
         );
     }
 
-    private BigDecimal totalServicos(OrdemServico ordemServico) {
-        return ordemServico.getExecucaoServicos().stream()
+    private void processarPecas(OrdemServico ordemServico) {
+        ordemServico.getExecucaoServicos().stream()
                 .filter(e -> StatusExecucaoServico.FINALIZADO.equals(e.getStatus()))
-                .map(e -> e.getValorMaoDeObra() != null ? e.getValorMaoDeObra() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private BigDecimal totalPecas(OrdemServico ordemServico) {
-        return ordemServico.getExecucaoServicos().stream()
-                .filter(e -> StatusExecucaoServico.FINALIZADO.equals(e.getStatus()))
-                .flatMap(e -> e.getPecas().stream().map(pecaAlocada -> {
+                .flatMap(e -> e.getPecas().stream())
+                .forEach(pecaAlocada -> {
                     if (!StatusPecaAlocada.INSTALADA.equals(pecaAlocada.getStatus())) {
                         throw new ResourceAlreadyExistsException("Peça não instalada!");
                     }
-                    Integer quantidade = pecaAlocada.getQuantidadeSolicitada();
-                    pecaEstoqueRepository.baixarEstoque(pecaAlocada.getPecaId(), quantidade);
-                    var pecaAtiva = pecaRepository.getActiveById(pecaAlocada.getPecaId());
-                    if (pecaAtiva.getValor() == null) return BigDecimal.ZERO;
-                    return pecaAtiva.getValor().multiply(BigDecimal.valueOf(quantidade));
-                }))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    pecaEstoqueRepository.baixarEstoque(
+                            pecaAlocada.getPecaId(),
+                            pecaAlocada.getQuantidadeSolicitada()
+                    );
+                });
     }
 }
