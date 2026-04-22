@@ -93,6 +93,29 @@ class FuncionarioRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("deve retornar true quando funcionário com userId existe")
+    void shouldReturnTrueWhenExistsByUserId() {
+        UUID userId = UUID.randomUUID();
+        when(jpaRepository.existsByUserId(userId)).thenReturn(true);
+
+        boolean result = repository.existsByUserId(UserId.create(userId));
+
+        assertThat(result).isTrue();
+        verify(jpaRepository).existsByUserId(userId);
+    }
+
+    @Test
+    @DisplayName("deve retornar false quando funcionário com userId não existe")
+    void shouldReturnFalseWhenNotExistsByUserId() {
+        UUID userId = UUID.randomUUID();
+        when(jpaRepository.existsByUserId(userId)).thenReturn(false);
+
+        boolean result = repository.existsByUserId(UserId.create(userId));
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
     @DisplayName("deve salvar e retornar o funcionário mapeado")
     void shouldSaveFuncionario() {
         UUID userId = UUID.randomUUID();

@@ -138,7 +138,10 @@ public class OrdemServicoController {
     public ResponseEntity<OrdemServicoResponse> finalDiagnostic(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(finalizarDiagnosticoUseCase.execute(idOs, UserId.fromString(jwt.getSubject())));
+        var userId = UserId.fromString(jwt.getSubject());
+        var input = new FinalizarDiagnosticoUseCase.Input(idOs, userId);
+        finalizarDiagnosticoUseCase.execute(input);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/aprovar")
@@ -222,6 +225,7 @@ public class OrdemServicoController {
     public ResponseEntity<OrdemServicoResponse> removeVehicle(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(retirarVeiculoUseCase.execute(idOs, UserId.fromString(jwt.getSubject())));
+        retirarVeiculoUseCase.execute(idOs, UserId.fromString(jwt.getSubject()));
+        return ResponseEntity.ok().build();
     }
 }

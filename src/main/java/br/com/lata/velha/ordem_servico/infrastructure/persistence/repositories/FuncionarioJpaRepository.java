@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface FuncionarioJpaRepository extends JpaRepository<FuncionarioEntity, Long> {
     Optional<FuncionarioEntity> findByUserId(UUID userId);
     List<FuncionarioEntity> findAllByCargo_Nome(String cargoNome);
+    boolean existsByUserId(UUID userId);
 }

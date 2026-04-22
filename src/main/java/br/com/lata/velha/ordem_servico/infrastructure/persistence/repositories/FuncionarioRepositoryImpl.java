@@ -50,4 +50,9 @@ public class FuncionarioRepositoryImpl implements FuncionarioRepository {
                 .map(mapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public boolean existsByUserId(UserId userId) {
+        return jpaRepository.existsByUserId(userId.getValue());
+    }
 }

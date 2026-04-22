@@ -242,22 +242,11 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "MECANICO")
     @DisplayName("PATCH /ordens-servico/{idOs}/{idFunc}/finalizar-diagnostico deve retornar 200")
     void shouldReturn200OnFinalizarDiagnostico() throws Exception {
-        var response = new OrdemServicoResponse(
-                1L, "AGUARDANDO_APROVACAO", "Barulho",
-                new FuncionarioResumoResponse(2L, "Maria"),
-                new FuncionarioResumoResponse(5L, "Carlos"),
-                new ProprietarioResumoResponse(4L, "João"),
-                new VeiculoResumoResponse(3L, "Fiat Uno"),
-                LocalDateTime.now(), LocalDateTime.now(), null, LocalDateTime.now(),
-                List.of(), null
-        );
-
-        when(finalizarDiagnosticoUseCase.execute(eq(1L), any())).thenReturn(response);
+        doNothing().when(finalizarDiagnosticoUseCase).execute(any());
 
         mockMvc.perform(patch("/ordens-servico/1/finalizar-diagnostico")
                         .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_MECANICO"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("AGUARDANDO_APROVACAO"));
+                .andExpect(status().isOk());
     }
 
     @Test
