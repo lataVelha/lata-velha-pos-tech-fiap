@@ -16,7 +16,7 @@ public class IniciarServicoUseCase {
     public void execute(Input input) {
         var ordemServico = ordemServicoRepository.getByIdWithExecucoesAndPecas(input.idOs());
         var mecanico = funcionarioRepository.getByUserId(input.userId());
-        var primeiroServico = ordemServico.isEmAndamento();
+        var primeiroServico = !ordemServico.isEmExecucao();
         ordemServico.iniciarExecucaoServico(input.servicoId(), mecanico.getId());
         var saved = ordemServicoRepository.save(ordemServico);
         if (primeiroServico)
