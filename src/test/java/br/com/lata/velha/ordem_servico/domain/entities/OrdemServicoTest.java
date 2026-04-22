@@ -270,7 +270,7 @@ class OrdemServicoTest {
     class Entregar {
 
         @Test
-        @DisplayName("deve transitar para ENTREGUE e definir entregueEm")
+        @DisplayName("deve transitar para ENTREGUE quando OS está FINALIZADA")
         void deveEntregarComSucesso() {
             OrdemServico os = finalizada();
 
@@ -281,7 +281,19 @@ class OrdemServicoTest {
         }
 
         @Test
-        @DisplayName("deve lançar exceção se status não for FINALIZADA")
+        @DisplayName("deve transitar para ENTREGUE quando OS está REPROVADA")
+        void deveEntregarQuandoOsReprovada() {
+            OrdemServico os = aguardandoAprovacao();
+            os.reprovar(2L);
+
+            os.entregar(3L);
+
+            assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.ENTREGUE);
+            assertThat(os.getEntregueEm()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("deve lançar exceção se status não for FINALIZADA nem REPROVADA")
         void deveLancarExcecaoSeStatusInvalido() {
             OrdemServico os = recebida();
 

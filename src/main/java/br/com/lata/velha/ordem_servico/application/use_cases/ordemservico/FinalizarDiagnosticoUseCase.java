@@ -21,45 +21,16 @@ public class FinalizarDiagnosticoUseCase {
 
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
-    private final ProprietarioRepository proprietarioRepository;
-    private final VeiculoRepository veiculoRepository;
-    private final PecaRepository pecaRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
-    public OrdemServicoResponse execute(Long idOs, UserId userId){
-        var ordemServico = ordemServicoRepository.getById(idOs);
-        var mecanico = funcionarioRepository.getByUserId(userId);
-
+    public void execute(Input input) {
+        var ordemServico = ordemServicoRepository.getById(input.idOs());
+        if(!funcionarioRepository.existsByUserId(input.userId()))
+            throw new IllegalArgumentException("Usuário não é um funcionário");
         ordemServico.finalizarDiagnostico();
-
         var saved = ordemServicoRepository.save(ordemServico);
         notificarUseCase.execute(saved);
-
-        var atendente = funcionarioRepository.getById(saved.getAtendenteInicioId());
-        var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
-        var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
-
-        Map<Long, String> mecanicoNomes = saved.getExecucaoServicos().stream()
-                .filter(e -> e.getMecanicoResponsavelId() != null)
-                .collect(Collectors.toMap(
-                        e -> e.getMecanicoResponsavelId(),
-                        e -> funcionarioRepository.getById(e.getMecanicoResponsavelId()).getNome(),
-                        (a, b) -> a
-                ));
-
-        var pecaIds = saved.getExecucaoServicos().stream()
-                .flatMap(e -> e.getPecas().stream())
-                .map(p -> p.getPecaId())
-                .collect(Collectors.toSet());
-
-        Map<Long, Peca> pecaMap = pecaIds.stream()
-                .collect(Collectors.toMap(id -> id, pecaRepository::getActiveById));
-
-        return OrdemServicoResponse.from(saved,
-                atendente.getNome(),
-                mecanico.getNome(),
-                proprietario.getNome(),
-                veiculo.getMarca() + " " + veiculo.getModelo(),
-                mecanicoNomes, pecaMap);
     }
+
+    public record Input (Long idOs, UserId userId) {}
 }

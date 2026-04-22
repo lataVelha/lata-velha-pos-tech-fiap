@@ -17,4 +17,6 @@ public interface FuncionarioRepository {
     Funcionario getByUserId(UserId userId);
 
     List<Funcionario> findAllByCargoNome(String cargoNome);
+
+    boolean existsByUserId(UserId userId);
 }

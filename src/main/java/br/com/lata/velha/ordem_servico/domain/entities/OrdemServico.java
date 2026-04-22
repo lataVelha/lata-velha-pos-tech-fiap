@@ -86,7 +86,6 @@ public final class OrdemServico {
 
     public void reprovar(Long atendenteId) {
         validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
-
         this.atendenteInicioId = atendenteId;
         this.status = StatusOrdemServico.REPROVADA;
         this.finalizadoEm = LocalDateTime.now();
@@ -106,7 +105,8 @@ public final class OrdemServico {
     }
 
     public void entregar(Long atendenteId) {
-        validarStatus(StatusOrdemServico.FINALIZADA);
+        if (!this.isFinalizada() && !this.isReprovada())
+            throw new IllegalStateException("Esta Ordem de Serviço não foi Finalizada: " + this.getId());
         this.atendenteInicioId =atendenteId;
         this.status = StatusOrdemServico.ENTREGUE;
         this.entregueEm = LocalDateTime.now();
@@ -168,6 +168,10 @@ public final class OrdemServico {
 
     public boolean isEmAndamento() {
         return this.isAprovada() || this.isEmExecucao();
+    }
+
+    public boolean isReprovada() {
+        return this.status.equals(StatusOrdemServico.REPROVADA);
     }
 
     public boolean isFinalizada() {
