@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/proprietarios")
-@Tag(name = "Proprietários", description = "Gerenciamento de Proprietários")
+@Tag(name = "Proprietários", description = "Cadastro e gerenciamento de proprietários. Deve ser cadastrado antes de registrar veículos e abrir OS. O e-mail é usado para notificações.")
 public class ProprietarioController {
 
     private final CriarProprietarioUseCase criarUseCase;
@@ -29,16 +29,17 @@ public class ProprietarioController {
     private final ReativarProprietarioUseCase reativarUseCase;
 
     @PostMapping
-    @Operation(summary = "Cadastrar proprietário")
-    @ApiResponse(responseCode = "201", description = "Proprietário criado")
-    @ApiResponse(responseCode = "409", description = "Documento já cadastrado")
+    @Operation(summary = "Cadastrar proprietário", description = "Registra proprietário com dados pessoais e endereço. O e-mail será usado para notificações das OS.")
+    @ApiResponse(responseCode = "201", description = "Proprietário criado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    @ApiResponse(responseCode = "409", description = "CPF/CNPJ já cadastrado")
     public ResponseEntity<ProprietarioResponse> cadastrar(@Valid @RequestBody ProprietarioRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(criarUseCase.execute(request));
     }
 
     @GetMapping
-    @Operation(summary = "Listar proprietários ativos paginado")
-    @ApiResponse(responseCode = "200", description = "Proprietários listados")
+    @Operation(summary = "Listar proprietários ativos")
+    @ApiResponse(responseCode = "200", description = "Lista paginada de proprietários ativos")
     public ResponseEntity<PaginatedResult<ProprietarioResponse>> listar(
             @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
@@ -54,9 +55,9 @@ public class ProprietarioController {
     }
 
     @GetMapping("/documento/{documento}")
-    @Operation(summary = "Buscar proprietário por CPF/CNPJ")
+    @Operation(summary = "Buscar proprietário por CPF/CNPJ", description = "Útil para verificar se o cliente já está cadastrado antes de abrir uma OS.")
     @ApiResponse(responseCode = "200", description = "Proprietário encontrado")
-    @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
+    @ApiResponse(responseCode = "404", description = "Nenhum proprietário encontrado com o documento informado")
     public ResponseEntity<ProprietarioResponse> buscarPorDocumento(@PathVariable String documento) {
         return ResponseEntity.ok(buscarPorDocumentoUseCase.execute(documento));
     }
@@ -71,8 +72,8 @@ public class ProprietarioController {
     }
 
     @PatchMapping("/{id}/desativar")
-    @Operation(summary = "Desativar proprietário (soft delete)")
-    @ApiResponse(responseCode = "204", description = "Proprietário desativado")
+    @Operation(summary = "Desativar proprietário", description = "Soft delete — inativa o registro sem excluí-lo.")
+    @ApiResponse(responseCode = "204", description = "Proprietário desativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
         desativarUseCase.execute(id);
@@ -81,8 +82,8 @@ public class ProprietarioController {
 
     @PatchMapping("/{id}/reativar")
     @Operation(summary = "Reativar proprietário")
-    @ApiResponse(responseCode = "200", description = "Proprietário reativado")
-    @ApiResponse(responseCode = "404", description = "Proprietário inativo não encontrado")
+    @ApiResponse(responseCode = "200", description = "Proprietário reativado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
     public ResponseEntity<ProprietarioResponse> reativar(@PathVariable Long id) {
         return ResponseEntity.ok(reativarUseCase.execute(id));
     }

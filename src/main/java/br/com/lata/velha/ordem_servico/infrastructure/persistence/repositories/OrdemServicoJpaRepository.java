@@ -22,7 +22,7 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
                        AS "veiculoDescricao",
                    os.proprietario_id AS "proprietarioId",
                    p.nome AS "proprietarioNome",
-                   os.mecanico_final_id AS "mecanicoFinalId",
+                   os.mecanico_responsavel_id AS "mecanicoFinalId",
                    mecanico.nome AS "mecanicoNome",
                    os.status AS status,
                    os.reclamacao_cliente AS "reclamacaoCliente",
@@ -76,7 +76,7 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
                LEFT JOIN funcionario atendente
                    ON atendente.id = os.atendente_inicio_id
                LEFT JOIN funcionario mecanico
-                   ON mecanico.id = os.mecanico_final_id
+                   ON mecanico.id = os.mecanico_responsavel_id
                LEFT JOIN veiculo v
                    ON v.id = os.veiculo_id
                LEFT JOIN proprietario p
@@ -90,7 +90,7 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
                WHERE (:id IS NULL OR os.id = :id)
                  AND (:status IS NULL OR os.status = :status)
                  AND (:proprietarioId IS NULL OR os.proprietario_id = :proprietarioId)
-                 AND (:mecanicoId IS NULL OR os.mecanico_final_id = :mecanicoId)
+                 AND (:mecanicoId IS NULL OR os.mecanico_responsavel_id = :mecanicoId)
                GROUP BY
                    os.id,
                    os.atendente_inicio_id,
@@ -101,7 +101,7 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
                    v.ano,
                    os.proprietario_id,
                    p.nome,
-                   os.mecanico_final_id,
+                   os.mecanico_responsavel_id,
                    mecanico.nome,
                    os.status,
                    os.reclamacao_cliente,
@@ -116,7 +116,7 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
                     WHERE (:id IS NULL OR os.id = :id)
                       AND (:status IS NULL OR os.status = :status)
                       AND (:proprietarioId IS NULL OR os.proprietario_id = :proprietarioId)
-                      AND (:mecanicoId IS NULL OR os.mecanico_final_id = :mecanicoId)
+                      AND (:mecanicoId IS NULL OR os.mecanico_responsavel_id = :mecanicoId)
                     """,
             nativeQuery = true)
     Page<OrdemServicoProjection> findByAllOrdemSevico(

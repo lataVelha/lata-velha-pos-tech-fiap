@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/pecas")
-@Tag(name = "Peças", description = "Gerenciamento de Peças")
+@Tag(name = "Peças", description = "Catálogo de peças utilizadas nos serviços da oficina. Cada peça possui um valor unitário e um controle de estoque associado. As peças devem ser cadastradas aqui antes de serem adicionadas aos serviços de uma OS.")
 public class PecaController {
 
     private final CadastrarPecaUseCase cadastrarUseCase;
@@ -40,7 +40,7 @@ public class PecaController {
     private final DesativarPecaUseCase desativarUseCase;
 
     @PostMapping
-    @Operation(summary = "Cadastrar nova peça", description = "Cria uma nova peça para uso em serviços")
+    @Operation(summary = "Cadastrar nova peça", description = "Registra uma nova peça no catálogo. Após o cadastro, o estoque é iniciado automaticamente com saldo zero — use `POST /pecas/{pecaId}/estoque/entrada` para adicionar estoque.")
     @ApiResponse(responseCode = "201", description = "Peça criada")
     public ResponseEntity<PecaResponse> cadastrar(@Valid @RequestBody CadastrarPecaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(cadastrarUseCase.execute(request));
@@ -74,7 +74,7 @@ public class PecaController {
     }
 
     @PatchMapping("/{id}/desativar")
-    @Operation(summary = "Desativar peça", description = "Inativa (Soft Delete) a peça no sistema")
+    @Operation(summary = "Desativar peça (Soft Delete)", description = "Inativa a peça do catálogo. Peças desativadas não podem ser adicionadas a novos serviços, mas OS existentes que já utilizam a peça não são afetadas.")
     @ApiResponse(responseCode = "204", description = "Peça desativada")
     @ApiResponse(responseCode = "404", description = "Peça não encontrada")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {

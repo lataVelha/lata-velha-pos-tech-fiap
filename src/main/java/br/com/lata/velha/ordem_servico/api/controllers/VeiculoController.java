@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/veiculos")
-@Tag(name = "Veículos", description = "Gerenciamento de Veículos")
+@Tag(name = "Veículos", description = "Cadastro e gerenciamento de veículos. Um veículo deve estar vinculado a um proprietário e ser cadastrado antes de ser incluído em uma Ordem de Serviço.")
 public class VeiculoController {
 
     private final CriarVeiculoUseCase cadastrarUseCase;
@@ -31,10 +31,11 @@ public class VeiculoController {
     private final ReativarVeiculoUseCase reativarUseCase;
 
     @PostMapping
-    @Operation(summary = "Cadastrar veículo")
-    @ApiResponse(responseCode = "201", description = "Veículo criado")
-    @ApiResponse(responseCode = "404", description = "Proprietário não encontrado")
-    @ApiResponse(responseCode = "409", description = "Placa já cadastrada")
+    @Operation(summary = "Cadastrar veículo", description = "Registra um novo veículo vinculado a um proprietário existente. A placa deve ser única no sistema.")
+    @ApiResponse(responseCode = "201", description = "Veículo cadastrado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos — campos obrigatórios ausentes")
+    @ApiResponse(responseCode = "404", description = "Proprietário não encontrado (proprietarioId inválido)")
+    @ApiResponse(responseCode = "409", description = "Placa já cadastrada para outro veículo")
     public ResponseEntity<VeiculoResponse> cadastrar(@Valid @RequestBody VeiculoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(cadastrarUseCase.execute(request));
     }
@@ -57,8 +58,8 @@ public class VeiculoController {
     }
 
     @GetMapping("/proprietario/{proprietarioId}")
-    @Operation(summary = "Listar veículos de um proprietário")
-    @ApiResponse(responseCode = "200", description = "Veículos listados")
+    @Operation(summary = "Listar veículos de um proprietário", description = "Retorna todos os veículos ativos vinculados a um proprietário. Útil na abertura de uma OS para selecionar o veículo do cliente.")
+    @ApiResponse(responseCode = "200", description = "Lista de veículos do proprietário")
     public ResponseEntity<List<VeiculoResponse>> listarPorProprietario(@PathVariable Long proprietarioId) {
         return ResponseEntity.ok(listarPorProprietarioUseCase.execute(proprietarioId));
     }

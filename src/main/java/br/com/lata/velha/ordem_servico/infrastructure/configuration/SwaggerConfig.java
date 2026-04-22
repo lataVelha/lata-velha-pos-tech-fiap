@@ -16,22 +16,42 @@ public class SwaggerConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Lata Velha — API de Oficina")
+                        .title("Lata Velha — API de Oficina Mecânica")
                         .description("""
-                                API de gerenciamento de ordens de serviço para oficina mecânica.
+                                API de gerenciamento de Ordens de Serviço para oficina mecânica.
 
-                                **Fluxo de uma Ordem de Serviço:**
-                                1. `POST /ordens-servico` — Atendente abre a OS
-                                2. `PATCH /{idOs}/{idMecanico}/iniciar-diagnostico` — Mecânico inicia diagnóstico
-                                3. `PATCH /{idOs}/{idFunc}/finalizar-diagnostico` — Mecânico finaliza diagnóstico
-                                4. `PATCH /adiciona-servico` — Adição dos serviços a executar
-                                5. `PATCH /aprovar` — Atendente aprova ou reprova serviços
-                                6. `PATCH /{idOs}/{idFunc}/iniciar-servico` — Mecânico inicia execução
-                                7. `PATCH /{idOs}/{idFunc}/finalizar-servico` — Mecânico finaliza execução
-                                8. `PATCH /{idOs}/{idFunc}/retirar-veiculo` — Atendente registra entrega do veículo
+                                **Perfis:** ATENDENTE (abre OS, aprova serviços, entrega veículo) · MECANICO (diagnóstico e execução) · ADMIN (acesso total ao sistema)
 
-                                Todos os endpoints requerem autenticação via **Bearer Token JWT**.
-                                Use `POST /auth/login` para obter o token.
+                                ---
+
+                                **Fluxo principal da OS:**
+
+                                1. `POST /ordens-servico` — ATENDENTE abre a OS → status `RECEBIDA`
+                                2. `PATCH /ordens-servico/{idOs}/iniciar-diagnostico` — MECANICO assume a OS → `EM_DIAGNOSTICO`
+                                3. `PATCH /ordens-servico/adiciona-servico` — MECANICO adiciona serviços e peças (pode chamar múltiplas vezes)
+                                4. `PATCH /ordens-servico/{idOs}/finalizar-diagnostico` — MECANICO encerra diagnóstico → `AGUARDANDO_APROVACAO` _(e-mail de orçamento ao cliente)_
+                                5. `PATCH /ordens-servico/aprovar` — ATENDENTE aprova ou recusa cada serviço → `APROVADA` _(e-mail de confirmação ao cliente; e-mail ao ADMIN se houver peças a encomendar)_
+                                6. `PATCH /ordens-servico/{idOs}/iniciar-servico/{servicoId}` — MECANICO inicia um serviço por vez → serviço `EM_EXECUCAO`
+                                7. `PATCH /ordens-servico/{idOs}/finalizar-servico/{servicoId}` — MECANICO conclui o serviço → serviço `FINALIZADO` _(ao finalizar o último: OS → `FINALIZADA` e e-mail ao cliente)_
+                                8. `PATCH /ordens-servico/{idOs}/retirar-veiculo` — ATENDENTE registra entrega → `ENTREGUE`
+
+                                ---
+
+                                **Fluxo de recusa:**
+
+                                - `PATCH /ordens-servico/aprovar` com serviços marcados como `RECUSADO` — recusa parcial (mantém ao menos um `APROVADO`)
+                                - `PATCH /ordens-servico/{idOs}/reprovar` — ATENDENTE recusa a OS inteira → `REPROVADA` (terminal, nenhum serviço é executado)
+
+                                ---
+
+                                **Notificações automáticas por e-mail:**
+                                - Cliente ao finalizar diagnóstico (orçamento estimado)
+                                - ADMIN ao aprovar serviço com peça sem estoque suficiente (encomenda)
+                                - Cliente ao finalizar todos os serviços (veículo pronto para retirada)
+
+                                ---
+
+                                **Autenticação:** todos os endpoints exigem `Bearer <token>` — obtenha via `POST /auth/login`.
                                 """)
                         .version("1.0.0")
                         .contact(new Contact()

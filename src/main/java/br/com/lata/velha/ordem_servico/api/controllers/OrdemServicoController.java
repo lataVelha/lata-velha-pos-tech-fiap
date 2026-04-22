@@ -28,7 +28,7 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/ordens-servico")
 @RequiredArgsConstructor
-@Tag(name = "Ordens de Serviço", description = "Gerenciamento do ciclo de vida das ordens de serviço da oficina")
+@Tag(name = "Ordens de Serviço", description = "Ciclo de vida completo das OS: abertura, diagnóstico, aprovação, execução e entrega do veículo.")
 public class OrdemServicoController {
 
     private final CriarOrdemServicoUseCase criarOrdemServicoUseCase;
@@ -46,10 +46,10 @@ public class OrdemServicoController {
     @PostMapping
     @Operation(
             summary = "Abrir ordem de serviço",
-            description = "Atendente registra a entrada do veículo e a reclamação do cliente. Status inicial: RECEBIDA."
+            description = "**ATENDENTE** — Registra a entrada do veículo e a reclamação do cliente. O atendente logado é vinculado automaticamente. Status resultante: `RECEBIDA`."
     )
-    @ApiResponse(responseCode = "201", description = "Ordem de serviço criada com sucesso")
-    @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos")
+    @ApiResponse(responseCode = "201", description = "OS criada — status RECEBIDA")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos")
     @ApiResponse(responseCode = "404", description = "Veículo, proprietário ou atendente não encontrado")
     public ResponseEntity<OrdemServicoResponse> create(@Valid @RequestBody CriarOrdemServicoRequest request,
                                                        @AuthenticationPrincipal Jwt jwt) {
@@ -61,9 +61,9 @@ public class OrdemServicoController {
     @GetMapping
     @Operation(
             summary = "Listar ordens de serviço",
-            description = "Retorna lista paginada de ordens de serviço com filtros opcionais por ID, status, proprietário e mecânico."
+            description = "Lista paginada de OS com filtros opcionais por `id`, `status`, `proprietarioId` e `mecanicoId`. Todos os filtros são combináveis."
     )
-    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+    @ApiResponse(responseCode = "200", description = "Lista paginada retornada com sucesso")
     public ResponseEntity<PaginatedResult<OrdemServicoResponse>> getOrdems(
             @Parameter(description = "Filtrar por ID da OS") @RequestParam(required = false) Long id,
             @Parameter(description = "Filtrar por status da OS") @RequestParam(required = false) StatusOrdemServico status,
@@ -75,9 +75,12 @@ public class OrdemServicoController {
     }
 
     @GetMapping("/metricas/tempo-medio-execucao")
-    @Operation(summary = "Tempo médio de execução por serviço finalizado [ADMIN] - formato de data: dd/MM/aaaa")
-    @ApiResponse(responseCode = "200", description = "Métrica calculada com sucesso")
-    @ApiResponse(responseCode = "400", description = "Parâmetros de período inválidos")
+    @Operation(
+            summary = "Tempo médio de execução por serviço [ADMIN]",
+            description = "**ADMIN** — Tempo médio (horas) por tipo de serviço nas OS finalizadas. Período opcional via `dataInicio` e `dataFim` no formato `dd/MM/yyyy`."
+    )
+    @ApiResponse(responseCode = "200", description = "Métricas calculadas com sucesso")
+    @ApiResponse(responseCode = "400", description = "Formato de data inválido — use dd/MM/yyyy")
     public ResponseEntity<TempoMedioExecucaoResponse> getAverageExecutionTime(
             @RequestParam(required = false)
             @DateTimeFormat(pattern = "dd/MM/yyyy")
@@ -94,9 +97,9 @@ public class OrdemServicoController {
     @PatchMapping("/{idOs}/iniciar-diagnostico")
     @Operation(
             summary = "Iniciar diagnóstico",
-            description = "Mecânico assume a OS e inicia o diagnóstico do veículo. Status: RECEBIDA → EM_DIAGNOSTICO."
+            description = "**MECANICO** — Mecânico logado assume a OS e inicia a inspeção. Transição: `RECEBIDA` → `EM_DIAGNOSTICO`."
     )
-    @ApiResponse(responseCode = "200", description = "Diagnóstico iniciado com sucesso")
+    @ApiResponse(responseCode = "200", description = "Diagnóstico iniciado — status EM_DIAGNOSTICO")
     @ApiResponse(responseCode = "404", description = "OS ou mecânico não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status RECEBIDA")
     public ResponseEntity<Void> startDiagnostic(
@@ -112,12 +115,12 @@ public class OrdemServicoController {
     @PatchMapping("/adiciona-servico")
     @Operation(
             summary = "Adicionar serviços à OS",
-            description = "Adiciona um ou mais serviços (com peças e mão de obra) à ordem de serviço."
+            description = "**MECANICO** — Adiciona serviços (com mão de obra e peças) durante o diagnóstico. O mesmo serviço não pode ser adicionado duas vezes. Status inicial do serviço: `PENDENTE`."
     )
     @ApiResponse(responseCode = "200", description = "Serviços adicionados com sucesso")
-    @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos")
     @ApiResponse(responseCode = "404", description = "OS, serviço ou peça não encontrada")
-    @ApiResponse(responseCode = "422", description = "Serviço já adicionado ou OS em status que não permite adição")
+    @ApiResponse(responseCode = "422", description = "Serviço já adicionado ou status da OS não permite adição")
     public ResponseEntity<Void> addService(@Valid @RequestBody AddServicoRequest request) {
         var input = request.toUseCaseInput();
         adicionarServicoUseCase.execute(input);
@@ -127,9 +130,9 @@ public class OrdemServicoController {
     @PatchMapping("/{idOs}/finalizar-diagnostico")
     @Operation(
             summary = "Finalizar diagnóstico",
-            description = "Mecânico conclui o diagnóstico e envia a OS para aprovação do cliente. Status: EM_DIAGNOSTICO → AGUARDANDO_APROVACAO."
+            description = "**MECANICO** — Encerra o diagnóstico e envia e-mail ao cliente com o orçamento dos serviços. Transição: `EM_DIAGNOSTICO` → `AGUARDANDO_APROVACAO`."
     )
-    @ApiResponse(responseCode = "200", description = "Diagnóstico finalizado com sucesso")
+    @ApiResponse(responseCode = "200", description = "Diagnóstico finalizado — status AGUARDANDO_APROVACAO. E-mail enviado ao cliente.")
     @ApiResponse(responseCode = "404", description = "OS ou mecânico não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status EM_DIAGNOSTICO")
     public ResponseEntity<OrdemServicoResponse> finalDiagnostic(
@@ -140,12 +143,16 @@ public class OrdemServicoController {
 
     @PatchMapping("/aprovar")
     @Operation(
-            summary = "Aprovar ou reprovar serviços"
+            summary = "Aprovar ou reprovar serviços da OS",
+            description = """
+                    **ATENDENTE** — Avalia cada serviço com `APROVADO` ou `RECUSADO`. Serviços não informados são automaticamente recusados. Pelo menos um deve ser aprovado.
+
+                    Ao aprovar: peças são reservadas no estoque; se insuficiente, e-mail é enviado ao ADMIN para encomenda. E-mail de confirmação enviado ao cliente. Transição: `AGUARDANDO_APROVACAO` → `APROVADA`."""
     )
-    @ApiResponse(responseCode = "200", description = "Serviços avaliados com sucesso")
-    @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos")
+    @ApiResponse(responseCode = "200", description = "OS aprovada com totais calculados")
+    @ApiResponse(responseCode = "400", description = "Status inválido ou ID de serviço não pertence à OS")
     @ApiResponse(responseCode = "404", description = "OS ou funcionário não encontrado")
-    @ApiResponse(responseCode = "422", description = "OS não está no status AGUARDANDO_APROVACAO")
+    @ApiResponse(responseCode = "422", description = "OS não está em AGUARDANDO_APROVACAO ou nenhum serviço foi aprovado")
     public ResponseEntity<AprovarOrdemServicoResponse> approve(@Valid @RequestBody AprovarOrdemServicoRequest request, @AuthenticationPrincipal Jwt jwt) {
         var userId = UserId.fromString(jwt.getSubject());
         var input = request.toInput(userId);
@@ -155,12 +162,12 @@ public class OrdemServicoController {
 
     @PatchMapping("/{idOs}/reprovar")
     @Operation(
-            summary = "Reprovar ordem de serviço",
-            description = "Atendente reprova a OS inteira, recusando todos os serviços pendentes. Status: AGUARDANDO_APROVACAO → REPROVADA."
+            summary = "Reprovar a OS inteira",
+            description = "**ATENDENTE** — Recusa todos os serviços e encerra a OS. Use quando o cliente não autorizar nenhum serviço. Para aprovação parcial, use `PATCH /aprovar`. Transição: `AGUARDANDO_APROVACAO` → `REPROVADA` (terminal)."
     )
-    @ApiResponse(responseCode = "200", description = "OS reprovada com sucesso")
+    @ApiResponse(responseCode = "200", description = "OS reprovada — status REPROVADA")
     @ApiResponse(responseCode = "404", description = "OS ou funcionário não encontrado")
-    @ApiResponse(responseCode = "422", description = "OS não está em um status que permite reprovação")
+    @ApiResponse(responseCode = "422", description = "OS não está no status AGUARDANDO_APROVACAO")
     public ResponseEntity<Void> reprove(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
@@ -172,11 +179,11 @@ public class OrdemServicoController {
     @PatchMapping("/{idOs}/iniciar-servico/{servicoId}")
     @Operation(
             summary = "Iniciar execução de um serviço",
-            description = "Mecânico inicia a execução de um serviço específico aprovado, reservando as peças do estoque. Status: EM_EXECUCAO (sem transição de OS, apenas inicia o serviço informado)."
+            description = "**MECANICO** — Inicia a execução de um serviço aprovado. Apenas um serviço pode estar em execução por vez. Status do serviço: `APROVADO` → `EM_EXECUCAO`."
     )
-    @ApiResponse(responseCode = "200", description = "Execução iniciada com sucesso")
-    @ApiResponse(responseCode = "404", description = "OS ou mecânico não encontrado")
-    @ApiResponse(responseCode = "422", description = "OS não está no status EM_EXECUCAO")
+    @ApiResponse(responseCode = "200", description = "Execução iniciada — status do serviço: EM_EXECUCAO")
+    @ApiResponse(responseCode = "404", description = "OS, serviço ou mecânico não encontrado")
+    @ApiResponse(responseCode = "422", description = "OS não está em EM_EXECUCAO, serviço não está APROVADO ou já há outro em execução")
     public ResponseEntity<Void> startService(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Parameter(description = "ID do serviço a iniciar", example = "5") @PathVariable Long servicoId,
@@ -190,11 +197,11 @@ public class OrdemServicoController {
     @PatchMapping("/{idOs}/finalizar-servico/{servicoId}")
     @Operation(
             summary = "Finalizar execução de um serviço",
-            description = "Mecânico conclui um serviço específico. Quando todos os serviços estiverem finalizados ou recusados, a OS é fechada e o cliente é notificado. Status: EM_EXECUCAO → FINALIZADA (ao concluir o último serviço)."
+            description = "**MECANICO** — Conclui um serviço (`EM_EXECUCAO` → `FINALIZADO`). Ao finalizar o último serviço, a OS passa para `FINALIZADA` e um e-mail é enviado ao cliente."
     )
-    @ApiResponse(responseCode = "200", description = "Serviço finalizado com sucesso")
+    @ApiResponse(responseCode = "200", description = "Serviço finalizado. Se for o último, OS → FINALIZADA e e-mail enviado ao cliente.")
     @ApiResponse(responseCode = "404", description = "OS, serviço ou mecânico não encontrado")
-    @ApiResponse(responseCode = "422", description = "OS não está no status EM_EXECUCAO ou serviço não está EM_EXECUCAO")
+    @ApiResponse(responseCode = "422", description = "OS não está em EM_EXECUCAO ou serviço não está em EM_EXECUCAO")
     public ResponseEntity<Void> finishService(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Parameter(description = "ID do serviço a finalizar", example = "5") @PathVariable Long servicoId,
@@ -206,10 +213,10 @@ public class OrdemServicoController {
 
     @PatchMapping("/{idOs}/retirar-veiculo")
     @Operation(
-            summary = "Retirar veículo (entrega)",
-            description = "Atendente registra a entrega do veículo ao cliente. Baixa o estoque das peças instaladas e calcula o valor total da OS. Status: FINALIZADA → ENTREGUE."
+            summary = "Registrar retirada do veículo",
+            description = "**ATENDENTE** — Registra a entrega do veículo ao cliente. Baixa definitivamente o estoque das peças instaladas e retorna os totais financeiros da OS. Transição: `FINALIZADA` → `ENTREGUE` (terminal)."
     )
-    @ApiResponse(responseCode = "200", description = "Veículo entregue com sucesso, totais calculados")
+    @ApiResponse(responseCode = "200", description = "Veículo entregue — status ENTREGUE. Resposta inclui totais financeiros.")
     @ApiResponse(responseCode = "404", description = "OS ou funcionário não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status FINALIZADA")
     public ResponseEntity<OrdemServicoResponse> removeVehicle(
