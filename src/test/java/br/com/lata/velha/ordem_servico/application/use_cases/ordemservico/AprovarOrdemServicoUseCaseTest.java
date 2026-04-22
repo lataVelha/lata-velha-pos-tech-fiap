@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,10 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,6 +33,7 @@ class AprovarOrdemServicoUseCaseTest {
     @Mock private OrdemServicoRepository ordemServicoRepository;
     @Mock private FuncionarioRepository funcionarioRepository;
     @Mock private PecaEstoqueRepository pecaEstoqueRepository;
+    @Mock private ServicoRepository servicoRepository;
     @Mock private NotificarOrdemServicoUseCase notificarUseCase;
     @Mock private CalcularTotaisOrdemServicoUseCase calcularTotaisUseCase;
     @Mock private NotificarAdminEncomendaPecaUseCase notificarAdminEncomendaUseCase;
@@ -54,6 +53,8 @@ class AprovarOrdemServicoUseCaseTest {
     void setUp() {
         funcionario = new Funcionario(FUNCIONARIO_ID, "Ana Atendente", null, null);
         userId = UserId.random();
+        lenient().when(servicoRepository.getAllActiveById(any()))
+                .thenReturn(Set.of(new Servico(99L, "Troca de óleo", "desc")));
     }
 
     private void stubFuncionario() {
@@ -343,7 +344,7 @@ class AprovarOrdemServicoUseCaseTest {
                 new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(11L, StatusExecucaoServico.RECUSADO)));
 
         assertThatThrownBy(() -> useCase.execute(input))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("pelo menos um serviço aprovado");
 
         verify(ordemServicoRepository, never()).save(any());

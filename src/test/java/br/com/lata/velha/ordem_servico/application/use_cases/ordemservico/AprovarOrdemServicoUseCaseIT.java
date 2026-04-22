@@ -143,7 +143,7 @@ class AprovarOrdemServicoUseCaseIT {
     @DisplayName("deve aprovar OS e serviço com estoque suficiente e persistir no banco")
     void deveAprovarOsComEstoqueSuficiente() {
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucaoId, StatusExecucaoServico.APROVADO)));
 
         var output = useCase.execute(input);
 
@@ -181,7 +181,7 @@ class AprovarOrdemServicoUseCaseIT {
         em.flush();
 
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucao2.getId(), StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucao2.getId(), StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -204,7 +204,7 @@ class AprovarOrdemServicoUseCaseIT {
         em.flush();
 
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucaoId, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -230,7 +230,7 @@ class AprovarOrdemServicoUseCaseIT {
         em.flush();
 
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucaoId, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -248,7 +248,7 @@ class AprovarOrdemServicoUseCaseIT {
     @DisplayName("deve persistir atendenteId na execução após aprovação")
     void devePersistirAtendenteNaExecucao() {
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucaoId, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
