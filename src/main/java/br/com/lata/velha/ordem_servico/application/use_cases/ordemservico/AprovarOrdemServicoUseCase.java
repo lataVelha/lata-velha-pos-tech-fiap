@@ -30,7 +30,7 @@ public class AprovarOrdemServicoUseCase {
 
     @Transactional
     public Output execute(Input input) {
-        var ordemServico = ordemServicoRepository.getByIdWithExecucoes(input.idOs());
+        var ordemServico = ordemServicoRepository.getByIdWithExecucoesAndPecas(input.idOs());
         var funcionario = funcionarioRepository.getByUserId(input.userId());
 
         validateServicos(ordemServico, input.servicos());
@@ -43,7 +43,6 @@ public class AprovarOrdemServicoUseCase {
 
             switch (novoStatus) {
                 case APROVADO -> {
-                    execucaoServico.aprovar(funcionario.getId());
                     execucaoServico.getPecas().forEach(alocacaoPeca -> {
                         var estoque = pecasEstoque.get(alocacaoPeca.getPecaId());
                         alocacaoPeca.reservar(estoque);
@@ -58,6 +57,7 @@ public class AprovarOrdemServicoUseCase {
                             ));
                         }
                     });
+                    execucaoServico.aprovar(funcionario.getId());
                 }
 
                 case RECUSADO -> execucaoServico.recusar(funcionario.getId());

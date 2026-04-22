@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,11 +33,11 @@ class PecaAlocadaRepositoryImplTest {
     private PecaAlocadaRepositoryImpl repository;
 
     private PecaAlocada domainPeca() {
-        return new PecaAlocada(1L, 10L, 99L, 3, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
+        return new PecaAlocada(1L, 10L, 99L, new BigDecimal("10.00"), 3, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
     }
 
     private PecaAlocadaEntity entityPeca() {
-        return new PecaAlocadaEntity(1L, 10L, 99L, 3, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
+        return new PecaAlocadaEntity(1L, 10L, 99L, new BigDecimal("10.00"), 3, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
     }
 
     @Nested
@@ -137,7 +138,7 @@ class PecaAlocadaRepositoryImplTest {
         @Test
         @DisplayName("deve retornar lista de peças pendentes")
         void deveRetornarPecasPendentes() {
-            var entity = new PecaAlocadaEntity(2L, 10L, 99L, 5, 2, 3, StatusPecaAlocada.PARCIAL, LocalDateTime.now());
+            var entity = new PecaAlocadaEntity(2L, 10L, 99L, new BigDecimal("10.00"), 5, 2, 3, 0, StatusPecaAlocada.PARCIAL, LocalDateTime.now());
             when(jpaRepository.buscarPendentesPorPecaOrdenado(10L)).thenReturn(List.of(entity));
 
             List<PecaAlocada> result = repository.buscarPendentesPorPecaOrdenado(10L);

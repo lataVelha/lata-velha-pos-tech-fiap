@@ -105,7 +105,7 @@ class IniciarDiagnosticoUseCaseIT {
 
         OrdemServicoEntity osEntity = em.find(OrdemServicoEntity.class, osId);
         assertThat(osEntity.getStatus()).isEqualTo(StatusOrdemServico.EM_DIAGNOSTICO);
-        assertThat(osEntity.getMecanicoFinalId()).isEqualTo(mecanicoId);
+        assertThat(osEntity.getMecanicoResponsavelId()).isEqualTo(mecanicoId);
     }
 
     @Test

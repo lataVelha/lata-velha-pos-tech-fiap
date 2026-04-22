@@ -1,7 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.dtos.request;
 
-import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
-import br.com.lata.velha.ordem_servico.domain.entities.Servico;
+import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.AdicionarServicoUseCase;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
@@ -15,16 +14,15 @@ public record ServicoRequest(
         Long servicoId,
 
         @Schema(description = "Peças necessárias para o serviço")
-        List<PecaRequest> pecas,
+        List<PecaNecessariaRequest> pecas,
 
         @NotNull(message = "Valor de Mão de Obra é obrigatório!")
         @Schema(description = "Valor cobrado pela mão de obra", example = "150.00")
         BigDecimal valorMaoDeObra
 
 ) {
-    public ExecucaoServico toDomain() {
-        Servico servico = new Servico();
-        servico.setId(servicoId);
-        return new ExecucaoServico(servico, valorMaoDeObra);
+    public AdicionarServicoUseCase.Input.ServicoAdicionar toUseCaseInput() {
+        var pecas = this.pecas.stream().map(PecaNecessariaRequest::toUseCaseInput).toList();
+        return new AdicionarServicoUseCase.Input.ServicoAdicionar(servicoId, pecas, valorMaoDeObra);
     }
 }

@@ -2,7 +2,6 @@ package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaEntity;
-import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.PecaPersistenceMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,16 +19,14 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PecaRepositoryImplTest {
 
     @Mock
     private PecaJpaRepository jpaRepository;
-
-    @Mock
-    private PecaPersistenceMapper mapper;
 
     @InjectMocks
     private PecaRepositoryImpl repository;
@@ -56,9 +53,7 @@ class PecaRepositoryImplTest {
         @DisplayName("deve salvar e retornar domínio mapeado")
         void deveSalvarERetornarDominio() {
             PecaEntity entity = entityPeca();
-            when(mapper.toEntity(any())).thenReturn(entity);
             when(jpaRepository.save(entity)).thenReturn(entity);
-            when(mapper.toDomain(entity)).thenReturn(domainPeca());
 
             Peca result = repository.save(domainPeca());
 
@@ -77,7 +72,6 @@ class PecaRepositoryImplTest {
         void deveRetornarQuandoEncontrado() {
             PecaEntity entity = entityPeca();
             when(jpaRepository.findByIdAndAtivoTrue(1L)).thenReturn(Optional.of(entity));
-            when(mapper.toDomain(entity)).thenReturn(domainPeca());
 
             Peca result = repository.getActiveById(1L);
 
@@ -92,8 +86,6 @@ class PecaRepositoryImplTest {
             assertThatThrownBy(() -> repository.getActiveById(99L))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Peça não encontrada");
-
-            verify(mapper, never()).toDomain(any());
         }
     }
 
@@ -107,7 +99,6 @@ class PecaRepositoryImplTest {
             PecaEntity entity = entityPeca();
             var page = new PageImpl<>(List.of(entity), PageRequest.of(0, 10), 1);
             when(jpaRepository.findByAtivoTrue(any())).thenReturn(page);
-            when(mapper.toDomain(entity)).thenReturn(domainPeca());
 
             var result = repository.findAllActivePaginated(0, 10);
 

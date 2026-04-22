@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.domain.entities;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -11,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class PecaAlocadaTest {
 
     private PecaAlocada buildPeca(int solicitada, int reservada, int encomendada, StatusPecaAlocada status) {
-        return new PecaAlocada(1L, 10L, 99L, solicitada, reservada, encomendada, status, LocalDateTime.now());
+        return new PecaAlocada(1L, 10L, 99L, new BigDecimal("10.00"), solicitada, reservada, encomendada, 0, status, LocalDateTime.now());
     }
 
     @Test
@@ -27,7 +28,7 @@ class PecaAlocadaTest {
 
     @Test
     void deveCriarPecaAlocadaViaFactoryMethod() {
-        PecaAlocada peca = PecaAlocada.create(10L, 99L, 3);
+        PecaAlocada peca = PecaAlocada.create(10L, 99L, BigDecimal.ZERO, 3);
 
         assertThat(peca.getId()).isNull();
         assertThat(peca.getPecaId()).isEqualTo(10L);
@@ -42,7 +43,7 @@ class PecaAlocadaTest {
     void deveFalharQuandoPecaIdForNulo() {
         var now = LocalDateTime.now();
         assertThatThrownBy(() ->
-                new PecaAlocada(1L, null, 99L, 5, 0, 0, StatusPecaAlocada.ORCAMENTO, now))
+                new PecaAlocada(1L, null, 99L, BigDecimal.ZERO, 5, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, now))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Peça obrigatória");
     }
@@ -51,7 +52,7 @@ class PecaAlocadaTest {
     void deveFalharQuandoExecucaoServicoIdForNulo() {
         var now = LocalDateTime.now();
         assertThatThrownBy(() ->
-                new PecaAlocada(1L, 10L, null, 5, 0, 0, StatusPecaAlocada.ORCAMENTO, now))
+                new PecaAlocada(1L, 10L, null, BigDecimal.ZERO, 5, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, now))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Serviço obrigatório");
     }
@@ -60,7 +61,7 @@ class PecaAlocadaTest {
     void deveFalharQuandoQuantidadeSolicitadaForInvalida() {
         var now = LocalDateTime.now();
         assertThatThrownBy(() ->
-                new PecaAlocada(1L, 10L, 99L, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, now))
+                new PecaAlocada(1L, 10L, 99L, BigDecimal.ZERO, 0, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, now))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Quantidade inválida");
     }
@@ -99,7 +100,7 @@ class PecaAlocadaTest {
 
         assertThat(peca.getQuantidadeReservada()).isZero();
         assertThat(peca.getQuantidadeEncomendada()).isEqualTo(4);
-        assertThat(peca.getStatus()).isEqualTo(StatusPecaAlocada.PARCIAL);
+        assertThat(peca.getStatus()).isEqualTo(StatusPecaAlocada.ENCOMENDA);
     }
 
     @Test
@@ -111,16 +112,16 @@ class PecaAlocadaTest {
 
         assertThat(peca.getQuantidadeReservada()).isZero();
         assertThat(peca.getQuantidadeEncomendada()).isEqualTo(4);
-        assertThat(peca.getStatus()).isEqualTo(StatusPecaAlocada.PARCIAL);
+        assertThat(peca.getStatus()).isEqualTo(StatusPecaAlocada.ENCOMENDA);
     }
 
     @Test
     void deveRegistrarInstalacao() {
         PecaAlocada peca = buildPeca(3, 3, 0, StatusPecaAlocada.RESERVADA);
 
-        peca.instalada(3);
+        peca.instalar(3);
 
-        assertThat(peca.getQuantidadeReservada()).isZero();
+        assertThat(peca.getQuantidadeInstalada()).isEqualTo(3);
         assertThat(peca.getStatus()).isEqualTo(StatusPecaAlocada.INSTALADA);
     }
 
@@ -128,9 +129,9 @@ class PecaAlocadaTest {
     void deveRegistrarInstalacaoParcial() {
         PecaAlocada peca = buildPeca(5, 5, 0, StatusPecaAlocada.RESERVADA);
 
-        peca.instalada(2);
+        peca.instalar(2);
 
-        assertThat(peca.getQuantidadeReservada()).isEqualTo(3);
+        assertThat(peca.getQuantidadeInstalada()).isEqualTo(2);
         assertThat(peca.getStatus()).isEqualTo(StatusPecaAlocada.RESERVADA);
     }
 
@@ -138,11 +139,11 @@ class PecaAlocadaTest {
     void deveFalharInstalacaoQuandoQuantidadeInvalida() {
         PecaAlocada peca = buildPeca(3, 3, 0, StatusPecaAlocada.RESERVADA);
 
-        assertThatThrownBy(() -> peca.instalada(null))
+        assertThatThrownBy(() -> peca.instalar(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Quantidade inválida");
 
-        assertThatThrownBy(() -> peca.instalada(0))
+        assertThatThrownBy(() -> peca.instalar(0))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Quantidade inválida");
     }
@@ -151,44 +152,30 @@ class PecaAlocadaTest {
     void deveFalharInstalacaoQuandoReservadaInsuficiente() {
         PecaAlocada peca = buildPeca(5, 2, 0, StatusPecaAlocada.RESERVADA);
 
-        assertThatThrownBy(() -> peca.instalada(3))
+        assertThatThrownBy(() -> peca.instalar(3))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Quantidade reservada insuficiente para instalar");
     }
 
     @Test
-    void deveRetornarTotalmenteReservadaQuandoCompleto() {
+    void deveRetornarIsReservadaQuandoCompleto() {
         PecaAlocada peca = buildPeca(3, 3, 0, StatusPecaAlocada.RESERVADA);
 
-        assertThat(peca.totalmenteReservada()).isTrue();
+        assertThat(peca.isReservada()).isTrue();
     }
 
     @Test
-    void deveRetornarFalsoParaTotalmenteReservadaQuandoParcial() {
+    void deveRetornarFalsoParaIsReservadaQuandoParcial() {
         PecaAlocada peca = buildPeca(5, 3, 2, StatusPecaAlocada.PARCIAL);
 
-        assertThat(peca.totalmenteReservada()).isFalse();
-    }
-
-    @Test
-    void deveRetornarIsProcessadaQuandoTotalmenteReservada() {
-        PecaAlocada peca = buildPeca(3, 3, 0, StatusPecaAlocada.RESERVADA);
-
-        assertThat(peca.isProcessada()).isTrue();
-    }
-
-    @Test
-    void deveRetornarProcessadaQuandoParcialmenteReservada() {
-        PecaAlocada peca = buildPeca(5, 3, 0, StatusPecaAlocada.PARCIAL);
-
-        assertThat(peca.isProcessada()).isTrue();
+        assertThat(peca.isReservada()).isFalse();
     }
 
     @Test
     void deveImplementarEqualsEHashCodePeloId() {
         PecaAlocada a = buildPeca(3, 0, 0, StatusPecaAlocada.ORCAMENTO);
-        PecaAlocada b = new PecaAlocada(1L, 20L, 88L, 2, 0, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
-        PecaAlocada c = new PecaAlocada(2L, 10L, 99L, 3, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
+        PecaAlocada b = new PecaAlocada(1L, 20L, 88L, BigDecimal.ZERO, 2, 0, 0, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
+        PecaAlocada c = new PecaAlocada(2L, 10L, 99L, BigDecimal.ZERO, 3, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
 
         assertThat(a)
                 .isEqualTo(b)

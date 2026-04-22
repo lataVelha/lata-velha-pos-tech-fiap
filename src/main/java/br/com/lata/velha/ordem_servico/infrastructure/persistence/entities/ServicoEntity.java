@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.entities;
 
+import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -21,4 +22,8 @@ public class ServicoEntity {
 
     @Column(name = "ATIVO", nullable = false)
     private boolean ativo = true;
+
+    public Servico toDomain() {
+        return new Servico(id, nome, descricao, ativo);
+    }
 }

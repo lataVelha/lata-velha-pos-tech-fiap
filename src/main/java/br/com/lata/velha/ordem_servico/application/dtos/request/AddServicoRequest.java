@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.dtos.request;
 
+import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.AdicionarServicoUseCase;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -18,4 +19,11 @@ public record AddServicoRequest(
         @Schema(description = "Lista de serviços a adicionar")
         List<@Valid ServicoRequest> servicoRequests
 
-) {}
+) {
+    public AdicionarServicoUseCase.Input toUseCaseInput() {
+        var servicos = servicoRequests.stream()
+                .map(ServicoRequest::toUseCaseInput)
+                .toList();
+        return new AdicionarServicoUseCase.Input(idOs, servicos);
+    }
+}

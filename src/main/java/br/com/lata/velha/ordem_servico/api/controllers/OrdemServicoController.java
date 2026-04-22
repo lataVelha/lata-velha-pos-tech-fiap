@@ -118,8 +118,10 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos")
     @ApiResponse(responseCode = "404", description = "OS, serviço ou peça não encontrada")
     @ApiResponse(responseCode = "422", description = "Serviço já adicionado ou OS em status que não permite adição")
-    public ResponseEntity<OrdemServicoResponse> addService(@Valid @RequestBody AddServicoRequest request) {
-        return ResponseEntity.ok(adicionarServicoUseCase.execute(request));
+    public ResponseEntity<Void> addService(@Valid @RequestBody AddServicoRequest request) {
+        var input = request.toUseCaseInput();
+        adicionarServicoUseCase.execute(input);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{idOs}/finalizar-diagnostico")
@@ -159,10 +161,12 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "200", description = "OS reprovada com sucesso")
     @ApiResponse(responseCode = "404", description = "OS ou funcionário não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está em um status que permite reprovação")
-    public ResponseEntity<OrdemServicoResponse> reprove(
+    public ResponseEntity<Void> reprove(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(reprovarOrdemServicoUseCase.execute(idOs, UserId.fromString(jwt.getSubject())));
+        var input = new ReprovarOrdemServicoUseCase.Input(idOs, UserId.fromString(jwt.getSubject()));
+        reprovarOrdemServicoUseCase.execute(input);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{idOs}/iniciar-servico/{servicoId}")
@@ -173,11 +177,14 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "200", description = "Execução iniciada com sucesso")
     @ApiResponse(responseCode = "404", description = "OS ou mecânico não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status EM_EXECUCAO")
-    public ResponseEntity<OrdemServicoResponse> startService(
+    public ResponseEntity<Void> startService(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Parameter(description = "ID do serviço a iniciar", example = "5") @PathVariable Long servicoId,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(iniciarServicoUseCase.execute(idOs, servicoId, UserId.fromString(jwt.getSubject())));
+        var userId = UserId.fromString(jwt.getSubject());
+        var input = new IniciarServicoUseCase.Input(idOs, servicoId, userId);
+        iniciarServicoUseCase.execute(input);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{idOs}/finalizar-servico/{servicoId}")
@@ -188,11 +195,13 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "200", description = "Serviço finalizado com sucesso")
     @ApiResponse(responseCode = "404", description = "OS, serviço ou mecânico não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status EM_EXECUCAO ou serviço não está EM_EXECUCAO")
-    public ResponseEntity<OrdemServicoResponse> finishService(
+    public ResponseEntity<Void> finishService(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Parameter(description = "ID do serviço a finalizar", example = "5") @PathVariable Long servicoId,
             @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(finalizarServicoUseCase.execute(idOs, servicoId, UserId.fromString(jwt.getSubject())));
+        var input = new FinalizarServicoUseCase.Input(idOs, servicoId, UserId.fromString(jwt.getSubject()));
+        finalizarServicoUseCase.execute(input);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{idOs}/retirar-veiculo")

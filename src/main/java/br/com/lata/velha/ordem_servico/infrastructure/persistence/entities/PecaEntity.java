@@ -1,13 +1,18 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.entities;
 
+import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "PECA")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PecaEntity {
 
     @Id
@@ -26,4 +31,24 @@ public class PecaEntity {
 
     @Column(name = "ATIVO", nullable = false)
     private boolean ativo = true;
+
+    public static PecaEntity fromDomain(Peca domain) {
+        return new PecaEntity(
+                domain.getId(),
+                domain.getNome(),
+                domain.getDescricao(),
+                domain.getValor(),
+                domain.isAtivo()
+        );
+    }
+
+    public Peca toDomain() {
+        return new Peca(
+                id,
+                nome,
+                descricao,
+                valor,
+                ativo
+        );
+    }
 }

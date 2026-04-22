@@ -1,6 +1,5 @@
 package br.com.lata.velha.ordem_servico.domain.entities;
 
-import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 
 import java.math.BigDecimal;
@@ -16,7 +15,8 @@ public final class OrdemServico {
     private final String reclamacaoCliente;
     private StatusOrdemServico status;
 
-    private final LocalDateTime iniciadoEm;
+    private final LocalDateTime criadoEm;
+    private LocalDateTime iniciadoEm;
     private LocalDateTime finalizadoEm;
     private LocalDateTime entregueEm;
     private LocalDateTime atualizadoEm;
@@ -26,12 +26,13 @@ public final class OrdemServico {
 
     private final List<ExecucaoServico> execucaoServicos;
 
-    public OrdemServico(Long id, Long proprietarioId, Long veiculoId, String reclamacaoCliente, StatusOrdemServico status, LocalDateTime iniciadoEm, LocalDateTime finalizadoEm, LocalDateTime entregueEm, LocalDateTime atualizadoEm, Long atendenteInicioId, Long mecanicoResponsavelId, List<ExecucaoServico> execucaoServicos) {
+    public OrdemServico(Long id, Long proprietarioId, Long veiculoId, String reclamacaoCliente, StatusOrdemServico status, LocalDateTime criadoEm, LocalDateTime iniciadoEm, LocalDateTime finalizadoEm, LocalDateTime entregueEm, LocalDateTime atualizadoEm, Long atendenteInicioId, Long mecanicoResponsavelId, List<ExecucaoServico> execucaoServicos) {
         this.id = id;
         this.proprietarioId = proprietarioId;
         this.veiculoId = veiculoId;
         this.reclamacaoCliente = reclamacaoCliente;
         this.status = status;
+        this.criadoEm = criadoEm;
         this.iniciadoEm = iniciadoEm;
         this.finalizadoEm = finalizadoEm;
         this.entregueEm = entregueEm;
@@ -42,14 +43,13 @@ public final class OrdemServico {
     }
 
     public static OrdemServico create(Long proprietarioId, Long veiculoId, String reclamacaoCliente, Long atendenteInicioId) {
-        return new OrdemServico(null, proprietarioId, veiculoId, reclamacaoCliente, StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, atendenteInicioId, null, new ArrayList<>());
+        return new OrdemServico(null, proprietarioId, veiculoId, reclamacaoCliente, StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, null, atendenteInicioId, null, new ArrayList<>());
     }
 
     /* ================== FLUXO ================== */
 
     public void iniciarDiagnostico(Long mecanicoId) {
         validarStatus(StatusOrdemServico.RECEBIDA);
-
         this.mecanicoResponsavelId = mecanicoId;
         this.status = StatusOrdemServico.EM_DIAGNOSTICO;
         touch();
@@ -63,20 +63,15 @@ public final class OrdemServico {
 
     public void aprovar(Long atendenteId) {
         validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
-
         boolean temServicoNaoDecidido = execucaoServicos.stream()
-                .anyMatch(e -> e.getStatus() != StatusExecucaoServico.APROVADO
-                        && e.getStatus() != StatusExecucaoServico.RECUSADO);
-        if (temServicoNaoDecidido) {
+                .anyMatch(ExecucaoServico::isPendente);
+        if (temServicoNaoDecidido)
             throw new IllegalStateException("Todos os serviços devem estar com status APROVADO ou RECUSADO antes de aprovar a OS.");
-        }
 
         boolean nenhumAprovado = execucaoServicos.stream()
-                .noneMatch(e -> e.getStatus() == StatusExecucaoServico.APROVADO);
-        if (nenhumAprovado) {
+                .allMatch(ExecucaoServico::isRecusado);
+        if (nenhumAprovado)
             throw new IllegalStateException("É necessário pelo menos um serviço aprovado para aprovar a OS.");
-        }
-
         this.atendenteInicioId = atendenteId;
         this.status = StatusOrdemServico.APROVADA;
         touch();
@@ -84,8 +79,8 @@ public final class OrdemServico {
 
     public void iniciarExecucao() {
         validarStatus(StatusOrdemServico.APROVADA);
-
         this.status = StatusOrdemServico.EM_EXECUCAO;
+        this.iniciadoEm = LocalDateTime.now();
         touch();
     }
 
@@ -100,85 +95,92 @@ public final class OrdemServico {
 
     public void finalizar(Long mecanicoId) {
         validarStatus(StatusOrdemServico.EM_EXECUCAO);
-
-        boolean existeExecucaoEmAndamento = execucaoServicos.stream()
-                .anyMatch(ExecucaoServico::isEmExecucao);
-
-        if (existeExecucaoEmAndamento) {
-            throw new IllegalStateException(
-                    "Existem serviços em execução"
-            );
-        }
-
-        boolean existeExecucaoComPecaNaoProcessada = execucaoServicos.stream()
-                .filter(s -> !s.isRecusado())
-                .anyMatch(s -> s.getPecas().stream().anyMatch(p -> !p.isProcessada()));
-
-        if (existeExecucaoComPecaNaoProcessada) {
-            throw new IllegalStateException(
-                    "Existem peças não processadas em serviços ativos"
-            );
-        }
-
+        boolean existeExecucaoNaoConcluida = execucaoServicos.stream()
+                .anyMatch(s -> !s.isConcluido());
+        if (existeExecucaoNaoConcluida)
+            throw new IllegalStateException("Existem execuções de serviço não finalizadas para esta OS!");
         this.mecanicoResponsavelId = mecanicoId;
         this.status = StatusOrdemServico.FINALIZADA;
         this.finalizadoEm = LocalDateTime.now();
-
         touch();
     }
 
     public void entregar(Long atendenteId) {
         validarStatus(StatusOrdemServico.FINALIZADA);
-
         this.atendenteInicioId =atendenteId;
         this.status = StatusOrdemServico.ENTREGUE;
         this.entregueEm = LocalDateTime.now();
         touch();
     }
 
-
     public void adicionarServico(ExecucaoServico servico) {
-
         if (servico == null)
             throw new IllegalArgumentException("Serviço inválido");
 
-        if (status == StatusOrdemServico.FINALIZADA ||
-                status == StatusOrdemServico.ENTREGUE) {
-            throw new IllegalStateException(
-                    "Não é possível adicionar serviço"
-            );
-        }
+        if (status == StatusOrdemServico.FINALIZADA || status == StatusOrdemServico.ENTREGUE)
+            throw new IllegalStateException("Não é possível adicionar serviço");
 
         boolean jaExiste = execucaoServicos.stream()
-                .anyMatch(s -> s.getServico().getId()
-                        .equals(servico.getServico().getId()));
+                .anyMatch(s -> s.getServicoId()
+                        .equals(servico.getServicoId()));
 
-        if (jaExiste) {
-            throw new IllegalStateException(
-                    "Serviço já adicionado"
-            );
-        }
+        if (jaExiste)
+            throw new IllegalStateException("Serviço já adicionado");
 
         execucaoServicos.add(servico);
         touch();
     }
 
+    public void iniciarExecucaoServico(Long execucaoId, Long mecanicoId) {
+        if (!this.isEmAndamento())
+            throw new IllegalStateException("Esta Ordem de Serviço não pode ter serviços iniciados: " + this.getId());
+        var execucao = this.execucaoServicos.stream()
+                .filter(e -> e.getId().equals(execucaoId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado na OS: " + execucaoId));
+        if (!this.isEmExecucao()) this.iniciarExecucao();
+        execucao.iniciar(mecanicoId);
+    }
+
+    public void finalizarExecucaoServico(Long execucaoId, Long mecanicoId) {
+        if (!this.isEmExecucao())
+            throw new IllegalStateException("Esta Ordem de Serviço não está em execução: " + this.getId());
+
+        var execucao = this.getExecucaoServicos().stream()
+                .filter(e -> e.getId().equals(execucaoId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado na OS: " + execucaoId));
+        // TODO implemnt separate instalation process, now all parts are installed at once on finish
+        execucao.instalarPecasRestantes();
+        execucao.finalizar();
+
+        if (this.todosServicosConcluidos())
+            this.finalizar(mecanicoId);
+    }
+
+    public boolean isAprovada() {
+        return this.status == StatusOrdemServico.APROVADA;
+    }
+
+    public boolean isEmExecucao() {
+        return this.status == StatusOrdemServico.EM_EXECUCAO;
+    }
+
+    public boolean isEmAndamento() {
+        return this.isAprovada() || this.isEmExecucao();
+    }
+
+    public boolean isFinalizada() {
+        return this.status.equals(StatusOrdemServico.FINALIZADA);
+    }
+
+    public boolean todosServicosConcluidos() {
+        return this.execucaoServicos.stream()
+                .allMatch(ExecucaoServico::isConcluido);
+    }
+
     public BigDecimal calcularValorTotal() {
         return execucaoServicos.stream()
-                .map(ExecucaoServico::calcularTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    public BigDecimal calcularTotalAprovados() {
-        return execucaoServicos.stream()
-                .filter(e -> !e.isRecusado())
-                .map(ExecucaoServico::calcularTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    public BigDecimal calcularTotalRecusados() {
-        return execucaoServicos.stream()
-                .filter(ExecucaoServico::isRecusado)
                 .map(ExecucaoServico::calcularTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -205,6 +207,7 @@ public final class OrdemServico {
     public Long getVeiculoId() { return veiculoId; }
     public String getReclamacaoCliente() { return reclamacaoCliente; }
     public StatusOrdemServico getStatus() { return status; }
+    public LocalDateTime getCriadoEm() { return criadoEm; }
     public LocalDateTime getIniciadoEm() { return iniciadoEm; }
     public LocalDateTime getFinalizadoEm() { return finalizadoEm; }
     public LocalDateTime getEntregueEm() { return entregueEm; }
