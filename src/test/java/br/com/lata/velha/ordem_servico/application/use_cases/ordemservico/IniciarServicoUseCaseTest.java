@@ -116,7 +116,7 @@ class IniciarServicoUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve notificar quando OS já está EM_EXECUCAO ao iniciar serviço subsequente")
+    @DisplayName("deve notificar somente quando OS não está EM_EXECUCAO ao iniciar serviço")
     void deveNotificarQuandoOsJaEstaEmExecucao() {
         var exec1 = buildExecEmExecucao(EXEC_ID);
         var exec2 = buildExecAprovado(11L);
@@ -128,7 +128,7 @@ class IniciarServicoUseCaseTest {
 
         useCase.execute(new IniciarServicoUseCase.Input(OS_ID, 11L, userId));
 
-        verify(notificarUseCase).execute(os);
+        verify(notificarUseCase, never()).execute(os);
     }
 
     @Test
