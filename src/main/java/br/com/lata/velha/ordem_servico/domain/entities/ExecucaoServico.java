@@ -111,6 +111,7 @@ public final class ExecucaoServico {
     }
 
     public BigDecimal calcularTotal() {
+        if(this.isRecusado()) return BigDecimal.ZERO;
         BigDecimal totalPecas = this.pecas.stream()
                 .map(PecaAlocada::getValorTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

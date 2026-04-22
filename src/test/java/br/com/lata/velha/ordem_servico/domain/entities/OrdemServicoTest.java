@@ -383,6 +383,35 @@ class OrdemServicoTest {
 
             assertThat(os.calcularValorTotal()).isEqualByComparingTo(new BigDecimal("230.00"));
         }
+
+        @Test
+        @DisplayName("deve excluir serviços RECUSADOS do total")
+        void deveExcluirServicosRecusadosDoTotal() {
+            ExecucaoServico aprovado = execucaoServico(1L);
+            ExecucaoServico recusado = new ExecucaoServico(2L, 2L, 1L, StatusExecucaoServico.RECUSADO,
+                    new BigDecimal("80.00"), new java.util.HashSet<>(), null, null, null, null, LocalDateTime.now());
+
+            OrdemServico os = new OrdemServico(1L, 4L, 3L, "Barulho ao frear",
+                    StatusOrdemServico.AGUARDANDO_APROVACAO, LocalDateTime.now(), null, null, null, null,
+                    2L, null, new java.util.ArrayList<>(java.util.List.of(aprovado, recusado)));
+
+            assertThat(os.calcularValorTotal()).isEqualByComparingTo(new BigDecimal("150.00"));
+        }
+
+        @Test
+        @DisplayName("deve retornar zero quando todos os serviços são RECUSADOS")
+        void deveRetornarZeroQuandoTodosRecusados() {
+            ExecucaoServico recusado1 = new ExecucaoServico(1L, 1L, 1L, StatusExecucaoServico.RECUSADO,
+                    new BigDecimal("150.00"), new java.util.HashSet<>(), null, null, null, null, LocalDateTime.now());
+            ExecucaoServico recusado2 = new ExecucaoServico(2L, 2L, 1L, StatusExecucaoServico.RECUSADO,
+                    new BigDecimal("80.00"), new java.util.HashSet<>(), null, null, null, null, LocalDateTime.now());
+
+            OrdemServico os = new OrdemServico(1L, 4L, 3L, "Barulho ao frear",
+                    StatusOrdemServico.REPROVADA, LocalDateTime.now(), null, null, null, null,
+                    2L, null, new java.util.ArrayList<>(java.util.List.of(recusado1, recusado2)));
+
+            assertThat(os.calcularValorTotal()).isEqualByComparingTo(BigDecimal.ZERO);
+        }
     }
 
     @Nested
