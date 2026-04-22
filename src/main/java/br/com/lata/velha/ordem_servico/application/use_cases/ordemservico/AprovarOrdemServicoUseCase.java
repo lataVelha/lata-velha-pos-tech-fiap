@@ -1,14 +1,12 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.dtos.response.TotaisOrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
-import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
-import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
-import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
+import br.com.lata.velha.ordem_servico.domain.entities.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,18 +22,20 @@ public class AprovarOrdemServicoUseCase {
     private final OrdemServicoRepository ordemServicoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final PecaEstoqueRepository pecaEstoqueRepository;
+    private final ServicoRepository servicoRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
     private final CalcularTotaisOrdemServicoUseCase calcularTotaisUseCase;
     private final NotificarAdminEncomendaPecaUseCase notificarAdminEncomendaUseCase;
 
     @Transactional
     public Output execute(Input input) {
-        var ordemServico = ordemServicoRepository.getByIdWithExecucoes(input.idOs());
+        var ordemServico = ordemServicoRepository.getByIdWithExecucoesAndPecas(input.idOs());
         var funcionario = funcionarioRepository.getByUserId(input.userId());
 
         validateServicos(ordemServico, input.servicos());
         var statusPorId = input.getServiceStatusMap();
         var pecasEstoque = getStockMap(ordemServico.getExecucaoServicos());
+        var servicoNomeMap = getServicoNomeMap(ordemServico.getExecucaoServicos());
 
         ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
             var novoStatus = statusPorId.get(execucaoServico.getId());
@@ -43,7 +43,6 @@ public class AprovarOrdemServicoUseCase {
 
             switch (novoStatus) {
                 case APROVADO -> {
-                    execucaoServico.aprovar(funcionario.getId());
                     execucaoServico.getPecas().forEach(alocacaoPeca -> {
                         var estoque = pecasEstoque.get(alocacaoPeca.getPecaId());
                         alocacaoPeca.reservar(estoque);
@@ -54,10 +53,11 @@ public class AprovarOrdemServicoUseCase {
                                     execucaoServico.getId(),
                                     alocacaoPeca.getPecaId(),
                                     alocacaoPeca.getQuantidadeEncomendada(),
-                                    execucaoServico.getServico().getNome()
+                                    servicoNomeMap.get(execucaoServico.getServicoId())
                             ));
                         }
                     });
+                    execucaoServico.aprovar(funcionario.getId());
                 }
 
                 case RECUSADO -> execucaoServico.recusar(funcionario.getId());
@@ -88,11 +88,11 @@ public class AprovarOrdemServicoUseCase {
         List<PecaEstoque> estoque = pecaEstoqueRepository.findAllByPecaIds(pecaIds);
         return estoque.stream()
                 .collect(Collectors
-                                .toMap(PecaEstoque::getPecaId, p -> p)
+                        .toMap(PecaEstoque::getPecaId, p -> p)
                 );
     }
 
-    private void validateServicos(OrdemServico ordemServico, List<Input.Servicos> servicos) {
+    private void validateServicos(OrdemServico ordemServico, List<Input.ServicoAprovacao> servicos) {
         var registeredIds = ordemServico.getExecucaoServicos().stream()
                 .map(ExecucaoServico::getId)
                 .collect(Collectors.toSet());
@@ -103,16 +103,31 @@ public class AprovarOrdemServicoUseCase {
             throw new IllegalArgumentException("Serviços não pertencem à OS " + ordemServico.getId() + ": " + idsInvalidos);
     }
 
-    public record Input(Long idOs, UserId userId, List<Servicos> servicos) {
+    private Map<Long, String> getServicoNomeMap(List<ExecucaoServico> execucoes) {
+        var servicosIds = execucoes.stream()
+                .map(ExecucaoServico::getServicoId)
+                .collect(Collectors.toSet());
+        var servicos = servicoRepository.getAllActiveById(servicosIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        Servico::getId,
+                        Servico::getNome
+                ));
+        if(servicosIds.size() != servicos.size())
+            throw new IllegalArgumentException("Alguns serviços solicitados não foram encontrados ou estão inativos");
+        return servicos;
+    }
+
+    public record Input(Long idOs, UserId userId, List<ServicoAprovacao> servicos) {
         public Map<Long, StatusExecucaoServico> getServiceStatusMap() {
             return servicos.stream()
                     .collect(Collectors.toMap(
-                            Servicos::execucaoServicoId,
-                            Servicos::status
+                            ServicoAprovacao::execucaoServicoId,
+                            ServicoAprovacao::status
                     ));
         }
 
-        public record Servicos(Long execucaoServicoId, StatusExecucaoServico status) {}
+        public record ServicoAprovacao(Long execucaoServicoId, StatusExecucaoServico status) {}
     }
 
     public record Output(Long idOs, String status, List<Servico> servicos, TotaisOrdemServicoResponse totais) {

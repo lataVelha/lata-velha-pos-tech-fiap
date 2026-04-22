@@ -27,7 +27,7 @@ public interface PecaAlocadaJpaRepository extends JpaRepository<PecaAlocadaEntit
                 select p
                 from PecaAlocadaEntity p
                 where p.pecaId = :pecaId
-                  and p.status in ('PARCIAL','ENCOMENDADA')
+                  and p.status in ('PARCIAL','ENCOMENDA')
                 order by p.atualizado asc
             """)
     List<PecaAlocadaEntity> buscarPendentesPorPecaOrdenado(@Param("pecaId") Long pecaId);

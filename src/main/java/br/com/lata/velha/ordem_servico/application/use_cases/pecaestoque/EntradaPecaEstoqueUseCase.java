@@ -39,7 +39,7 @@ public class EntradaPecaEstoqueUseCase {
 
         for (var pecaAlocada : pendentes) {
             if (estoque.getQuantidadeDisponivel() <= 0) break;
-            if (pecaAlocada.totalmenteReservada()) continue;
+            if (pecaAlocada.isReservada()) continue;
             pecaAlocada.reservar(estoque);
             pecaAlocadaRepository.save(pecaAlocada);
         }

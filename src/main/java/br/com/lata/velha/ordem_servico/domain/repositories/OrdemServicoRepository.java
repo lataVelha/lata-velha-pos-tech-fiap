@@ -11,7 +11,7 @@ public interface OrdemServicoRepository {
 
     OrdemServico getById(Long id);
 
-    OrdemServico getByIdWithExecucoes(Long id);
+    OrdemServico getByIdWithExecucoesAndPecas(Long id);
 
     Page<OrdemServicoProjection> findByAllOrdemSevico(Long id,
                                                       String status,

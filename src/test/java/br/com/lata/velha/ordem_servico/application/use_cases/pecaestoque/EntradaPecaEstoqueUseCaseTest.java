@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -71,7 +72,7 @@ class EntradaPecaEstoqueUseCaseTest {
     void deveMovimentarReservasPendentesAoAdicionar() {
         PecaEstoque estoque = new PecaEstoque(1L, 0, 0);
         MovimentarPecaEstoqueRequest request = new MovimentarPecaEstoqueRequest(10);
-        PecaAlocada pendente = new PecaAlocada(5L, 1L, 99L, 4, 0, 4, StatusPecaAlocada.PARCIAL, LocalDateTime.now());
+        PecaAlocada pendente = new PecaAlocada(5L, 1L, 99L, new BigDecimal("10.00"), 4, 0, 4, 0, StatusPecaAlocada.PARCIAL, LocalDateTime.now());
 
         when(pecaRepository.existsActiveById(1L)).thenReturn(true);
         when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.of(estoque));

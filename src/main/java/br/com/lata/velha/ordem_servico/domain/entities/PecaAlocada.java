@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.domain.entities;
 
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -10,74 +11,83 @@ public final class PecaAlocada {
     private final Long pecaId;
     private final Long execucaoServicoId;
 
+    private BigDecimal valorUnitarioPeca;
+
     private Integer quantidadeSolicitada;
     private Integer quantidadeReservada;
     private Integer quantidadeEncomendada;
+    private Integer quantidadeInstalada;
 
     private StatusPecaAlocada status;
     private LocalDateTime atualizado;
 
-    public PecaAlocada(Long id, Long pecaId, Long execucaoServicoId, Integer quantidadeSolicitada, Integer quantidadeReservada, Integer quantidadeEncomendada, StatusPecaAlocada status, LocalDateTime atualizado) {
+    public PecaAlocada(Long id, Long pecaId, Long execucaoServicoId, BigDecimal valorUnitarioPeca, Integer quantidadeSolicitada, Integer quantidadeReservada, Integer quantidadeEncomendada, Integer quantidadeInstalada, StatusPecaAlocada status, LocalDateTime atualizado) {
         validatePecaId(pecaId);
         validateExecucaoServicoId(execucaoServicoId);
 
         this.id = id;
         this.pecaId = pecaId;
         this.execucaoServicoId = execucaoServicoId;
+        setValorUnitarioPeca(valorUnitarioPeca);
 
         setQuantidadeSolicitada(quantidadeSolicitada);
         this.quantidadeReservada = quantidadeReservada;
         this.quantidadeEncomendada = quantidadeEncomendada;
+        this.quantidadeInstalada = quantidadeInstalada;
         this.status = status;
         this.atualizado = atualizado;
     }
 
-    public static PecaAlocada create(Long pecaId, Long execucaoServicoId, Integer quantidadeSolicitada) {
+    public static PecaAlocada create(Long pecaId, Long execucaoServicoId, BigDecimal valorPecaUnitaria, Integer quantidadeSolicitada) {
         var quantidadeReservadaInicial = 0;
         var quantidadeEncomendadaInicial = 0;
+        var quantidadeInstaladaInicial = 0;
         var statusInicial = StatusPecaAlocada.ORCAMENTO;
-        return new PecaAlocada(null, pecaId, execucaoServicoId, quantidadeSolicitada, quantidadeReservadaInicial, quantidadeEncomendadaInicial, statusInicial, LocalDateTime.now());
+        return new PecaAlocada(null, pecaId, execucaoServicoId, valorPecaUnitaria, quantidadeSolicitada, quantidadeReservadaInicial, quantidadeEncomendadaInicial, quantidadeInstaladaInicial, statusInicial, LocalDateTime.now());
     }
 
     public void reservar(PecaEstoque estoque) {
         if (estoque != null && estoque.getQuantidadeDisponivel() > 0)
             reservarEstoque(estoque);
         encomendarFaltante();
-
-        if (this.quantidadeEncomendada > 0) {
+        if(this.quantidadeEncomendada.equals(this.quantidadeSolicitada)) {
+            this.status = StatusPecaAlocada.ENCOMENDA;
+        } else if (this.quantidadeEncomendada != 0) {
             this.status = StatusPecaAlocada.PARCIAL;
         } else {
-            this.quantidadeEncomendada = 0;
             this.status = StatusPecaAlocada.RESERVADA;
         }
-
         touch();
     }
 
-    public void instalada(Integer quantidade) {
+    public void instalar(Integer quantidade) {
         if (quantidade == null || quantidade <= 0)
             throw new IllegalArgumentException("Quantidade inválida");
 
-        if (quantidadeReservada < quantidade)
+        var reservadasDisponiveis = this.quantidadeReservada - this.quantidadeInstalada;
+        if (reservadasDisponiveis < quantidade)
             throw new IllegalStateException("Quantidade reservada insuficiente para instalar");
 
-        this.quantidadeReservada -= quantidade;
+        this.quantidadeInstalada += quantidade;
 
-        if (this.quantidadeReservada == 0 && this.quantidadeEncomendada == 0) {
+        if (this.quantidadeInstalada.equals(this.quantidadeSolicitada))
             this.status = StatusPecaAlocada.INSTALADA;
-        }
 
         touch();
     }
 
-    public boolean isProcessada() {
-        return quantidadeSolicitada >= quantidadeReservada;
-    }
     /* ================= HELPERS ================= */
+    public boolean isAguardandoPeca() {
+        return this.status.equals(StatusPecaAlocada.ENCOMENDA) ||
+                this.status.equals(StatusPecaAlocada.PARCIAL);
+    }
 
-    public boolean totalmenteReservada() {
-        return quantidadeReservada != null &&
-                quantidadeReservada.equals(quantidadeSolicitada);
+    public boolean isReservada() {
+        return this.status == StatusPecaAlocada.RESERVADA;
+    }
+
+    public boolean isInstalada() {
+        return this.status == StatusPecaAlocada.INSTALADA;
     }
 
     private void touch() {
@@ -88,20 +98,13 @@ public final class PecaAlocada {
     public Long getId() { return id; }
     public Long getPecaId() { return pecaId; }
     public Long getExecucaoServicoId() { return execucaoServicoId; }
+    public BigDecimal getValorUnitarioPeca() { return valorUnitarioPeca; }
     public Integer getQuantidadeSolicitada() { return quantidadeSolicitada; }
     public Integer getQuantidadeReservada() { return quantidadeReservada; }
     public Integer getQuantidadeEncomendada() { return quantidadeEncomendada; }
+    public Integer getQuantidadeInstalada() { return quantidadeInstalada; }
     public StatusPecaAlocada getStatus() { return status; }
     public LocalDateTime getAtualizado() { return atualizado; }
-
-    /* ================= SETTERS CONTROLADOS ================= */
-    public void setQuantidadeReservada(Integer quantidadeReservada) {
-        this.quantidadeReservada = quantidadeReservada;
-    }
-
-    public void setQuantidadeEncomendada(Integer quantidadeEncomendada) {
-        this.quantidadeEncomendada = quantidadeEncomendada;
-    }
 
     public void setStatus(StatusPecaAlocada status) {
         this.status = status;
@@ -150,5 +153,16 @@ public final class PecaAlocada {
         if (quantidadeSolicitada == null || quantidadeSolicitada <= 0)
             throw new IllegalArgumentException("Quantidade inválida");
         this.quantidadeSolicitada = quantidadeSolicitada;
+    }
+
+    private void setValorUnitarioPeca(BigDecimal valorUnitarioPeca) {
+        if (valorUnitarioPeca.compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("valor unitário da peca deve ser positivo!");
+        this.valorUnitarioPeca = valorUnitarioPeca;
+    }
+
+    public BigDecimal getValorTotal() {
+        var quantidade = BigDecimal.valueOf(this.quantidadeSolicitada);
+        return this.valorUnitarioPeca.multiply(quantidade);
     }
 }

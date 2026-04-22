@@ -2,39 +2,31 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.ports.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
-import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
-import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
-import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
-import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
-import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
+import br.com.lata.velha.ordem_servico.domain.entities.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class NotificarOrdemServicoUseCase {
-
     private final EmailProvider emailProvider;
     private final EmailTemplateProvider templateProvider;
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
     private final PecaRepository pecaRepository;
+    private final ServicoRepository servicoRepository;
 
     public void execute(OrdemServico os) {
         try {
@@ -136,11 +128,23 @@ public class NotificarOrdemServicoUseCase {
 
         var precoPecas = buscarPrecoPecas(os.getExecucaoServicos());
 
+        var servicosIds = os.getExecucaoServicos().stream()
+                .map(ExecucaoServico::getServicoId)
+                .collect(Collectors.toSet());
+        var mapServicos = this.servicoRepository.getAllActiveById(servicosIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        Servico::getId,
+                        servico -> servico
+                ));
         List<Map<String, Object>> servicos = os.getExecucaoServicos().stream()
                 .map(s -> {
+                    var servico = mapServicos.get(s.getServicoId());
                     Map<String, Object> map = new HashMap<>();
-                    map.put("nome", s.getServico().getNome());
-                    map.put("descricao", s.getServico().getDescricao());
+                    if(servico != null) {
+                        map.put("nome", servico.getNome());
+                        map.put("descricao", servico.getDescricao());
+                    }
                     map.put("valor", calcularTotalServico(s, precoPecas));
                     return map;
                 })
@@ -220,8 +224,9 @@ public class NotificarOrdemServicoUseCase {
     }
 
     private Map<String, Object> toServicoMap(ExecucaoServico s, Map<Long, Peca> precoPecas) {
+        var servico = this.servicoRepository.getActiveById(s.getServicoId());
         Map<String, Object> map = new HashMap<>();
-        map.put("nome", s.getServico().getNome());
+        map.put("nome", servico.getNome());
         map.put("valor", calcularTotalServico(s, precoPecas));
         return map;
     }

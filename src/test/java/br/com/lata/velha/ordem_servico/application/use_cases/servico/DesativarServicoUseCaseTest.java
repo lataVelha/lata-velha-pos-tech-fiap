@@ -28,7 +28,7 @@ class DesativarServicoUseCaseTest {
     @DisplayName("Deve desativar serviço ativo com sucesso")
     void deveDesativarServicoAtivoComSucesso() {
         var servico = new Servico(1L, "Balanceamento", "Balanceamento das rodas", true);
-        when(repository.findActiveById(1L)).thenReturn(servico);
+        when(repository.getActiveById(1L)).thenReturn(servico);
 
         useCase.execute(1L);
 
@@ -40,7 +40,7 @@ class DesativarServicoUseCaseTest {
     @DisplayName("Deve falhar quando serviço já estiver desativado")
     void deveFalharQuandoServicoJaEstiverDesativado() {
         var servico = new Servico(1L, "Balanceamento", "Balanceamento das rodas", false);
-        when(repository.findActiveById(1L)).thenReturn(servico);
+        when(repository.getActiveById(1L)).thenReturn(servico);
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(1L));
         verify(repository, never()).save(servico);

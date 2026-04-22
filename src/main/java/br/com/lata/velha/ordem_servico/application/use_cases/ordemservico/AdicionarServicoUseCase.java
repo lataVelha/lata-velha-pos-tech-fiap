@@ -1,92 +1,102 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.application.use_cases.peca.BuscarPecaPorIdUseCase;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
+import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class AdicionarServicoUseCase {
-
     private final OrdemServicoRepository ordemServicoRepository;
-    private final BuscarPecaPorIdUseCase buscarPecaPorIdUseCase;
     private final ServicoRepository servicoRepository;
-    private final FuncionarioRepository funcionarioRepository;
-    private final ProprietarioRepository proprietarioRepository;
-    private final VeiculoRepository veiculoRepository;
     private final PecaRepository pecaRepository;
 
-    public OrdemServicoResponse execute(AddServicoRequest request) {
-        var ordemServico = ordemServicoRepository.getById(request.idOs());
+    public void execute(Input input) {
+        var ordemServico = ordemServicoRepository.getById(input.osId);
+        var execucoes = createExecucoes(input.servicos(), ordemServico.getId());
+        execucoes.forEach(ordemServico::adicionarServico);
+        ordemServico = ordemServicoRepository.save(ordemServico);
+        execucoes = ordemServico.getExecucaoServicos();
+        adicionarPecas(execucoes, input.servicos);
+        ordemServicoRepository.save(ordemServico);
+    }
 
-        // Fase 1: adiciona os serviços sem peças para obter os IDs após o save
-        request.servicoRequests().forEach(servicoRequest -> {
-            var servico = servicoRepository.findActiveById(servicoRequest.servicoId());
-            ordemServico.adicionarServico(new ExecucaoServico(servico, servicoRequest.valorMaoDeObra()));
-        });
+    private List<ExecucaoServico> createExecucoes(List<Input.ServicoAdicionar> servicosAdicionar, Long osId) {
+        Set<Long> servicoIds = servicosAdicionar.stream().map(Input.ServicoAdicionar::servicoId).collect(Collectors.toSet());
+        validateDuplicates(servicoIds, servicosAdicionar);
+        var servicos = servicoRepository.getAllActiveById(servicoIds);
+        validateIds(servicoIds, servicos);
+        var servicoAdicionarMap = servicosAdicionar.stream().collect(Collectors.toMap(
+                Input.ServicoAdicionar::servicoId,
+                servico -> servico
+        ));
+        return servicoAdicionarMap.entrySet().stream()
+                .map(entry -> {
+                    var value = entry.getValue();
+                    return ExecucaoServico.create(entry.getKey(), osId, value.valorMaoDeObra);
+                })
+                .toList();
+    }
 
-        var savedComServicos = ordemServicoRepository.save(ordemServico);
-
-        // Fase 2: com os IDs disponíveis, adiciona as peças a cada serviço
-        request.servicoRequests().forEach(servicoRequest -> {
-            if (servicoRequest.pecas() == null || servicoRequest.pecas().isEmpty()) return;
-
-            var execucao = savedComServicos.getExecucaoServicos().stream()
-                    .filter(e -> e.getServico().getId().equals(servicoRequest.servicoId()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Serviço não encontrado após save: " + servicoRequest.servicoId()));
-
-            servicoRequest.pecas().forEach(pecaRequest -> {
-                var peca = buscarPecaPorIdUseCase.execute(pecaRequest.pecaId());
-                execucao.adicionarPeca(PecaAlocada.create(peca.id(), execucao.getId(), pecaRequest.quantidade()));
-            });
-        });
-
-        var saved = ordemServicoRepository.save(savedComServicos);
-        var atendente = funcionarioRepository.getById(saved.getAtendenteInicioId());
-        var proprietario = proprietarioRepository.getActiveById(saved.getProprietarioId());
-        var veiculo = veiculoRepository.getActiveById(saved.getVeiculoId());
-        String mecanicoNome = saved.getMecanicoResponsavelId() != null
-                ? funcionarioRepository.getById(saved.getMecanicoResponsavelId()).getNome()
-                : null;
-
-        Map<Long, String> mecanicoNomes = saved.getExecucaoServicos().stream()
-                .filter(e -> e.getMecanicoResponsavelId() != null)
+    private void adicionarPecas(List<ExecucaoServico> execucoes, List<Input.ServicoAdicionar> servicos) {
+        var pecasPrecos = getPecasPrecoMap(servicos);
+        var pecasMap = servicos.stream()
                 .collect(Collectors.toMap(
-                        e -> e.getMecanicoResponsavelId(),
-                        e -> funcionarioRepository.getById(e.getMecanicoResponsavelId()).getNome(),
-                        (a, b) -> a
+                        Input.ServicoAdicionar::servicoId,
+                        Input.ServicoAdicionar::pecas
                 ));
+        execucoes.forEach(execucao -> {
+            var pecas = pecasMap.get(execucao.getServicoId());
+            pecas.stream()
+                    .map(peca -> PecaAlocada.create(peca.pecaId(), execucao.getId(), pecasPrecos.get(peca.pecaId()), peca.quantidade()))
+                    .forEach(execucao::adicionarPeca);
+        });
+    }
 
-        var pecaIds = saved.getExecucaoServicos().stream()
-                .flatMap(e -> e.getPecas().stream())
-                .map(p -> p.getPecaId())
+    private Map<Long, BigDecimal> getPecasPrecoMap(List<Input.ServicoAdicionar> servicos) {
+        var pecasIds = servicos.stream()
+                .map(Input.ServicoAdicionar::pecas)
+                .flatMap(List::stream)
+                .map(Input.PecaNecessaria::pecaId)
                 .collect(Collectors.toSet());
+        var valores = pecaRepository.getAllActiveByIds(pecasIds).stream()
+                .collect(Collectors.toMap(
+                        Peca::getId,
+                        Peca::getValor
+                ));
+        if(pecasIds.size() != valores.size())
+            throw new IllegalArgumentException("Algumas pecas informadas não existem!");
+        return valores;
+    }
 
-        Map<Long, Peca> pecaMap = pecaIds.stream()
-                .collect(Collectors.toMap(id -> id, pecaRepository::getActiveById));
+    private void validateDuplicates(Set<Long> servicoIds, List<Input.ServicoAdicionar> servicosAdicionar) {
+        if(servicoIds.size() != servicosAdicionar.size())
+            throw new IllegalArgumentException("Não é possível inserir serviços duplicados!");
+    }
 
-        return OrdemServicoResponse.from(saved,
-                atendente.getNome(),
-                mecanicoNome,
-                proprietario.getNome(),
-                veiculo.getMarca() + " " + veiculo.getModelo(),
-                null, null, null,
-                mecanicoNomes, pecaMap);
+    private void validateIds(Set<Long> servicoIds, Set<Servico> servicos) {
+        var invalidIds = servicos.stream()
+                .map(Servico::getId)
+                .filter(id -> servicoIds.stream().noneMatch(servicoId -> servicoId.equals(id)))
+                .collect(Collectors.toSet());
+        if(!invalidIds.isEmpty())
+            throw new IllegalArgumentException("Servicos com Ids: " + invalidIds + " não existem!");
+    }
+
+    public record Input(Long osId, List<ServicoAdicionar> servicos){
+        public record ServicoAdicionar(Long servicoId, List<PecaNecessaria> pecas, BigDecimal valorMaoDeObra) { }
+        public record PecaNecessaria(Long pecaId, Integer quantidade) {}
     }
 }

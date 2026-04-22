@@ -22,9 +22,6 @@ public record ExecucaoServicoResponse(
         @Schema(description = "ID do serviço cadastrado", example = "134")
         Long servicoId,
 
-        @Schema(description = "Nome do serviço", example = "Balanceamento")
-        String servicoNome,
-
         @Schema(description = "Status atual do serviço", example = "APROVADO")
         StatusExecucaoServico status,
 
@@ -78,8 +75,7 @@ public record ExecucaoServicoResponse(
 
         return new ExecucaoServicoResponse(
                 domain.getId(),
-                domain.getServico().getId(),
-                domain.getServico().getNome(),
+                domain.getServicoId(),
                 domain.getStatus(),
                 mecanico,
                 domain.getValorMaoDeObra(),

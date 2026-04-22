@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 @Entity
 @Table(name = "PECA_ALOCADA")
@@ -26,6 +27,9 @@ public class PecaAlocadaEntity {
     @Column(name = "EXECUCAO_SERVICO_ID", nullable = false)
     private Long execucaoServicoId;
 
+    @Column(name = "VALOR_UNITARIO", nullable = false)
+    private BigDecimal valorUnitario;
+
     @Column(name = "QTD_SOLICITADA", nullable = false)
     private Integer quantidadeSolicitada;
 
@@ -34,6 +38,9 @@ public class PecaAlocadaEntity {
 
     @Column(name = "QTD_ENCOMENDADA", nullable = false)
     private Integer quantidadeEncomendada = 0;
+
+    @Column(name = "QTD_INSTALADA", nullable = false)
+    private Integer quantidadeInstalada = 0;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS", length = 30, nullable = false)
@@ -48,9 +55,11 @@ public class PecaAlocadaEntity {
                 domain.getId(),
                 domain.getPecaId(),
                 domain.getExecucaoServicoId(),
+                domain.getValorUnitarioPeca(),
                 domain.getQuantidadeSolicitada(),
                 domain.getQuantidadeReservada(),
                 domain.getQuantidadeEncomendada(),
+                domain.getQuantidadeInstalada(),
                 domain.getStatus(),
                 domain.getAtualizado()
         );
@@ -61,9 +70,11 @@ public class PecaAlocadaEntity {
                 id,
                 pecaId,
                 execucaoServicoId,
+                valorUnitario,
                 quantidadeSolicitada,
                 quantidadeReservada,
                 quantidadeEncomendada,
+                quantidadeInstalada,
                 status,
                 atualizado
         );

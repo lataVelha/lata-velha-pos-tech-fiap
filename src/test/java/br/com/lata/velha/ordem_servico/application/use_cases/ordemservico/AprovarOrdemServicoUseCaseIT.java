@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.*;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +19,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import br.com.lata.velha.shared.domain.value_objects.UserId;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -120,9 +120,11 @@ class AprovarOrdemServicoUseCaseIT {
         PecaAlocadaEntity pecaAlocada = new PecaAlocadaEntity();
         pecaAlocada.setExecucaoServicoId(execucao.getId());
         pecaAlocada.setPecaId(pecaId);
+        pecaAlocada.setValorUnitario(new BigDecimal("50.00"));
         pecaAlocada.setQuantidadeSolicitada(3);
         pecaAlocada.setQuantidadeReservada(0);
         pecaAlocada.setQuantidadeEncomendada(0);
+        pecaAlocada.setQuantidadeInstalada(0);
         pecaAlocada.setStatus(StatusPecaAlocada.ORCAMENTO);
         pecaAlocada.setAtualizado(LocalDateTime.now());
         em.persist(pecaAlocada);
@@ -141,7 +143,7 @@ class AprovarOrdemServicoUseCaseIT {
     @DisplayName("deve aprovar OS e serviço com estoque suficiente e persistir no banco")
     void deveAprovarOsComEstoqueSuficiente() {
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucaoId, StatusExecucaoServico.APROVADO)));
 
         var output = useCase.execute(input);
 
@@ -179,7 +181,7 @@ class AprovarOrdemServicoUseCaseIT {
         em.flush();
 
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucao2.getId(), StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucao2.getId(), StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -202,7 +204,7 @@ class AprovarOrdemServicoUseCaseIT {
         em.flush();
 
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucaoId, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -213,14 +215,14 @@ class AprovarOrdemServicoUseCaseIT {
         assertThat(estoqueAtualizado.getQuantidadeDisponivel()).isZero();
 
         ExecucaoServicoEntity execEntity = em.find(ExecucaoServicoEntity.class, execucaoId);
-        PecaAlocadaEntity pecaAlocada = execEntity.getPecas().get(0);
+        PecaAlocadaEntity pecaAlocada = execEntity.getPecas().iterator().next();
         assertThat(pecaAlocada.getStatus()).isEqualTo(StatusPecaAlocada.PARCIAL);
         assertThat(pecaAlocada.getQuantidadeReservada()).isEqualTo(2);
         assertThat(pecaAlocada.getQuantidadeEncomendada()).isEqualTo(1);
     }
 
     @Test
-    @DisplayName("deve encomendar tudo quando não há estoque disponível e persistir peça como PARCIAL")
+    @DisplayName("deve encomendar tudo quando não há estoque disponível e persistir peça como ENCOMENDA")
     void deveEncomendarTudoQuandoSemEstoque() {
         PecaEstoqueEntity estoqueEntity = em.find(PecaEstoqueEntity.class, pecaId);
         estoqueEntity.setQuantidadeArmazenada(5);
@@ -228,7 +230,7 @@ class AprovarOrdemServicoUseCaseIT {
         em.flush();
 
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucaoId, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -236,8 +238,8 @@ class AprovarOrdemServicoUseCaseIT {
         em.clear();
 
         ExecucaoServicoEntity execEntity = em.find(ExecucaoServicoEntity.class, execucaoId);
-        PecaAlocadaEntity pecaAlocada = execEntity.getPecas().get(0);
-        assertThat(pecaAlocada.getStatus()).isEqualTo(StatusPecaAlocada.PARCIAL);
+        PecaAlocadaEntity pecaAlocada = execEntity.getPecas().iterator().next();
+        assertThat(pecaAlocada.getStatus()).isEqualTo(StatusPecaAlocada.ENCOMENDA);
         assertThat(pecaAlocada.getQuantidadeReservada()).isZero();
         assertThat(pecaAlocada.getQuantidadeEncomendada()).isEqualTo(3);
     }
@@ -246,7 +248,7 @@ class AprovarOrdemServicoUseCaseIT {
     @DisplayName("deve persistir atendenteId na execução após aprovação")
     void devePersistirAtendenteNaExecucao() {
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
-                List.of(new AprovarOrdemServicoUseCase.Input.Servicos(execucaoId, StatusExecucaoServico.APROVADO)));
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucaoId, StatusExecucaoServico.APROVADO)));
 
         useCase.execute(input);
 
@@ -254,6 +256,6 @@ class AprovarOrdemServicoUseCaseIT {
         em.clear();
 
         ExecucaoServicoEntity execEntity = em.find(ExecucaoServicoEntity.class, execucaoId);
-        assertThat(execEntity.getAtendenteId()).isEqualTo(funcionarioId);
+        assertThat(execEntity.getAtendenteAprovacaoId()).isEqualTo(funcionarioId);
     }
 }

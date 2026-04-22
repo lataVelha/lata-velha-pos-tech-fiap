@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +29,7 @@ class BuscarPecaAlocadaPorIdUseCaseTest {
     @Test
     void deveBuscarPecaAlocadaComSucesso() {
         // Arrange
-        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 99L, 2, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
+        PecaAlocada pecaAlocada = new PecaAlocada(1L, 2L, 99L, BigDecimal.ZERO, 2, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
         
         when(pecaAlocadaRepository.findById(1L)).thenReturn(pecaAlocada);
 

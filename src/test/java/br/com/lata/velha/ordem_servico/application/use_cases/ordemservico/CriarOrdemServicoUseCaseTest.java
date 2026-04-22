@@ -57,7 +57,7 @@ class CriarOrdemServicoUseCaseTest {
         funcionario = new Funcionario(2L, "Maria Atendente", null, null);
 
         savedOs = new OrdemServico(1L, 4L, 3L, "Barulho ao frear",
-                StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null,
+                StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, null,
                 2L, null, new ArrayList<>());
     }
 

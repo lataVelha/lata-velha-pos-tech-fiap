@@ -31,6 +31,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -217,13 +218,12 @@ class OrdemServicoControllerTest {
         var servicoRequest = new ServicoRequest(10L, List.of(), new BigDecimal("150.00"));
         var request = new AddServicoRequest(1L, List.of(servicoRequest));
 
-        when(adicionarServicoUseCase.execute(any())).thenReturn(buildOrdemResponse());
+        doNothing().when(adicionarServicoUseCase).execute(any());
 
         mockMvc.perform(patch("/ordens-servico/adiciona-servico")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -296,22 +296,11 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /ordens-servico/{idOs}/{idFunc}/reprovar deve retornar 200")
     void shouldReturn200OnReprovar() throws Exception {
-        var response = new OrdemServicoResponse(
-                1L, "REPROVADA", "Barulho",
-                new FuncionarioResumoResponse(2L, "Maria"),
-                null,
-                new ProprietarioResumoResponse(4L, "João"),
-                new VeiculoResumoResponse(3L, "Fiat Uno"),
-                LocalDateTime.now(), null, null, LocalDateTime.now(),
-                List.of(), null
-        );
-
-        when(reprovarOrdemServicoUseCase.execute(eq(1L), any())).thenReturn(response);
+        doNothing().when(reprovarOrdemServicoUseCase).execute(any());
 
         mockMvc.perform(patch("/ordens-servico/1/reprovar")
                         .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("REPROVADA"));
+                .andExpect(status().isOk());
     }
 
     @Test

@@ -46,7 +46,7 @@ class IniciarDiagnosticoUseCaseTest {
 
     private OrdemServico buildOs(StatusOrdemServico status) {
         return new OrdemServico(OS_ID, 1L, 2L, "Barulho ao frear",
-                status, LocalDateTime.now(), null, null, LocalDateTime.now(),
+                status, LocalDateTime.now(), null, null, LocalDateTime.now(), null,
                 3L, null, new ArrayList<>());
     }
 

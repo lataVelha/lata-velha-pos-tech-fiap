@@ -33,13 +33,11 @@ class OrdemServicoTest {
     }
 
     private static OrdemServico emExecucao() {
-        OrdemServico os = aguardandoAprovacao();
-        ExecucaoServico exec = execucaoServico(999L);
-        exec.aprovar(2L);
-        os.adicionarServico(exec);
-        os.aprovar(2L);
-        os.iniciarExecucao();
-        return os;
+        ExecucaoServico exec = ExecucaoServico.create(999L, 1L, new BigDecimal("150.00"));
+        exec.setStatus(StatusExecucaoServico.FINALIZADO);
+        return new OrdemServico(null, 4L, 3L, "Barulho ao frear",
+                StatusOrdemServico.EM_EXECUCAO, LocalDateTime.now(), LocalDateTime.now(), null, null, null,
+                2L, 10L, new java.util.ArrayList<>(java.util.List.of(exec)));
     }
 
     private static OrdemServico finalizada() {
@@ -49,8 +47,7 @@ class OrdemServicoTest {
     }
 
     private static ExecucaoServico execucaoServico(Long servicoId) {
-        Servico servico = new Servico(servicoId, "Troca de óleo", "Desc");
-        return new ExecucaoServico(servico, new BigDecimal("150.00"));
+        return ExecucaoServico.create(servicoId, 1L, new BigDecimal("150.00"));
     }
 
     private static ExecucaoServico execucaoFinalizada(Long servicoId) {
@@ -60,11 +57,11 @@ class OrdemServicoTest {
     }
 
     private static PecaAlocada pecaProcessada() {
-        return new PecaAlocada(1L, 1L, 1L, 5, 3, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
+        return new PecaAlocada(1L, 1L, 1L, BigDecimal.ZERO, 5, 3, 0, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
     }
 
     private static PecaAlocada pecaNaoProcessada() {
-        return new PecaAlocada(1L, 1L, 1L, 1, 5, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
+        return new PecaAlocada(1L, 1L, 1L, BigDecimal.ZERO, 5, 1, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
     }
 
     @Nested
@@ -237,20 +234,7 @@ class OrdemServicoTest {
 
             assertThatThrownBy(() -> os.finalizar(10L))
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("serviços em execução");
-        }
-
-        @Test
-        @DisplayName("deve lançar exceção quando serviço ativo tem peça não processada")
-        void deveLancarExcecaoQuandoServicAtivoPossuiPecaNaoProcessada() {
-            OrdemServico os = emExecucao();
-            ExecucaoServico exec = execucaoFinalizada(1L);
-            exec.getPecas().add(pecaNaoProcessada());
-            os.adicionarServico(exec);
-
-            assertThatThrownBy(() -> os.finalizar(10L))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("Existem peças não processadas em serviços ativos");
+                    .hasMessageContaining("Existem execuções de serviço não finalizadas");
         }
 
         @Test
@@ -395,11 +379,38 @@ class OrdemServicoTest {
         void deveCalcularTotalComMultiplosServicos() {
             OrdemServico os = recebida();
             os.adicionarServico(execucaoServico(1L));
-
-            Servico s2 = new Servico(2L, "Alinhamento", "Desc");
-            os.adicionarServico(new ExecucaoServico(s2, new BigDecimal("80.00")));
+            os.adicionarServico(ExecucaoServico.create(2L, 1L, new BigDecimal("80.00")));
 
             assertThat(os.calcularValorTotal()).isEqualByComparingTo(new BigDecimal("230.00"));
+        }
+
+        @Test
+        @DisplayName("deve excluir serviços RECUSADOS do total")
+        void deveExcluirServicosRecusadosDoTotal() {
+            ExecucaoServico aprovado = execucaoServico(1L);
+            ExecucaoServico recusado = new ExecucaoServico(2L, 2L, 1L, StatusExecucaoServico.RECUSADO,
+                    new BigDecimal("80.00"), new java.util.HashSet<>(), null, null, null, null, LocalDateTime.now());
+
+            OrdemServico os = new OrdemServico(1L, 4L, 3L, "Barulho ao frear",
+                    StatusOrdemServico.AGUARDANDO_APROVACAO, LocalDateTime.now(), null, null, null, null,
+                    2L, null, new java.util.ArrayList<>(java.util.List.of(aprovado, recusado)));
+
+            assertThat(os.calcularValorTotal()).isEqualByComparingTo(new BigDecimal("150.00"));
+        }
+
+        @Test
+        @DisplayName("deve retornar zero quando todos os serviços são RECUSADOS")
+        void deveRetornarZeroQuandoTodosRecusados() {
+            ExecucaoServico recusado1 = new ExecucaoServico(1L, 1L, 1L, StatusExecucaoServico.RECUSADO,
+                    new BigDecimal("150.00"), new java.util.HashSet<>(), null, null, null, null, LocalDateTime.now());
+            ExecucaoServico recusado2 = new ExecucaoServico(2L, 2L, 1L, StatusExecucaoServico.RECUSADO,
+                    new BigDecimal("80.00"), new java.util.HashSet<>(), null, null, null, null, LocalDateTime.now());
+
+            OrdemServico os = new OrdemServico(1L, 4L, 3L, "Barulho ao frear",
+                    StatusOrdemServico.REPROVADA, LocalDateTime.now(), null, null, null, null,
+                    2L, null, new java.util.ArrayList<>(java.util.List.of(recusado1, recusado2)));
+
+            assertThat(os.calcularValorTotal()).isEqualByComparingTo(BigDecimal.ZERO);
         }
     }
 
@@ -460,9 +471,9 @@ class OrdemServicoTest {
         @DisplayName("não deve ser igual quando ids são diferentes")
         void naoDeveSerIgualComIdsDiferentes() {
             OrdemServico a = new OrdemServico(1L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
-                    null, null, null, null, 1L, null, new java.util.ArrayList<>());
+                    null, null, null, null, null, 1L, null, new java.util.ArrayList<>());
             OrdemServico b = new OrdemServico(2L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
-                    null, null, null, null, 1L, null, new java.util.ArrayList<>());
+                    null, null, null, null, null, 1L, null, new java.util.ArrayList<>());
 
             assertThat(a).isNotEqualTo(b);
         }
@@ -488,9 +499,9 @@ class OrdemServicoTest {
         @DisplayName("instâncias com mesmo id devem ter mesmo hashCode")
         void mesmoIdMesmoHashCode() {
             OrdemServico a = new OrdemServico(1L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
-                    null, null, null, null, 1L, null, new java.util.ArrayList<>());
+                    null, null, null, null, null, 1L, null, new java.util.ArrayList<>());
             OrdemServico b = new OrdemServico(1L, 9L, 9L, "y", StatusOrdemServico.FINALIZADA,
-                    null, null, null, null, 9L, null, new java.util.ArrayList<>());
+                    null, null, null, null, null, 9L, null, new java.util.ArrayList<>());
 
             assertThat(a.hashCode()).isEqualTo(b.hashCode());
         }
@@ -499,9 +510,9 @@ class OrdemServicoTest {
         @DisplayName("instâncias com ids diferentes devem ter hashCodes diferentes")
         void idsDiferentesHashCodesDiferentes() {
             OrdemServico a = new OrdemServico(1L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
-                    null, null, null, null, 1L, null, new java.util.ArrayList<>());
+                    null, null, null, null, null, 1L, null, new java.util.ArrayList<>());
             OrdemServico b = new OrdemServico(2L, 1L, 1L, "x", StatusOrdemServico.RECEBIDA,
-                    null, null, null, null, 1L, null, new java.util.ArrayList<>());
+                    null, null, null, null, null, 1L, null, new java.util.ArrayList<>());
 
             assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
         }
