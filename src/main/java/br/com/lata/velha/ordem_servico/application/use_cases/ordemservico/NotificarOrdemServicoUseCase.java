@@ -42,14 +42,17 @@ public class NotificarOrdemServicoUseCase {
     }
 
     private Map<String, Object> buildVariables(OrdemServico os, Proprietario proprietario, Veiculo veiculo) {
+        boolean fluxoReprovado = isFluxoReprovado(os);
+        boolean semServicos = isSemServicos(os);
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("nome", proprietario.getNome());
         variables.put("osNumero", os.getId());
         variables.put("veiculo", veiculo.getMarca() + " " + veiculo.getModelo());
-        variables.put("reprovada", isFluxoReprovado(os));
-        variables.put("timeline", buildTimeline(os.getStatus(), isFluxoReprovado(os)));
+        variables.put("reprovada", fluxoReprovado);
+        variables.put("timeline", buildTimeline(os.getStatus(), fluxoReprovado, semServicos));
 
-        StatusConfig config = getConfig(os.getStatus());
+        StatusConfig config = semServicos ? getConfigSemServicos(os.getStatus()) : getConfig(os.getStatus());
         variables.put("subtitulo", config.subtitulo());
         variables.put("mensagem", config.mensagem());
 
@@ -66,6 +69,11 @@ public class NotificarOrdemServicoUseCase {
         return os.getStatus() == StatusOrdemServico.ENTREGUE
                 && !os.getExecucaoServicos().isEmpty()
                 && os.getExecucaoServicos().stream().allMatch(ExecucaoServico::isRecusado);
+    }
+
+    private boolean isSemServicos(OrdemServico os) {
+        return (os.getStatus() == StatusOrdemServico.FINALIZADA || os.getStatus() == StatusOrdemServico.ENTREGUE)
+                && os.getExecucaoServicos().isEmpty();
     }
 
     private String getAssunto(StatusOrdemServico status) {
@@ -221,9 +229,27 @@ public class NotificarOrdemServicoUseCase {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private List<Map<String, Object>> buildTimeline(StatusOrdemServico statusAtual, boolean fluxoReprovado) {
+    private StatusConfig getConfigSemServicos(StatusOrdemServico status) {
+        return switch (status) {
+            case FINALIZADA -> new StatusConfig(
+                    "Nenhum Serviço Necessário",
+                    "O diagnóstico foi concluído e nenhum serviço foi identificado. Seu veículo está pronto para retirada.",
+                    "Veículo Disponível para Retirada"
+            );
+            default -> getConfig(status);
+        };
+    }
+
+    private List<Map<String, Object>> buildTimeline(StatusOrdemServico statusAtual, boolean fluxoReprovado, boolean semServicos) {
         List<TimelineStep> steps;
-        if (fluxoReprovado) {
+        if (semServicos) {
+            steps = List.of(
+                    new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
+                    new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliou o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
+                    new TimelineStep(3, "Finalizada", "Nenhum serviço identificado", StatusOrdemServico.FINALIZADA),
+                    new TimelineStep(4, "Entregue", "Veículo retirado pelo cliente", StatusOrdemServico.ENTREGUE)
+            );
+        } else if (fluxoReprovado) {
             steps = List.of(
                     new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
                     new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliou o veículo", StatusOrdemServico.EM_DIAGNOSTICO),

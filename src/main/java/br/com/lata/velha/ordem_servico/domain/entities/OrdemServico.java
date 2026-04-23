@@ -57,7 +57,12 @@ public final class OrdemServico {
 
     public void finalizarDiagnostico() {
         validarStatus(StatusOrdemServico.EM_DIAGNOSTICO);
-        this.status = StatusOrdemServico.AGUARDANDO_APROVACAO;
+        if (execucaoServicos.isEmpty()) {
+            this.status = StatusOrdemServico.FINALIZADA;
+            this.finalizadoEm = LocalDateTime.now();
+        } else {
+            this.status = StatusOrdemServico.AGUARDANDO_APROVACAO;
+        }
         touch();
     }
 
