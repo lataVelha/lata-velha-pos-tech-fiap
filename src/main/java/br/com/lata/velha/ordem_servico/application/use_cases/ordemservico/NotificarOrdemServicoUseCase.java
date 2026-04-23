@@ -46,8 +46,8 @@ public class NotificarOrdemServicoUseCase {
         variables.put("nome", proprietario.getNome());
         variables.put("osNumero", os.getId());
         variables.put("veiculo", veiculo.getMarca() + " " + veiculo.getModelo());
-        variables.put("timeline", buildTimeline(os.getStatus()));
-        variables.put("reprovada", os.getStatus() == StatusOrdemServico.REPROVADA);
+        variables.put("reprovada", isFluxoReprovado(os));
+        variables.put("timeline", buildTimeline(os.getStatus(), isFluxoReprovado(os)));
 
         StatusConfig config = getConfig(os.getStatus());
         variables.put("subtitulo", config.subtitulo());
@@ -59,6 +59,13 @@ public class NotificarOrdemServicoUseCase {
         addTodosRecusados(variables, os);
 
         return variables;
+    }
+
+    private boolean isFluxoReprovado(OrdemServico os) {
+        if (os.getStatus() == StatusOrdemServico.REPROVADA) return true;
+        return os.getStatus() == StatusOrdemServico.ENTREGUE
+                && !os.getExecucaoServicos().isEmpty()
+                && os.getExecucaoServicos().stream().allMatch(ExecucaoServico::isRecusado);
     }
 
     private String getAssunto(StatusOrdemServico status) {
@@ -175,8 +182,7 @@ public class NotificarOrdemServicoUseCase {
     }
 
     private void addTodosRecusados(Map<String, Object> variables, OrdemServico os) {
-        if (os.getStatus() != StatusOrdemServico.REPROVADA
-                || os.getExecucaoServicos().isEmpty()) {
+        if (!isFluxoReprovado(os) || os.getExecucaoServicos().isEmpty()) {
             return;
         }
 
@@ -215,16 +221,15 @@ public class NotificarOrdemServicoUseCase {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private List<Map<String, Object>> buildTimeline(StatusOrdemServico statusAtual) {
-        boolean isReprovada = statusAtual == StatusOrdemServico.REPROVADA;
-
+    private List<Map<String, Object>> buildTimeline(StatusOrdemServico statusAtual, boolean fluxoReprovado) {
         List<TimelineStep> steps;
-        if (isReprovada) {
+        if (fluxoReprovado) {
             steps = List.of(
                     new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
                     new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliou o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
                     new TimelineStep(3, "Aguardando Aprovação", "Serviços apresentados ao cliente", StatusOrdemServico.AGUARDANDO_APROVACAO),
-                    new TimelineStep(4, "Reprovada", "Todos os serviços foram recusados", StatusOrdemServico.REPROVADA)
+                    new TimelineStep(4, "Reprovada", "Todos os serviços foram recusados", StatusOrdemServico.REPROVADA),
+                    new TimelineStep(5, "Entregue", "Veículo retirado pelo cliente", StatusOrdemServico.ENTREGUE)
             );
         } else {
             steps = List.of(
@@ -258,10 +263,10 @@ public class NotificarOrdemServicoUseCase {
             map.put("descricao", step.descricao());
 
             if (step.numero() < currentIndex) {
-                map.put("status", "CONCLUIDO");
+                map.put("status", step.status() == StatusOrdemServico.REPROVADA ? "RECUSADO" : "CONCLUIDO");
             } else if (step.numero() == currentIndex) {
                 if (isStepConcluido) {
-                    map.put("status", isReprovada && step.status() == StatusOrdemServico.REPROVADA ? "RECUSADO" : "CONCLUIDO");
+                    map.put("status", step.status() == StatusOrdemServico.REPROVADA ? "RECUSADO" : "CONCLUIDO");
                 } else {
                     map.put("status", "ATUAL");
                 }
