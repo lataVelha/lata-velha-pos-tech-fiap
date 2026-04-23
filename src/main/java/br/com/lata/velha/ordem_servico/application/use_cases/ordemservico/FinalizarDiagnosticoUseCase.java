@@ -24,12 +24,12 @@ public class FinalizarDiagnosticoUseCase {
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public void execute(Input input) {
-        var ordemServico = ordemServicoRepository.getById(input.idOs());
+        var ordemServico = ordemServicoRepository.getByIdWithExecucoesAndPecas(input.idOs());
         if(!funcionarioRepository.existsByUserId(input.userId()))
             throw new IllegalArgumentException("Usuário não é um funcionário");
         ordemServico.finalizarDiagnostico();
-        var saved = ordemServicoRepository.save(ordemServico);
-        notificarUseCase.execute(saved);
+        ordemServicoRepository.save(ordemServico);
+        notificarUseCase.execute(ordemServico);
     }
 
     public record Input (Long idOs, UserId userId) {}
