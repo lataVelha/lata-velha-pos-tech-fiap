@@ -10,8 +10,6 @@ import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 @Component
 @RequiredArgsConstructor
 public class CriarOrdemServicoUseCase {

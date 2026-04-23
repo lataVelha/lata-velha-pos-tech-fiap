@@ -1,20 +1,10 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 @Component
 @RequiredArgsConstructor
 public class FinalizarDiagnosticoUseCase {
