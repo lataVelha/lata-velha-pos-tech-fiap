@@ -5,7 +5,6 @@ import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.entities.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
@@ -25,7 +24,6 @@ public class NotificarOrdemServicoUseCase {
     private final EmailTemplateProvider templateProvider;
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
-    private final PecaRepository pecaRepository;
     private final ServicoRepository servicoRepository;
 
     public void execute(OrdemServico os) {
@@ -48,8 +46,8 @@ public class NotificarOrdemServicoUseCase {
         variables.put("nome", proprietario.getNome());
         variables.put("osNumero", os.getId());
         variables.put("veiculo", veiculo.getMarca() + " " + veiculo.getModelo());
-        variables.put("timeline", buildTimeline(os.getStatus()));
-        variables.put("reprovada", os.getStatus() == StatusOrdemServico.REPROVADA);
+        variables.put("reprovada", isFluxoReprovado(os));
+        variables.put("timeline", buildTimeline(os.getStatus(), isFluxoReprovado(os)));
 
         StatusConfig config = getConfig(os.getStatus());
         variables.put("subtitulo", config.subtitulo());
@@ -61,6 +59,13 @@ public class NotificarOrdemServicoUseCase {
         addTodosRecusados(variables, os);
 
         return variables;
+    }
+
+    private boolean isFluxoReprovado(OrdemServico os) {
+        if (os.getStatus() == StatusOrdemServico.REPROVADA) return true;
+        return os.getStatus() == StatusOrdemServico.ENTREGUE
+                && !os.getExecucaoServicos().isEmpty()
+                && os.getExecucaoServicos().stream().allMatch(ExecucaoServico::isRecusado);
     }
 
     private String getAssunto(StatusOrdemServico status) {
@@ -126,26 +131,22 @@ public class NotificarOrdemServicoUseCase {
             return;
         }
 
-        var precoPecas = buscarPrecoPecas(os.getExecucaoServicos());
-
         var servicosIds = os.getExecucaoServicos().stream()
                 .map(ExecucaoServico::getServicoId)
                 .collect(Collectors.toSet());
         var mapServicos = this.servicoRepository.getAllActiveById(servicosIds)
                 .stream()
-                .collect(Collectors.toMap(
-                        Servico::getId,
-                        servico -> servico
-                ));
+                .collect(Collectors.toMap(Servico::getId, servico -> servico));
+
         List<Map<String, Object>> servicos = os.getExecucaoServicos().stream()
                 .map(s -> {
                     var servico = mapServicos.get(s.getServicoId());
                     Map<String, Object> map = new HashMap<>();
-                    if(servico != null) {
+                    if (servico != null) {
                         map.put("nome", servico.getNome());
                         map.put("descricao", servico.getDescricao());
                     }
-                    map.put("valor", calcularTotalServico(s, precoPecas));
+                    map.put("valor", calcularTotalServico(s));
                     return map;
                 })
                 .toList();
@@ -164,90 +165,71 @@ public class NotificarOrdemServicoUseCase {
             return;
         }
 
-        var precoPecas = buscarPrecoPecas(os.getExecucaoServicos());
-
         List<Map<String, Object>> aprovados = os.getExecucaoServicos().stream()
                 .filter(s -> s.getStatus() == StatusExecucaoServico.APROVADO)
-                .map(s -> toServicoMap(s, precoPecas))
+                .map(this::toServicoMap)
                 .toList();
 
         List<Map<String, Object>> recusados = os.getExecucaoServicos().stream()
                 .filter(s -> s.getStatus() == StatusExecucaoServico.RECUSADO)
-                .map(s -> toServicoMap(s, precoPecas))
+                .map(this::toServicoMap)
                 .toList();
 
         variables.put("servicosAprovados", aprovados);
         variables.put("servicosRecusados", recusados);
-        variables.put("valorAprovado", calcularTotal(os, StatusExecucaoServico.APROVADO, precoPecas));
-        variables.put("valorRecusado", calcularTotal(os, StatusExecucaoServico.RECUSADO, precoPecas));
+        variables.put("valorAprovado", calcularTotal(os, StatusExecucaoServico.APROVADO));
+        variables.put("valorRecusado", calcularTotal(os, StatusExecucaoServico.RECUSADO));
     }
 
     private void addTodosRecusados(Map<String, Object> variables, OrdemServico os) {
-        if (os.getStatus() != StatusOrdemServico.REPROVADA
-                || os.getExecucaoServicos().isEmpty()) {
+        if (!isFluxoReprovado(os) || os.getExecucaoServicos().isEmpty()) {
             return;
         }
 
-        var precoPecas = buscarPrecoPecas(os.getExecucaoServicos());
-
         List<Map<String, Object>> recusados = os.getExecucaoServicos().stream()
-                .map(s -> toServicoMap(s, precoPecas))
+                .map(this::toServicoMap)
                 .toList();
 
         BigDecimal valorRecusado = os.getExecucaoServicos().stream()
-                .map(s -> calcularTotalServico(s, precoPecas))
+                .map(this::calcularTotalServico)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         variables.put("servicosRecusados", recusados);
         variables.put("valorRecusado", valorRecusado);
     }
 
-    private Map<Long, Peca> buscarPrecoPecas(List<ExecucaoServico> execucoes) {
-        Set<Long> ids = execucoes.stream()
-                .flatMap(e -> e.getPecas().stream().map(PecaAlocada::getPecaId))
-                .collect(Collectors.toSet());
-        if (ids.isEmpty()) return Map.of();
-        return pecaRepository.findAllByIds(ids).stream()
-                .collect(Collectors.toMap(Peca::getId, p -> p));
-    }
-
-    private BigDecimal calcularTotalServico(ExecucaoServico s, Map<Long, Peca> precoPecas) {
+    private BigDecimal calcularTotalServico(ExecucaoServico s) {
         var maoDeObra = s.getValorMaoDeObra() != null ? s.getValorMaoDeObra() : BigDecimal.ZERO;
         var totalPecas = s.getPecas().stream()
-                .map(p -> {
-                    var peca = precoPecas.get(p.getPecaId());
-                    if (peca == null) return BigDecimal.ZERO;
-                    return peca.getValor().multiply(BigDecimal.valueOf(p.getQuantidadeSolicitada()));
-                })
+                .map(p -> p.getValorUnitarioPeca().multiply(BigDecimal.valueOf(p.getQuantidadeSolicitada())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         return maoDeObra.add(totalPecas);
     }
 
-    private Map<String, Object> toServicoMap(ExecucaoServico s, Map<Long, Peca> precoPecas) {
+    private Map<String, Object> toServicoMap(ExecucaoServico s) {
         var servico = this.servicoRepository.getActiveById(s.getServicoId());
         Map<String, Object> map = new HashMap<>();
         map.put("nome", servico.getNome());
-        map.put("valor", calcularTotalServico(s, precoPecas));
+        map.put("valor", calcularTotalServico(s));
         return map;
     }
 
-    private BigDecimal calcularTotal(OrdemServico os, StatusExecucaoServico status, Map<Long, Peca> precoPecas) {
+    private BigDecimal calcularTotal(OrdemServico os, StatusExecucaoServico status) {
         return os.getExecucaoServicos().stream()
                 .filter(s -> s.getStatus() == status)
-                .map(s -> calcularTotalServico(s, precoPecas))
+                .map(this::calcularTotalServico)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private List<Map<String, Object>> buildTimeline(StatusOrdemServico statusAtual) {
-        boolean isReprovada = statusAtual == StatusOrdemServico.REPROVADA;
-
+    private List<Map<String, Object>> buildTimeline(StatusOrdemServico statusAtual, boolean fluxoReprovado) {
         List<TimelineStep> steps;
-        if (isReprovada) {
+        if (fluxoReprovado) {
             steps = List.of(
                     new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
                     new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliou o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
                     new TimelineStep(3, "Aguardando Aprovação", "Serviços apresentados ao cliente", StatusOrdemServico.AGUARDANDO_APROVACAO),
-                    new TimelineStep(4, "Reprovada", "Todos os serviços foram recusados", StatusOrdemServico.REPROVADA)
+                    new TimelineStep(4, "Reprovada", "Todos os serviços foram recusados", StatusOrdemServico.REPROVADA),
+                    new TimelineStep(5, "Entregue", "Veículo retirado pelo cliente", StatusOrdemServico.ENTREGUE)
             );
         } else {
             steps = List.of(
@@ -281,10 +263,10 @@ public class NotificarOrdemServicoUseCase {
             map.put("descricao", step.descricao());
 
             if (step.numero() < currentIndex) {
-                map.put("status", "CONCLUIDO");
+                map.put("status", step.status() == StatusOrdemServico.REPROVADA ? "RECUSADO" : "CONCLUIDO");
             } else if (step.numero() == currentIndex) {
                 if (isStepConcluido) {
-                    map.put("status", isReprovada && step.status() == StatusOrdemServico.REPROVADA ? "RECUSADO" : "CONCLUIDO");
+                    map.put("status", step.status() == StatusOrdemServico.REPROVADA ? "RECUSADO" : "CONCLUIDO");
                 } else {
                     map.put("status", "ATUAL");
                 }
