@@ -20,8 +20,8 @@ public class CriarOrdemServicoUseCase {
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
     public OrdemServicoResponse execute(Input input) {
-        var veiculo = veiculoRepository.getActiveById(input.veiculoId());
         var proprietario = proprietarioRepository.getActiveById(input.proprietarioId());
+        var veiculo = veiculoRepository.getActiveByIdAndProprietarioId(input.veiculoId(), proprietario.getId());
         var funcionario = funcionarioRepository.getByUserId(input.userId());
 
         var ordemServico = OrdemServico.create(

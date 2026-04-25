@@ -100,7 +100,7 @@ class AdicionarServicoUseCaseIT {
         os.setProprietarioId(proprietario.getId());
         os.setVeiculoId(veiculo.getId());
         os.setReclamacaoCliente("Troca de óleo periódica");
-        os.setStatus(StatusOrdemServico.RECEBIDA);
+        os.setStatus(StatusOrdemServico.EM_DIAGNOSTICO);
         os.setAtendenteInicioId(atendenteId);
         os.setAtualizadoEm(LocalDateTime.now());
         em.persist(os);

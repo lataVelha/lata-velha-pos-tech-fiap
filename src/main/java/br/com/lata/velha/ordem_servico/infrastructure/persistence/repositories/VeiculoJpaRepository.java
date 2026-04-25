@@ -22,4 +22,5 @@ public interface VeiculoJpaRepository extends JpaRepository<VeiculoEntity, Long>
 
     Optional<VeiculoEntity> findByIdAndAtivoFalse(Long id);
 
+    Optional<VeiculoEntity> findByIdAndProprietarioIdAndAtivoTrue(Long id, Long proprietarioId);
 }

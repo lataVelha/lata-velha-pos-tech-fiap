@@ -103,6 +103,18 @@ public final class ExecucaoServico {
         touch();
     }
 
+    public void reservarPeca(PecaEstoque estoque) {
+        if(estoque == null)
+            throw new IllegalArgumentException("Peca inválida");
+        var peca = this.pecas.stream()
+                .filter(pecaAlocada -> pecaAlocada.getPecaId().equals(estoque.getPecaId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Peca invalida"));
+        peca.reservar(estoque);
+        if(peca.isReservada())
+            this.status = statusAprovacao();
+    }
+
     public void instalarPecasRestantes() {
         this.pecas.forEach(peca -> {
             var pecasParaInstalar = peca.getQuantidadeSolicitada() - peca.getQuantidadeInstalada();

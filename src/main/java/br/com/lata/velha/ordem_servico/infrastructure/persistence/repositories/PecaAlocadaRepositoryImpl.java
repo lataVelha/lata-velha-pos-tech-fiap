@@ -23,6 +23,17 @@ public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
     }
 
     @Override
+    public List<PecaAlocada> saveAll(List<PecaAlocada> pecasAlocadas) {
+        var entities = pecasAlocadas.stream()
+                .map(PecaAlocadaEntity::fromDomain)
+                .toList();
+        var saved = jpaRepository.saveAll(entities);
+        return saved.stream()
+                .map(PecaAlocadaEntity::toDomain)
+                .toList();
+    }
+
+    @Override
     public PecaAlocada findById(Long id) {
         return jpaRepository.findById(id)
                 .map(PecaAlocadaEntity::toDomain)

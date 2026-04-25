@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 public interface ExecucaoServicoJpaRepository extends JpaRepository<ExecucaoServicoEntity, Long> {
 
@@ -28,4 +29,7 @@ public interface ExecucaoServicoJpaRepository extends JpaRepository<ExecucaoServ
             """, nativeQuery = true)
     List<TempoMedioExecucaoPorServicoProjection> buscarTempoMedioExecucaoServicosFinalizados(@Param("dataInicio") LocalDateTime dataInicio,
                                                                                               @Param("dataFim") LocalDateTime dataFim);
+
+    @Query("SELECT e FROM ExecucaoServicoEntity e JOIN FETCH e.pecas p WHERE e.id in :ids")
+    Set<ExecucaoServicoEntity> getAllByIdWithPeca(Set<Long> ids);
 }

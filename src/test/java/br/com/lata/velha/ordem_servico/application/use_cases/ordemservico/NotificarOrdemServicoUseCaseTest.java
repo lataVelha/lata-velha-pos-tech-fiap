@@ -249,9 +249,7 @@ class NotificarOrdemServicoUseCaseTest {
                 new BigDecimal("100.00"), new HashSet<>(Set.of(peca)), null, null, null, null, LocalDateTime.now());
         var os = buildOs(StatusOrdemServico.AGUARDANDO_APROVACAO, new ArrayList<>(List.of(exec)));
 
-        var pecaDomain = new Peca(50L, "Filtro", "desc", new BigDecimal("35.00"));
         when(servicoRepository.getAllActiveById(any())).thenReturn(Set.of(new Servico(99L, "Troca de óleo", "desc")));
-        when(pecaRepository.findAllByIds(any())).thenReturn(List.of(pecaDomain));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
@@ -260,8 +258,8 @@ class NotificarOrdemServicoUseCaseTest {
         verify(templateProvider).render(anyString(), captor.capture());
         @SuppressWarnings("unchecked")
         var servicos = (List<Map<String, Object>>) captor.getValue().get("servicos");
-        // total = mão de obra (100) + peca.valor (35) * qtd_solicitada (2) = 170
-        assertThat((BigDecimal) servicos.get(0).get("valor")).isEqualByComparingTo("170.00");
+        // total = mão de obra (100) + peca.valorUnitario (30) * qtd_solicitada (2) = 160
+        assertThat((BigDecimal) servicos.get(0).get("valor")).isEqualByComparingTo("160.00");
     }
 
     @Test
@@ -279,7 +277,7 @@ class NotificarOrdemServicoUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve construir timeline com 4 passos para status REPROVADA")
+    @DisplayName("deve construir timeline com 5 passos para status REPROVADA")
     void deveConstruirTimelineParaStatusReprovada() {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
@@ -289,7 +287,7 @@ class NotificarOrdemServicoUseCaseTest {
         verify(templateProvider).render(anyString(), captor.capture());
         @SuppressWarnings("unchecked")
         var timeline = (List<Map<String, Object>>) captor.getValue().get("timeline");
-        assertThat(timeline).hasSize(4);
+        assertThat(timeline).hasSize(5);
     }
 
     @Test

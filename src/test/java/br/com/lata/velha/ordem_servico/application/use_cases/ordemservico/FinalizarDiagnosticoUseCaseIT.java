@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import br.com.lata.velha.ordem_servico.application.ports.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.*;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -90,6 +92,19 @@ class FinalizarDiagnosticoUseCaseIT {
         os.setAtualizadoEm(LocalDateTime.now());
         em.persist(os);
         osId = os.getId();
+
+        ServicoEntity servico = new ServicoEntity();
+        servico.setNome("Troca de óleo");
+        servico.setDescricao("Troca completa");
+        em.persist(servico);
+
+        ExecucaoServicoEntity execucao = new ExecucaoServicoEntity();
+        execucao.setOrdemServico(os);
+        execucao.setServico(servico);
+        execucao.setStatusExecucaoServico(StatusExecucaoServico.PENDENTE);
+        execucao.setValorMaoDeObra(new BigDecimal("100.00"));
+        execucao.setAtualizadoEm(LocalDateTime.now());
+        em.persist(execucao);
 
         em.flush();
         em.clear();
