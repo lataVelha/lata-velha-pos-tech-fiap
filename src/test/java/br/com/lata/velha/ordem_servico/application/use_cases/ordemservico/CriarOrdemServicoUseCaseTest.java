@@ -67,8 +67,8 @@ class CriarOrdemServicoUseCaseTest {
         when(veiculo.getModelo()).thenReturn("Uno");
         when(proprietario.getId()).thenReturn(4L);
         when(proprietario.getNome()).thenReturn("João");
-        when(veiculoRepository.getActiveById(3L)).thenReturn(veiculo);
         when(proprietarioRepository.getActiveById(4L)).thenReturn(proprietario);
+        when(veiculoRepository.getActiveByIdAndProprietarioId(3L, 4L)).thenReturn(veiculo);
         when(funcionarioRepository.getByUserId(userId)).thenReturn(funcionario);
         when(repository.save(any(OrdemServico.class))).thenReturn(savedOs);
     }
@@ -112,22 +112,8 @@ class CriarOrdemServicoUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve propagar exceção quando veículo não encontrado")
-    void deveLancarExcecaoQuandoVeiculoNaoEncontrado() {
-        when(veiculoRepository.getActiveById(3L)).thenThrow(new RuntimeException("Veículo não encontrado"));
-
-        assertThatThrownBy(() -> useCase.execute(input))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Veículo não encontrado");
-
-        verify(repository, never()).save(any());
-        verify(notificarUseCase, never()).execute(any());
-    }
-
-    @Test
     @DisplayName("deve propagar exceção quando proprietário não encontrado")
     void deveLancarExcecaoQuandoProprietarioNaoEncontrado() {
-        when(veiculoRepository.getActiveById(3L)).thenReturn(veiculo);
         when(proprietarioRepository.getActiveById(4L)).thenThrow(new RuntimeException("Proprietário não encontrado"));
 
         assertThatThrownBy(() -> useCase.execute(input))
@@ -139,10 +125,27 @@ class CriarOrdemServicoUseCaseTest {
     }
 
     @Test
+    @DisplayName("deve propagar exceção quando veículo não pertence ao proprietário")
+    void deveLancarExcecaoQuandoVeiculoNaoPertenceAoProprietario() {
+        when(proprietario.getId()).thenReturn(4L);
+        when(proprietarioRepository.getActiveById(4L)).thenReturn(proprietario);
+        when(veiculoRepository.getActiveByIdAndProprietarioId(3L, 4L))
+                .thenThrow(new RuntimeException("Veículo não encontrado"));
+
+        assertThatThrownBy(() -> useCase.execute(input))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Veículo não encontrado");
+
+        verify(repository, never()).save(any());
+        verify(notificarUseCase, never()).execute(any());
+    }
+
+    @Test
     @DisplayName("deve propagar exceção quando funcionário não encontrado")
     void deveLancarExcecaoQuandoFuncionarioNaoEncontrado() {
-        when(veiculoRepository.getActiveById(3L)).thenReturn(veiculo);
+        when(proprietario.getId()).thenReturn(4L);
         when(proprietarioRepository.getActiveById(4L)).thenReturn(proprietario);
+        when(veiculoRepository.getActiveByIdAndProprietarioId(3L, 4L)).thenReturn(veiculo);
         when(funcionarioRepository.getByUserId(userId)).thenThrow(new RuntimeException("Funcionário não encontrado"));
 
         assertThatThrownBy(() -> useCase.execute(input))

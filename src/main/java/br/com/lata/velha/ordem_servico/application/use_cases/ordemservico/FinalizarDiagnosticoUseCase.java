@@ -17,7 +17,7 @@ public class FinalizarDiagnosticoUseCase {
         var ordemServico = ordemServicoRepository.getByIdWithExecucoesAndPecas(input.idOs());
         if(!funcionarioRepository.existsByUserId(input.userId()))
             throw new IllegalArgumentException("Usuário não é um funcionário");
-        ordemServico.finalizarDiagnostico();
+        ordemServico.finalizarDiagnostico(ordemServico.getMecanicoResponsavelId());
         ordemServicoRepository.save(ordemServico);
         notificarUseCase.execute(ordemServico);
     }

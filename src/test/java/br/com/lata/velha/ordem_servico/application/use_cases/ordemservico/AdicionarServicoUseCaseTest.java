@@ -49,7 +49,7 @@ class AdicionarServicoUseCaseTest {
     @BeforeEach
     void setUp() {
         os = new OrdemServico(OS_ID, 1L, 2L, "Barulho ao frear",
-                StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, null,
+                StatusOrdemServico.EM_DIAGNOSTICO, LocalDateTime.now(), null, null, null, null,
                 1L, null, new ArrayList<>());
     }
 
@@ -58,7 +58,7 @@ class AdicionarServicoUseCaseTest {
                 StatusExecucaoServico.PENDENTE, new BigDecimal("150"),
                 new HashSet<>(), null, null, null, null, LocalDateTime.now());
         return new OrdemServico(OS_ID, 1L, 2L, "Barulho ao frear",
-                StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, null,
+                StatusOrdemServico.EM_DIAGNOSTICO, LocalDateTime.now(), null, null, null, null,
                 1L, null, new ArrayList<>(List.of(exec)));
     }
 
@@ -141,7 +141,7 @@ class AdicionarServicoUseCaseTest {
     void deveAdicionarMultiplosServicosDistintos() {
         Long servicoId2 = 11L;
         var osComExecs = new OrdemServico(OS_ID, 1L, 2L, "Barulho",
-                StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, null,
+                StatusOrdemServico.EM_DIAGNOSTICO, LocalDateTime.now(), null, null, null, null,
                 1L, null, new ArrayList<>(List.of(
                         new ExecucaoServico(EXEC_ID, SERVICO_ID, OS_ID, StatusExecucaoServico.PENDENTE,
                                 new BigDecimal("150"), new HashSet<>(), null, null, null, null, LocalDateTime.now()),
@@ -187,7 +187,7 @@ class AdicionarServicoUseCaseTest {
                 StatusExecucaoServico.PENDENTE, new BigDecimal("150"),
                 new HashSet<>(), null, null, null, null, LocalDateTime.now());
         var osComServico = new OrdemServico(OS_ID, 1L, 2L, "Barulho",
-                StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, null,
+                StatusOrdemServico.EM_DIAGNOSTICO, LocalDateTime.now(), null, null, null, null,
                 1L, null, new ArrayList<>(List.of(execExistente)));
 
         when(ordemServicoRepository.getById(OS_ID)).thenReturn(osComServico);

@@ -172,8 +172,8 @@ class AprovarOrdemServicoUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve encomendar tudo quando não há estoque para a peça")
-    void deveEncomendarTudoQuandoSemEstoque() {
+    @DisplayName("deve encomendar tudo quando estoque existe mas tem quantidade zero")
+    void deveEncomendarTudoQuandoEstoqueZero() {
         stubFuncionario();
         ExecucaoServico exec = buildExecucao(EXECUCAO_ID);
         PecaAlocada peca = buildPecaAlocada(PECA_ID, EXECUCAO_ID, 4);
@@ -181,7 +181,8 @@ class AprovarOrdemServicoUseCaseTest {
 
         OrdemServico os = buildOs(List.of(exec));
         when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(List.of());
+        when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(
+                List.of(new PecaEstoque(PECA_ID, 0, 0)));
         stubSave(os);
 
         var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
@@ -192,6 +193,28 @@ class AprovarOrdemServicoUseCaseTest {
         assertThat(peca.getStatus()).isEqualTo(StatusPecaAlocada.ENCOMENDA);
         assertThat(peca.getQuantidadeReservada()).isZero();
         assertThat(peca.getQuantidadeEncomendada()).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName("deve lançar exceção quando não existe entrada de estoque para uma peça")
+    void deveLancarExcecaoQuandoNaoExisteEstoqueCadastradoParaPeca() {
+        stubFuncionario();
+        ExecucaoServico exec = buildExecucao(EXECUCAO_ID);
+        PecaAlocada peca = buildPecaAlocada(PECA_ID, EXECUCAO_ID, 4);
+        exec.adicionarPeca(peca);
+
+        OrdemServico os = buildOs(List.of(exec));
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
+        when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(List.of());
+
+        var input = new AprovarOrdemServicoUseCase.Input(OS_ID, userId,
+                List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(EXECUCAO_ID, StatusExecucaoServico.APROVADO)));
+
+        assertThatThrownBy(() -> useCase.execute(input))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Peças não encontradas com Ids");
+
+        verify(ordemServicoRepository, never()).save(any());
     }
 
     @Test

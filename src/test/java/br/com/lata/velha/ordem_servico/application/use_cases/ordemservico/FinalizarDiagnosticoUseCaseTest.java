@@ -59,23 +59,23 @@ class FinalizarDiagnosticoUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve finalizar diagnóstico e mudar status para AGUARDANDO_APROVACAO")
-    void deveFinalizarDiagnosticoComSucesso() {
+    @DisplayName("deve finalizar diagnóstico sem serviços e ir direto para FINALIZADA")
+    void deveFinalizarDiagnosticoSemServicosParaFinalizada() {
         var os = buildOs(StatusOrdemServico.EM_DIAGNOSTICO);
-        when(ordemServicoRepository.getById(OS_ID)).thenReturn(os);
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
         when(funcionarioRepository.existsByUserId(userId)).thenReturn(true);
         when(ordemServicoRepository.save(any())).thenReturn(os);
 
         useCase.execute(input());
 
-        assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
+        assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.FINALIZADA);
     }
 
     @Test
     @DisplayName("deve salvar OS após finalizar diagnóstico")
     void deveSalvarOsAposFinalizarDiagnostico() {
         var os = buildOs(StatusOrdemServico.EM_DIAGNOSTICO);
-        when(ordemServicoRepository.getById(OS_ID)).thenReturn(os);
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
         when(funcionarioRepository.existsByUserId(userId)).thenReturn(true);
         when(ordemServicoRepository.save(any())).thenReturn(os);
 
@@ -88,7 +88,7 @@ class FinalizarDiagnosticoUseCaseTest {
     @DisplayName("deve notificar após finalizar diagnóstico")
     void deveNotificarAposFinalizarDiagnostico() {
         var os = buildOs(StatusOrdemServico.EM_DIAGNOSTICO);
-        when(ordemServicoRepository.getById(OS_ID)).thenReturn(os);
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
         when(funcionarioRepository.existsByUserId(userId)).thenReturn(true);
         when(ordemServicoRepository.save(any())).thenReturn(os);
 
@@ -101,7 +101,7 @@ class FinalizarDiagnosticoUseCaseTest {
     @DisplayName("deve lançar IllegalArgumentException quando usuário não é funcionário")
     void deveLancarExcecaoQuandoUsuarioNaoEFuncionario() {
         var os = buildOs(StatusOrdemServico.EM_DIAGNOSTICO);
-        when(ordemServicoRepository.getById(OS_ID)).thenReturn(os);
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
         when(funcionarioRepository.existsByUserId(userId)).thenReturn(false);
 
         assertThatThrownBy(() -> useCase.execute(input()))
@@ -116,7 +116,7 @@ class FinalizarDiagnosticoUseCaseTest {
     @DisplayName("deve lançar exceção quando OS não está EM_DIAGNOSTICO")
     void deveLancarExcecaoQuandoOsNaoEstaEmDiagnostico() {
         var os = buildOs(StatusOrdemServico.RECEBIDA);
-        when(ordemServicoRepository.getById(OS_ID)).thenReturn(os);
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
         when(funcionarioRepository.existsByUserId(userId)).thenReturn(true);
 
         assertThatThrownBy(() -> useCase.execute(input()))
@@ -131,7 +131,7 @@ class FinalizarDiagnosticoUseCaseTest {
     @DisplayName("deve lançar exceção quando OS já está AGUARDANDO_APROVACAO")
     void deveLancarExcecaoQuandoOsJaAguardandoAprovacao() {
         var os = buildOs(StatusOrdemServico.AGUARDANDO_APROVACAO);
-        when(ordemServicoRepository.getById(OS_ID)).thenReturn(os);
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
         when(funcionarioRepository.existsByUserId(userId)).thenReturn(true);
 
         assertThatThrownBy(() -> useCase.execute(input()))
@@ -143,7 +143,7 @@ class FinalizarDiagnosticoUseCaseTest {
     @Test
     @DisplayName("deve propagar exceção quando OS não encontrada")
     void devePropagateExcecaoQuandoOsNaoEncontrada() {
-        when(ordemServicoRepository.getById(OS_ID))
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID))
                 .thenThrow(new RuntimeException("OS não encontrada"));
 
         assertThatThrownBy(() -> useCase.execute(input()))

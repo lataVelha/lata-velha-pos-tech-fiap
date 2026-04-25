@@ -64,7 +64,7 @@ class EntradaPecaEstoqueUseCaseIT {
         ExecucaoServicoEntity execucao = new ExecucaoServicoEntity();
         execucao.setOrdemServico(os);
         execucao.setServico(servico);
-        execucao.setStatusExecucaoServico(StatusExecucaoServico.EM_EXECUCAO);
+        execucao.setStatusExecucaoServico(StatusExecucaoServico.AGUARDANDO_PECA);
         execucao.setValorMaoDeObra(new BigDecimal("100.00"));
         execucao.setAtualizadoEm(LocalDateTime.now());
         em.persist(execucao);
@@ -130,6 +130,35 @@ class EntradaPecaEstoqueUseCaseIT {
 
         PecaEstoqueEntity estoque = em.find(PecaEstoqueEntity.class, pecaId);
         assertThat(estoque.getQuantidadeDisponivel()).isEqualTo(6);
+    }
+
+    @Test
+    @DisplayName("deve mudar status da execução para APROVADO quando todas as peças são reservadas")
+    void deveMudarStatusExecucaoParaAprovadoQuandoTodasPecasReservadas() {
+        PecaAlocadaEntity pendente = new PecaAlocadaEntity();
+        pendente.setPecaId(pecaId);
+        pendente.setExecucaoServicoId(execucaoId);
+        pendente.setValorUnitario(new BigDecimal("35.00"));
+        pendente.setQuantidadeSolicitada(2);
+        pendente.setQuantidadeReservada(0);
+        pendente.setQuantidadeEncomendada(2);
+        pendente.setQuantidadeInstalada(0);
+        pendente.setStatus(StatusPecaAlocada.ENCOMENDA);
+        pendente.setAtualizado(LocalDateTime.now());
+        em.persist(pendente);
+        em.flush();
+        em.clear();
+
+        useCase.execute(pecaId, new MovimentarPecaEstoqueRequest(5));
+
+        em.flush();
+        em.clear();
+
+        ExecucaoServicoEntity execucaoAtualizada = em.find(ExecucaoServicoEntity.class, execucaoId);
+        assertThat(execucaoAtualizada.getStatusExecucaoServico()).isEqualTo(StatusExecucaoServico.APROVADO);
+
+        PecaAlocadaEntity pecaAtualizada = em.find(PecaAlocadaEntity.class, pendente.getId());
+        assertThat(pecaAtualizada.getStatus()).isEqualTo(StatusPecaAlocada.RESERVADA);
     }
 
     @Test

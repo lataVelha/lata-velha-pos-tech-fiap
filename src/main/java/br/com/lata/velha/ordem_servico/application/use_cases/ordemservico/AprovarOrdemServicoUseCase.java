@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -81,15 +82,16 @@ public class AprovarOrdemServicoUseCase {
 
     private Map<Long, PecaEstoque> getStockMap(List<ExecucaoServico> execucaoServicos) {
         var pecaIds = execucaoServicos.stream()
-                .flatMap(s -> s.getPecas()
-                        .stream()
+                .flatMap(s -> s.getPecas().stream()
                         .map(PecaAlocada::getPecaId))
                 .collect(Collectors.toSet());
-        List<PecaEstoque> estoque = pecaEstoqueRepository.findAllByPecaIds(pecaIds);
-        return estoque.stream()
-                .collect(Collectors
-                        .toMap(PecaEstoque::getPecaId, p -> p)
-                );
+        var estoqueMap = pecaEstoqueRepository.findAllByPecaIds(pecaIds).stream()
+                .collect(Collectors.toMap(PecaEstoque::getPecaId, p -> p));
+        var idsInvalidos = new HashSet<>(pecaIds);
+        idsInvalidos.removeAll(estoqueMap.keySet());
+        if (!idsInvalidos.isEmpty())
+            throw new IllegalArgumentException("Peças não encontradas com Ids: " + idsInvalidos);
+        return estoqueMap;
     }
 
     private void validateServicos(OrdemServico ordemServico, List<Input.ServicoAprovacao> servicos) {

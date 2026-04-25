@@ -28,7 +28,10 @@ class OrdemServicoTest {
 
     private static OrdemServico aguardandoAprovacao() {
         OrdemServico os = emDiagnostico();
-        os.finalizarDiagnostico();
+        ExecucaoServico exec = execucaoServico(1L);
+        os.adicionarServico(exec);
+        exec.aprovar(2L);
+        os.finalizarDiagnostico(10L);
         return os;
     }
 
@@ -127,14 +130,26 @@ class OrdemServicoTest {
     class FinalizarDiagnostico {
 
         @Test
-        @DisplayName("deve transitar para AGUARDANDO_APROVACAO")
-        void deveFinalizarDiagnosticoComSucesso() {
+        @DisplayName("deve transitar para AGUARDANDO_APROVACAO quando há serviços")
+        void deveFinalizarDiagnosticoParaAguardandoAprovacaoComServicos() {
             OrdemServico os = emDiagnostico();
+            os.adicionarServico(execucaoServico(1L));
 
-            os.finalizarDiagnostico();
+            os.finalizarDiagnostico(10L);
 
             assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
             assertThat(os.getMecanicoResponsavelId()).isEqualTo(10L);
+        }
+
+        @Test
+        @DisplayName("deve transitar para FINALIZADA quando não há serviços")
+        void deveFinalizarDiagnosticoParaFinalizadaSemServicos() {
+            OrdemServico os = emDiagnostico();
+
+            os.finalizarDiagnostico(10L);
+
+            assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.FINALIZADA);
+            assertThat(os.getFinalizadoEm()).isNotNull();
         }
 
         @Test
@@ -142,7 +157,7 @@ class OrdemServicoTest {
         void deveLancarExcecaoSeStatusInvalido() {
             OrdemServico os = recebida();
 
-            assertThatThrownBy(os::finalizarDiagnostico)
+            assertThatThrownBy(() -> os.finalizarDiagnostico(10L))
                     .isInstanceOf(IllegalStateException.class);
         }
     }
@@ -155,9 +170,6 @@ class OrdemServicoTest {
         @DisplayName("deve transitar para APROVADA")
         void deveAprovarComSucesso() {
             OrdemServico os = aguardandoAprovacao();
-            ExecucaoServico exec = execucaoServico(1L);
-            exec.aprovar(2L);
-            os.adicionarServico(exec);
 
             os.aprovar(2L);
 
@@ -227,10 +239,13 @@ class OrdemServicoTest {
         @Test
         @DisplayName("deve lançar exceção se existir serviço em execução")
         void deveLancarExcecaoSeExistirServicoEmExecucao() {
-            OrdemServico os = emExecucao();
-            ExecucaoServico servico = execucaoServico(1L);
-            servico.setStatus(StatusExecucaoServico.EM_EXECUCAO);
-            os.adicionarServico(servico);
+            ExecucaoServico finalizado = ExecucaoServico.create(999L, 1L, new BigDecimal("150.00"));
+            finalizado.setStatus(StatusExecucaoServico.FINALIZADO);
+            ExecucaoServico emAndamento = execucaoServico(1L);
+            emAndamento.setStatus(StatusExecucaoServico.EM_EXECUCAO);
+            OrdemServico os = new OrdemServico(null, 4L, 3L, "Barulho ao frear",
+                    StatusOrdemServico.EM_EXECUCAO, LocalDateTime.now(), LocalDateTime.now(), null, null, null,
+                    2L, 10L, new java.util.ArrayList<>(java.util.List.of(finalizado, emAndamento)));
 
             assertThatThrownBy(() -> os.finalizar(10L))
                     .isInstanceOf(IllegalStateException.class)
@@ -240,11 +255,14 @@ class OrdemServicoTest {
         @Test
         @DisplayName("não deve lançar exceção quando peça não processada pertence a serviço recusado")
         void naoDeveLancarExcecaoQuandoPecaNaoProcessadaEDeServicoRecusado() {
-            OrdemServico os = emExecucao();
+            ExecucaoServico base = ExecucaoServico.create(999L, 1L, new BigDecimal("150.00"));
+            base.setStatus(StatusExecucaoServico.FINALIZADO);
             ExecucaoServico recusado = execucaoFinalizada(1L);
             recusado.setStatus(StatusExecucaoServico.RECUSADO);
             recusado.getPecas().add(pecaNaoProcessada());
-            os.adicionarServico(recusado);
+            OrdemServico os = new OrdemServico(null, 4L, 3L, "Barulho ao frear",
+                    StatusOrdemServico.EM_EXECUCAO, LocalDateTime.now(), LocalDateTime.now(), null, null, null,
+                    2L, 10L, new java.util.ArrayList<>(java.util.List.of(base, recusado)));
 
             os.finalizar(10L);
 
@@ -254,10 +272,13 @@ class OrdemServicoTest {
         @Test
         @DisplayName("deve finalizar quando todas as peças de serviços ativos estão processadas")
         void deveFinalizarQuandoTodasAsPecasEstaoProcessadas() {
-            OrdemServico os = emExecucao();
+            ExecucaoServico base = ExecucaoServico.create(999L, 1L, new BigDecimal("150.00"));
+            base.setStatus(StatusExecucaoServico.FINALIZADO);
             ExecucaoServico exec = execucaoFinalizada(1L);
             exec.getPecas().add(pecaProcessada());
-            os.adicionarServico(exec);
+            OrdemServico os = new OrdemServico(null, 4L, 3L, "Barulho ao frear",
+                    StatusOrdemServico.EM_EXECUCAO, LocalDateTime.now(), LocalDateTime.now(), null, null, null,
+                    2L, 10L, new java.util.ArrayList<>(java.util.List.of(base, exec)));
 
             os.finalizar(10L);
 
@@ -307,9 +328,9 @@ class OrdemServicoTest {
     class AdicionarServico {
 
         @Test
-        @DisplayName("deve adicionar serviço à lista")
+        @DisplayName("deve adicionar serviço à lista quando OS está EM_DIAGNOSTICO")
         void deveAdicionarServicoComSucesso() {
-            OrdemServico os = recebida();
+            OrdemServico os = emDiagnostico();
             ExecucaoServico servico = execucaoServico(1L);
 
             os.adicionarServico(servico);
@@ -354,7 +375,7 @@ class OrdemServicoTest {
         @Test
         @DisplayName("deve lançar exceção se serviço já estiver na ordem")
         void deveLancarExcecaoSeServicoDuplicado() {
-            OrdemServico os = recebida();
+            OrdemServico os = emDiagnostico();
             ExecucaoServico servico1 = execucaoServico(1L);
             ExecucaoServico servico2 = execucaoServico(1L);
             os.adicionarServico(servico1);
@@ -362,6 +383,17 @@ class OrdemServicoTest {
             assertThatThrownBy(() -> os.adicionarServico(servico2))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessage("Serviço já adicionado");
+        }
+
+        @Test
+        @DisplayName("deve lançar exceção quando OS não está EM_DIAGNOSTICO")
+        void deveLancarExcecaoQuandoOsNaoEstaEmDiagnostico() {
+            OrdemServico os = recebida();
+            ExecucaoServico servico = execucaoServico(1L);
+
+            assertThatThrownBy(() -> os.adicionarServico(servico))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Não é possível adicionar serviço");
         }
     }
 
@@ -380,7 +412,7 @@ class OrdemServicoTest {
         @Test
         @DisplayName("deve somar o valor de um único serviço")
         void deveCalcularTotalComUmServico() {
-            OrdemServico os = recebida();
+            OrdemServico os = emDiagnostico();
             os.adicionarServico(execucaoServico(1L));
 
             assertThat(os.calcularValorTotal()).isEqualByComparingTo(new BigDecimal("150.00"));
@@ -389,7 +421,7 @@ class OrdemServicoTest {
         @Test
         @DisplayName("deve somar os valores de múltiplos serviços")
         void deveCalcularTotalComMultiplosServicos() {
-            OrdemServico os = recebida();
+            OrdemServico os = emDiagnostico();
             os.adicionarServico(execucaoServico(1L));
             os.adicionarServico(ExecucaoServico.create(2L, 1L, new BigDecimal("80.00")));
 
@@ -443,7 +475,7 @@ class OrdemServicoTest {
         @Test
         @DisplayName("deve incluir valorTotal")
         void deveIncluirValorTotal() {
-            OrdemServico os = recebida();
+            OrdemServico os = emDiagnostico();
             os.adicionarServico(execucaoServico(1L));
 
             String result = os.toString();

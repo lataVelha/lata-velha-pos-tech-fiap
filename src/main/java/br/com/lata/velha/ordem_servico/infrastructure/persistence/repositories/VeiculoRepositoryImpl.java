@@ -18,7 +18,6 @@ import java.util.List;
 @Repository
 @RequiredArgsConstructor
 public class VeiculoRepositoryImpl implements VeiculoRepository {
-
     private final VeiculoJpaRepository jpaRepository;
     private final ProprietarioJpaRepository proprietarioJpaRepository;
     private final VeiculoPersistenceMapper mapper;
@@ -72,6 +71,13 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     @Override
     public Veiculo findInactiveById(Long id) {
         return jpaRepository.findByIdAndAtivoFalse(id)
+                .map(mapper::toDomain)
+                .orElseThrow(() -> VeiculoNotFoundException.fromId(id));
+    }
+
+    @Override
+    public Veiculo getActiveByIdAndProprietarioId(Long id, Long proprietarioId) {
+        return jpaRepository.findByIdAndProprietarioIdAndAtivoTrue(id, proprietarioId)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> VeiculoNotFoundException.fromId(id));
     }

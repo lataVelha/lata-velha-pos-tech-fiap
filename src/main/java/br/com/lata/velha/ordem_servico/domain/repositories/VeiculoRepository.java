@@ -19,4 +19,5 @@ public interface VeiculoRepository {
     
     Veiculo findInactiveById(Long id);
 
+    Veiculo getActiveByIdAndProprietarioId(Long id, Long proprietarioId);
 }

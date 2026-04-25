@@ -9,6 +9,8 @@ public interface PecaAlocadaRepository {
 
     PecaAlocada save(PecaAlocada pecaAlocada);
 
+    List<PecaAlocada> saveAll(List<PecaAlocada> pecasAlocadas);
+
     PecaAlocada findById(Long id);
 
     PaginatedResult<PecaAlocada> findByServicoOsId(Long servicoOsId, int page, int size);
@@ -18,5 +20,4 @@ public interface PecaAlocadaRepository {
     List<PecaAlocada> buscarPendentesPorPecaOrdenado(Long pecaId);
 
     PecaAlocada findByPecaIdAndServicoOsId(Long pecaId, Long servicoOsId);
-
 }

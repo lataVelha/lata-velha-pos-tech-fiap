@@ -22,6 +22,7 @@ public final class OrdemServico {
     private LocalDateTime atualizadoEm;
 
     private Long atendenteInicioId;
+    private Long atendenteAprovacaoId;
     private Long mecanicoResponsavelId;
 
     private final List<ExecucaoServico> execucaoServicos;
@@ -55,9 +56,10 @@ public final class OrdemServico {
         touch();
     }
 
-    public void finalizarDiagnostico() {
+    public void finalizarDiagnostico(Long mecanicoId) {
         validarStatus(StatusOrdemServico.EM_DIAGNOSTICO);
-        if (execucaoServicos.isEmpty()) {
+        if(this.execucaoServicos.isEmpty()) {
+            this.mecanicoResponsavelId = mecanicoId;
             this.status = StatusOrdemServico.FINALIZADA;
             this.finalizadoEm = LocalDateTime.now();
         } else {
@@ -77,7 +79,7 @@ public final class OrdemServico {
                 .allMatch(ExecucaoServico::isRecusado);
         if (nenhumAprovado)
             throw new IllegalStateException("É necessário pelo menos um serviço aprovado para aprovar a OS.");
-        this.atendenteInicioId = atendenteId;
+        this.atendenteAprovacaoId = atendenteId;
         this.status = StatusOrdemServico.APROVADA;
         touch();
     }
@@ -91,7 +93,7 @@ public final class OrdemServico {
 
     public void reprovar(Long atendenteId) {
         validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
-        this.atendenteInicioId = atendenteId;
+        this.atendenteAprovacaoId = atendenteId;
         this.status = StatusOrdemServico.REPROVADA;
         this.finalizadoEm = LocalDateTime.now();
         touch();
@@ -122,7 +124,7 @@ public final class OrdemServico {
         if (servico == null)
             throw new IllegalArgumentException("Serviço inválido");
 
-        if (status == StatusOrdemServico.FINALIZADA || status == StatusOrdemServico.ENTREGUE)
+        if (!this.isEmDiagnostico())
             throw new IllegalStateException("Não é possível adicionar serviço");
 
         boolean jaExiste = execucaoServicos.stream()
@@ -166,6 +168,8 @@ public final class OrdemServico {
     public boolean isAprovada() {
         return this.status == StatusOrdemServico.APROVADA;
     }
+
+    public boolean isEmDiagnostico() { return this.status == StatusOrdemServico.EM_DIAGNOSTICO; }
 
     public boolean isEmExecucao() {
         return this.status == StatusOrdemServico.EM_EXECUCAO;
@@ -222,6 +226,7 @@ public final class OrdemServico {
     public LocalDateTime getEntregueEm() { return entregueEm; }
     public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
     public Long getAtendenteInicioId() { return atendenteInicioId; }
+    public Long getAtendenteAprovacaoId() { return atendenteAprovacaoId; }
     public Long getMecanicoResponsavelId() { return mecanicoResponsavelId; }
     public List<ExecucaoServico> getExecucaoServicos() { return execucaoServicos; }
 

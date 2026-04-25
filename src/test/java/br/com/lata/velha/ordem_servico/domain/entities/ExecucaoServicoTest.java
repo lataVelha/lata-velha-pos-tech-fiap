@@ -330,6 +330,78 @@ class ExecucaoServicoTest {
     }
 
     @Nested
+    @DisplayName("reservarPeca")
+    class ReservarPeca {
+
+        private static PecaEstoque estoque(Long pecaId, int disponivel) {
+            return new PecaEstoque(pecaId, disponivel, disponivel);
+        }
+
+        @Test
+        @DisplayName("deve lançar exceção quando estoque é nulo")
+        void deveLancarExcecaoQuandoEstoqueNulo() {
+            ExecucaoServico exec = build(StatusExecucaoServico.AGUARDANDO_PECA,
+                    new HashSet<>(Set.of(peca(5L, StatusPecaAlocada.ENCOMENDA, 2, 0, 0))));
+
+            assertThatThrownBy(() -> exec.reservarPeca(null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Peca inválida");
+        }
+
+        @Test
+        @DisplayName("deve lançar exceção quando a peça não pertence ao execucao")
+        void deveLancarExcecaoQuandoPecaNaoPertenceAoExecucao() {
+            ExecucaoServico exec = build(StatusExecucaoServico.AGUARDANDO_PECA,
+                    new HashSet<>(Set.of(peca(5L, StatusPecaAlocada.ENCOMENDA, 2, 0, 0))));
+
+            assertThatThrownBy(() -> exec.reservarPeca(estoque(99L, 5)))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("deve reservar peça completamente e mudar status para APROVADO quando não há outras pendentes")
+        void deveReservarEMudarParaAprovadoQuandoUnicaPeca() {
+            var pecaEncomendada = peca(5L, StatusPecaAlocada.ENCOMENDA, 2, 0, 0);
+            ExecucaoServico exec = build(StatusExecucaoServico.AGUARDANDO_PECA,
+                    new HashSet<>(Set.of(pecaEncomendada)));
+
+            exec.reservarPeca(estoque(5L, 10));
+
+            assertThat(pecaEncomendada.getStatus()).isEqualTo(StatusPecaAlocada.RESERVADA);
+            assertThat(exec.getStatus()).isEqualTo(StatusExecucaoServico.APROVADO);
+        }
+
+        @Test
+        @DisplayName("deve manter AGUARDANDO_PECA quando ainda há outra peça pendente")
+        void deveMantereAguardandoPecaQuandoOutraPecaAindaPendente() {
+            var pecaReservada = new PecaAlocada(1L, 5L, EXEC_ID, new BigDecimal("30.00"),
+                    2, 0, 0, 0, StatusPecaAlocada.ENCOMENDA, LocalDateTime.now());
+            var outraPecaPendente = new PecaAlocada(2L, 6L, EXEC_ID, new BigDecimal("30.00"),
+                    1, 0, 0, 0, StatusPecaAlocada.ENCOMENDA, LocalDateTime.now());
+            ExecucaoServico exec = build(StatusExecucaoServico.AGUARDANDO_PECA,
+                    new HashSet<>(Set.of(pecaReservada, outraPecaPendente)));
+
+            exec.reservarPeca(estoque(5L, 10));
+
+            assertThat(pecaReservada.getStatus()).isEqualTo(StatusPecaAlocada.RESERVADA);
+            assertThat(exec.getStatus()).isEqualTo(StatusExecucaoServico.AGUARDANDO_PECA);
+        }
+
+        @Test
+        @DisplayName("deve manter AGUARDANDO_PECA quando peça fica apenas parcialmente reservada")
+        void deveMantereAguardandoPecaQuandoPecaParcial() {
+            var pecaEncomendada = peca(5L, StatusPecaAlocada.ENCOMENDA, 5, 0, 0);
+            ExecucaoServico exec = build(StatusExecucaoServico.AGUARDANDO_PECA,
+                    new HashSet<>(Set.of(pecaEncomendada)));
+
+            exec.reservarPeca(estoque(5L, 2));
+
+            assertThat(pecaEncomendada.getStatus()).isEqualTo(StatusPecaAlocada.PARCIAL);
+            assertThat(exec.getStatus()).isEqualTo(StatusExecucaoServico.AGUARDANDO_PECA);
+        }
+    }
+
+    @Nested
     @DisplayName("instalarPecasRestantes")
     class InstalarPecasRestantes {
 
