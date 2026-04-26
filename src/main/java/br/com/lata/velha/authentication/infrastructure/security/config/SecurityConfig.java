@@ -37,7 +37,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/reprovar").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/retirar-veiculo").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/iniciar-diagnostico").hasAnyRole("MECANICO", "ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/adiciona-servico").hasAnyRole("MECANICO", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/adicionar-servico").hasAnyRole("MECANICO", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/finalizar-diagnostico").hasAnyRole("MECANICO", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/iniciar-servico/*").hasAnyRole("MECANICO", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/finalizar-servico/*").hasAnyRole("MECANICO", "ADMIN")

@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,12 +24,16 @@ public class AdicionarServicoUseCase {
     private final ServicoRepository servicoRepository;
     private final PecaRepository pecaRepository;
 
+    @Transactional
     public void execute(Input input) {
         var ordemServico = ordemServicoRepository.getById(input.osId);
         var execucoes = createExecucoes(input.servicos(), ordemServico.getId());
         execucoes.forEach(ordemServico::adicionarServico);
         ordemServico = ordemServicoRepository.save(ordemServico);
-        execucoes = ordemServico.getExecucaoServicos();
+        var idsSolicitados = input.servicos.stream().map(Input.ServicoAdicionar::servicoId).collect(Collectors.toSet());
+        execucoes = ordemServico.getExecucaoServicos().stream()
+                .filter(execucaoServico -> idsSolicitados.stream().anyMatch(id -> execucaoServico.getServicoId().equals(id)))
+                .toList();
         adicionarPecas(execucoes, input.servicos);
         ordemServicoRepository.save(ordemServico);
     }
@@ -87,6 +92,8 @@ public class AdicionarServicoUseCase {
     }
 
     private void validateIds(Set<Long> servicoIds, Set<Servico> servicos) {
+        if(servicos.size() == 0)
+            throw new IllegalArgumentException("Nenhum serviço solicitado existe");
         var invalidIds = servicos.stream()
                 .map(Servico::getId)
                 .filter(id -> servicoIds.stream().noneMatch(servicoId -> servicoId.equals(id)))

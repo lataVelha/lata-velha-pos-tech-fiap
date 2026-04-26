@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
 
     private final OrdemServicoJpaRepository jpaRepository;
+    private final ExecucaoServicoJpaRepository execucaoServicoJpaRepository;
 
     @Override
     public OrdemServico save(OrdemServico ordemServico) {
@@ -33,9 +34,10 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
 
     @Override
     public OrdemServico getByIdWithExecucoesAndPecas(Long id) {
-        return jpaRepository.findByIdWithExecucoesAndPecas(id)
-                .map(OrdemServicoEntity::toDomain)
+        var entity = jpaRepository.findById(id)
                 .orElseThrow(() -> OrdemServicoNotFoundException.fromId(id));
+        var execucoes = execucaoServicoJpaRepository.findWithPecasByOsId(id);
+        return entity.toDomain(execucoes);
     }
 
     @Override

@@ -102,7 +102,7 @@ class StatusAprovacaoValidatorTest {
     }
 
     @Test
-    @DisplayName("deve incluir servicoOsId na mensagem de violação")
+    @DisplayName("deve incluir execucaoServicoId na mensagem de violação")
     void deveIncluirServicoOsIdNaMensagemDeViolacao() {
         var servico = new AprovarOrdemServicoRequest.Servico(99L, StatusExecucaoServico.PENDENTE);
 
