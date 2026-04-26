@@ -10,17 +10,12 @@ import java.util.List;
 
 @Schema(name = "AddServicoRequest", description = "Dados para adição de serviços a uma ordem de serviço")
 public record AddServicoRequest(
-
-        @NotNull(message = "ID Os é obrigatório")
-        @Schema(description = "ID da ordem de serviço", example = "20")
-        Long idOs,
-
         @NotEmpty(message = "Lista servicoOSId é obrigatória")
         @Schema(description = "Lista de serviços a adicionar")
         List<@Valid ServicoRequest> servicoRequests
 
 ) {
-    public AdicionarServicoUseCase.Input toUseCaseInput() {
+    public AdicionarServicoUseCase.Input toUseCaseInput(Long idOs) {
         var servicos = servicoRequests.stream()
                 .map(ServicoRequest::toUseCaseInput)
                 .toList();
