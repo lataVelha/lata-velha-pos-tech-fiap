@@ -259,14 +259,16 @@ class ExecucaoServicoTest {
         }
 
         @Test
-        @DisplayName("deve lançar exceção quando tem peças não instaladas")
-        void deveLancarExcecaoQuandoTemPecasNaoInstaladas() {
+        @DisplayName("deve instalar automaticamente peças pendentes e finalizar")
+        void deveInstalarAutomaticamentePecasPendentesEFinalizar() {
             var pecaNaoInstalada = peca(5L, StatusPecaAlocada.RESERVADA, 2, 2, 0);
             ExecucaoServico exec = build(StatusExecucaoServico.EM_EXECUCAO, new HashSet<>(Set.of(pecaNaoInstalada)));
 
-            assertThatThrownBy(() -> exec.finalizar())
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("Não é possível finalizar um serviço com peças não instaladas");
+            exec.finalizar();
+
+            assertThat(exec.getStatus()).isEqualTo(StatusExecucaoServico.FINALIZADO);
+            assertThat(pecaNaoInstalada.getStatus()).isEqualTo(StatusPecaAlocada.INSTALADA);
+            assertThat(pecaNaoInstalada.getQuantidadeInstalada()).isEqualTo(2);
         }
     }
 

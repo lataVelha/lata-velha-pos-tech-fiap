@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepositor
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +20,7 @@ public class CriarOrdemServicoUseCase {
     private final VeiculoRepository veiculoRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
+    @Transactional
     public OrdemServicoResponse execute(Input input) {
         var proprietario = proprietarioRepository.getActiveById(input.proprietarioId());
         var veiculo = veiculoRepository.getActiveByIdAndProprietarioId(input.veiculoId(), proprietario.getId());

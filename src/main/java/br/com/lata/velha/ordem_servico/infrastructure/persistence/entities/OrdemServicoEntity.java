@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.entities;
 
+import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import jakarta.persistence.*;
@@ -90,6 +91,17 @@ public class OrdemServicoEntity {
         var servicos = this.servicos.stream()
                 .map(ExecucaoServicoEntity::toDomain)
                 .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+        return map(servicos);
+    }
+
+    public OrdemServico toDomain(List<ExecucaoServicoEntity> execucoes) {
+        var servicos = execucoes.stream()
+                .map(ExecucaoServicoEntity::toDomain)
+                .toList();
+        return map(servicos);
+    }
+
+    private OrdemServico map(List<ExecucaoServico> servicos){
         return new OrdemServico(
                 id,
                 proprietarioId,

@@ -32,4 +32,7 @@ public interface ExecucaoServicoJpaRepository extends JpaRepository<ExecucaoServ
 
     @Query("SELECT e FROM ExecucaoServicoEntity e JOIN FETCH e.pecas p WHERE e.id in :ids")
     Set<ExecucaoServicoEntity> getAllByIdWithPeca(Set<Long> ids);
+
+    @Query("SELECT DISTINCT e FROM ExecucaoServicoEntity e LEFT JOIN FETCH e.pecas WHERE e.ordemServicoId = :osId")
+    List<ExecucaoServicoEntity> findWithPecasByOsId(@Param("osId") Long osId);
 }

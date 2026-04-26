@@ -213,14 +213,14 @@ class OrdemServicoControllerTest {
 
     @Test
     @WithMockUser(roles = "MECANICO")
-    @DisplayName("PATCH /ordens-servico/adiciona-servico deve retornar 200")
+    @DisplayName("PATCH /ordens-servico/{idOs}/adicionar-servico deve retornar 200")
     void shouldReturn200OnAdicionarServico() throws Exception {
         var servicoRequest = new ServicoRequest(10L, List.of(), new BigDecimal("150.00"));
-        var request = new AddServicoRequest(1L, List.of(servicoRequest));
+        var request = new AddServicoRequest(List.of(servicoRequest));
 
         doNothing().when(adicionarServicoUseCase).execute(any());
 
-        mockMvc.perform(patch("/ordens-servico/adiciona-servico")
+        mockMvc.perform(patch("/ordens-servico/1/adicionar-servico")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -228,11 +228,11 @@ class OrdemServicoControllerTest {
 
     @Test
     @WithMockUser(roles = "MECANICO")
-    @DisplayName("PATCH /ordens-servico/adiciona-servico com body inválido deve retornar 400")
+    @DisplayName("PATCH /ordens-servico/{idOs}/adicionar-servico com lista vazia deve retornar 400")
     void shouldReturn400OnAdicionarServicoWithInvalidRequest() throws Exception {
-        var invalid = new AddServicoRequest(null, List.of());
+        var invalid = new AddServicoRequest(List.of());
 
-        mockMvc.perform(patch("/ordens-servico/adiciona-servico")
+        mockMvc.perform(patch("/ordens-servico/1/adicionar-servico")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest());
@@ -251,16 +251,16 @@ class OrdemServicoControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("PATCH /ordens-servico/aprovar deve retornar 200")
+    @DisplayName("PATCH /ordens-servico/{idOs}/aprovar deve retornar 200")
     void shouldReturn200OnAprovar() throws Exception {
         var servico = new AprovarOrdemServicoRequest.Servico(10L, StatusExecucaoServico.APROVADO);
-        var request = new AprovarOrdemServicoRequest(1L, List.of(servico));
+        var request = new AprovarOrdemServicoRequest(List.of(servico));
         var output = new AprovarOrdemServicoUseCase.Output(1L, "EM_EXECUCAO",
                 List.of(new AprovarOrdemServicoUseCase.Output.Servico(10L, "APROVADO")), null);
 
         when(aprovarOrdemServicoUseCase.execute(any())).thenReturn(output);
 
-        mockMvc.perform(patch("/ordens-servico/aprovar")
+        mockMvc.perform(patch("/ordens-servico/1/aprovar")
                         .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -271,11 +271,11 @@ class OrdemServicoControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("PATCH /ordens-servico/aprovar com body inválido deve retornar 400")
+    @DisplayName("PATCH /ordens-servico/{idOs}/aprovar com lista vazia deve retornar 400")
     void shouldReturn400OnAprovarWithInvalidRequest() throws Exception {
-        var invalid = new AprovarOrdemServicoRequest(null, List.of());
+        var invalid = new AprovarOrdemServicoRequest(List.of());
 
-        mockMvc.perform(patch("/ordens-servico/aprovar")
+        mockMvc.perform(patch("/ordens-servico/1/aprovar")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest());
