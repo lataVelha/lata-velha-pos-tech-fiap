@@ -105,9 +105,7 @@ public class OrdemServicoController {
     public ResponseEntity<Void> startDiagnostic(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        var jwtSubject = jwt.getSubject();
-        var userId = UserId.fromString(jwtSubject);
-        var input = new IniciarDiagnosticoUseCase.Input(idOs, userId);
+        var input = new IniciarDiagnosticoUseCase.Input(idOs, UserId.fromString(jwt.getSubject()));
         iniciarDiagnosticoUseCase.execute(input);
         return ResponseEntity.ok().build();
     }
@@ -135,11 +133,10 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "200", description = "Diagnóstico finalizado — status AGUARDANDO_APROVACAO. E-mail enviado ao cliente.")
     @ApiResponse(responseCode = "404", description = "OS ou mecânico não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status EM_DIAGNOSTICO")
-    public ResponseEntity<OrdemServicoResponse> finalDiagnostic(
+    public ResponseEntity<Void> finalDiagnostic(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        var userId = UserId.fromString(jwt.getSubject());
-        var input = new FinalizarDiagnosticoUseCase.Input(idOs, userId);
+        var input = new FinalizarDiagnosticoUseCase.Input(idOs, UserId.fromString(jwt.getSubject()));
         finalizarDiagnosticoUseCase.execute(input);
         return ResponseEntity.ok().build();
     }
@@ -157,8 +154,7 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "404", description = "OS ou funcionário não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está em AGUARDANDO_APROVACAO ou nenhum serviço foi aprovado")
     public ResponseEntity<AprovarOrdemServicoResponse> approve(@Valid @RequestBody AprovarOrdemServicoRequest request, @AuthenticationPrincipal Jwt jwt) {
-        var userId = UserId.fromString(jwt.getSubject());
-        var input = request.toInput(userId);
+        var input = request.toInput(UserId.fromString(jwt.getSubject()));
         var output = aprovarOrdemServicoUseCase.execute(input);
         return ResponseEntity.ok(AprovarOrdemServicoResponse.fromOutput(output));
     }
@@ -191,8 +187,7 @@ public class OrdemServicoController {
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Parameter(description = "ID do serviço a iniciar", example = "5") @PathVariable Long servicoId,
             @AuthenticationPrincipal Jwt jwt) {
-        var userId = UserId.fromString(jwt.getSubject());
-        var input = new IniciarServicoUseCase.Input(idOs, servicoId, userId);
+        var input = new IniciarServicoUseCase.Input(idOs, servicoId, UserId.fromString(jwt.getSubject()));
         iniciarServicoUseCase.execute(input);
         return ResponseEntity.ok().build();
     }
@@ -222,7 +217,7 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "200", description = "Veículo entregue — status ENTREGUE. Resposta inclui totais financeiros.")
     @ApiResponse(responseCode = "404", description = "OS ou funcionário não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status FINALIZADA")
-    public ResponseEntity<OrdemServicoResponse> removeVehicle(
+    public ResponseEntity<Void> removeVehicle(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
         retirarVeiculoUseCase.execute(idOs, UserId.fromString(jwt.getSubject()));
