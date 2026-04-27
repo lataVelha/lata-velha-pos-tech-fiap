@@ -110,7 +110,7 @@ public class OrdemServicoController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/adiciona-servico")
+    @PatchMapping("/{idOs}/adicionar-servico")
     @Operation(
             summary = "Adicionar serviços à OS",
             description = "**MECANICO** — Adiciona serviços (com mão de obra e peças) durante o diagnóstico. O mesmo serviço não pode ser adicionado duas vezes. Status inicial do serviço: `PENDENTE`."
@@ -119,8 +119,11 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "400", description = "Dados inválidos")
     @ApiResponse(responseCode = "404", description = "OS, serviço ou peça não encontrada")
     @ApiResponse(responseCode = "422", description = "Serviço já adicionado ou status da OS não permite adição")
-    public ResponseEntity<Void> addService(@Valid @RequestBody AddServicoRequest request) {
-        var input = request.toUseCaseInput();
+    public ResponseEntity<Void> addService(
+            @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
+            @Valid @RequestBody AddServicoRequest request
+    ) {
+        var input = request.toUseCaseInput(idOs);
         adicionarServicoUseCase.execute(input);
         return ResponseEntity.ok().build();
     }
@@ -141,7 +144,7 @@ public class OrdemServicoController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/aprovar")
+    @PatchMapping("/{idOs}/aprovar")
     @Operation(
             summary = "Aprovar ou reprovar serviços da OS",
             description = """
@@ -153,8 +156,12 @@ public class OrdemServicoController {
     @ApiResponse(responseCode = "400", description = "Status inválido ou ID de serviço não pertence à OS")
     @ApiResponse(responseCode = "404", description = "OS ou funcionário não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está em AGUARDANDO_APROVACAO ou nenhum serviço foi aprovado")
-    public ResponseEntity<AprovarOrdemServicoResponse> approve(@Valid @RequestBody AprovarOrdemServicoRequest request, @AuthenticationPrincipal Jwt jwt) {
-        var input = request.toInput(UserId.fromString(jwt.getSubject()));
+    public ResponseEntity<AprovarOrdemServicoResponse> approve(
+            @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
+            @Valid @RequestBody AprovarOrdemServicoRequest request, @AuthenticationPrincipal Jwt jwt
+    ) {
+        var userId = UserId.fromString(jwt.getSubject());
+        var input = request.toInput(userId, idOs);
         var output = aprovarOrdemServicoUseCase.execute(input);
         return ResponseEntity.ok(AprovarOrdemServicoResponse.fromOutput(output));
     }

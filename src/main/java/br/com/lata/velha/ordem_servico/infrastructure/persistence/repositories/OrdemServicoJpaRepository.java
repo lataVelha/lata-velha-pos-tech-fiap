@@ -126,13 +126,4 @@ public interface OrdemServicoJpaRepository extends JpaRepository<OrdemServicoEnt
             @Param("mecanicoId") Long mecanicoId,
             Pageable pageable
     );
-
-    @Query("""
-            SELECT DISTINCT os
-            FROM OrdemServicoEntity os
-            LEFT JOIN FETCH os.servicos s
-            LEFT JOIN FETCH s.pecas
-            WHERE os.id = :id
-            """)
-    Optional<OrdemServicoEntity> findByIdWithExecucoesAndPecas(Long id);
 }

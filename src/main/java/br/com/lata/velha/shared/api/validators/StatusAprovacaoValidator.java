@@ -14,7 +14,7 @@ public class StatusAprovacaoValidator implements ConstraintValidator<StatusAprov
         }
         context.disableDefaultConstraintViolation();
         context.buildConstraintViolationWithTemplate(
-                "Status inválido para o serviço id " + servico.servicoOsId() + ": deve ser APROVADO ou RECUSADO"
+                "Status inválido para o serviço id " + servico.execucaoServicoId() + ": deve ser APROVADO ou RECUSADO"
         ).addConstraintViolation();
         return false;
     }

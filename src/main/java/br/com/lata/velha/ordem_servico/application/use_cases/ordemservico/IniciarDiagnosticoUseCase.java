@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ public class IniciarDiagnosticoUseCase {
     private final FuncionarioRepository funcionarioRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
+    @Transactional
     public void execute(Input input) {
         var ordemServico = repository.getById(input.idOs());
         var mecanico = funcionarioRepository.getByUserId(input.userId());

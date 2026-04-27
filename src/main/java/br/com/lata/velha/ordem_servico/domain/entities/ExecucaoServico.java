@@ -79,6 +79,8 @@ public final class ExecucaoServico {
     public void finalizar() {
         if (status != StatusExecucaoServico.EM_EXECUCAO)
             throw new IllegalStateException("Não é possível finalizar um serviço que não está em execução");
+        // TODO implemnt separate instalation process, now all parts are installed at once on finish
+        this.instalarPecasRestantes();
         var temPecasNaoInstaladas = this.pecas.stream()
                 .anyMatch(peca -> !peca.isInstalada());
         if(temPecasNaoInstaladas)
@@ -118,7 +120,8 @@ public final class ExecucaoServico {
     public void instalarPecasRestantes() {
         this.pecas.forEach(peca -> {
             var pecasParaInstalar = peca.getQuantidadeSolicitada() - peca.getQuantidadeInstalada();
-            peca.instalar(pecasParaInstalar);
+            if (pecasParaInstalar > 0)
+                peca.instalar(pecasParaInstalar);
         });
     }
 

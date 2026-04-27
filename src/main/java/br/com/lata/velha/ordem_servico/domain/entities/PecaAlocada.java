@@ -122,7 +122,10 @@ public final class PecaAlocada {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        //TODO revert this to only ID when using proper UUID
+        if(id == null)
+            return Objects.hash(getPecaId(), getExecucaoServicoId());
+        return Objects.hash(getId());
     }
 
     private void validateExecucaoServicoId(Long execucaoServicoId) {

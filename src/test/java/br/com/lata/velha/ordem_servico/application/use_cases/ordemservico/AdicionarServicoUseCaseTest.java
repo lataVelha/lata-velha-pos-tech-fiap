@@ -166,6 +166,22 @@ class AdicionarServicoUseCaseTest {
     }
 
     @Test
+    @DisplayName("deve lançar exceção quando nenhum dos serviços solicitados existe")
+    void deveLancarExcecaoQuandoNenhumServicoExiste() {
+        when(ordemServicoRepository.getById(OS_ID)).thenReturn(os);
+        when(servicoRepository.getAllActiveById(any())).thenReturn(Set.of());
+
+        var input = new AdicionarServicoUseCase.Input(OS_ID, List.of(
+                new AdicionarServicoUseCase.Input.ServicoAdicionar(SERVICO_ID, List.of(), new BigDecimal("150"))));
+
+        assertThatThrownBy(() -> useCase.execute(input))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Nenhum serviço solicitado existe");
+
+        verify(ordemServicoRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("deve propagar exceção quando OS não encontrada")
     void devePropagateExcecaoQuandoOsNaoEncontrada() {
         when(ordemServicoRepository.getById(OS_ID)).thenThrow(new RuntimeException("OS não encontrada"));

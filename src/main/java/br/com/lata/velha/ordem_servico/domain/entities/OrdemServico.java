@@ -157,8 +157,6 @@ public final class OrdemServico {
                 .filter(e -> e.getId().equals(execucaoId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado na OS: " + execucaoId));
-        // TODO implemnt separate instalation process, now all parts are installed at once on finish
-        execucao.instalarPecasRestantes();
         execucao.finalizar();
 
         if (this.todosServicosConcluidos())
