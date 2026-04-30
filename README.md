@@ -35,175 +35,233 @@ br.com.lata.velha
 
 **Regra principal:** o `domain` não importa nenhuma outra camada. A `infrastructure` implementa as interfaces definidas pelo `domain` e `application`, conectadas via injeção de dependência do Spring.
 
----
+### Estrutura de Contextos
+
+O código é dividido em 3 contextos bem separados:
+
+<p align="center">
+  <img src="./documentation/arquitetura-contextos-lata-velha.svg" alt="Arquitetura com contextos" width="700"/>
+</p>
+
+**Authentication**
+- Só cuida de login e gerar token JWT
+- Basicamente: usuário entra com email/senha e recebe um token que é válido por 1 hora
+- Fica em `authentication/`, totalmente isolado do restante do código
+
+**Ordem de Serviço**
+- Aqui roda o core business da oficina: proprietários, veículos, serviços, peças, ordens de serviço
+- Uma OS passa por diferentes estados quando criada: recebida → diagnóstico → aguardando aprovação → aprovada → execução → finalizada → entregue
+- Se o cliente rejeitar o orçamento em qualquer ponto, a OS fica reprovada e o processo é encerrado
+- Fica tudo em `ordem_servico/`
+
+**Shared**
+- Código que qualquer contexto precisa: exceções, validadores, tipos básicos que se repetem
 
 ## Pré-requisitos
 
-- **Java 21**
-- **Docker** instalado e rodando
-- **Maven** (ou usar o wrapper `./mvnw`)
+- **Java 21** — verificar no terminal com `java -version`
+- **Docker** instalado e rodando — testar no terminal com `docker ps`
+- **Git** pra clonar o projeto
 
 ---
 
 ## Como rodar
 
-**1. Subir o banco de dados e SonarQube**
+### Infraestrutura
 
+O arquivo principal traz PostgreSQL + aplicação:
 ```bash
 docker compose -f docker/docker-compose.yml up -d
 ```
 
-**2. Verificar se os containers estão rodando**
+Se necessário acesso ao banco com PgAdmin e SonarQube, rode:
+```bash
+docker compose -f docker/docker-compose-dev.yml up -d
+```
+(PgAdmin fica em http://localhost:5050, email `admin@admin.com` / senha `admin123`)
 
+Verificar se está tudo rodando:
 ```bash
 docker ps
 ```
 
-**3. Rodar a aplicação**
+### Usando a API
 
+Abra o Swagger em http://localhost:8080/swagger-ui.html
+
+Pra acessar os endpoints protegidos, é necessário fazer login primeiro:
+1. Procure a seção **Authentication**
+2. Clique em `POST /auth/login`
+3. Passe `admin@latavelha.com` como login e `Admin@123` como senha
+4. Copie o token que é retornado
+5. Clice no botão **Authorize** (canto direito em cima)
+6. Cole o token (sem prefixo `Bearer`) e confirme
+7. Pronto, todos os endpoints autenticados funcionam
+
+Para parar tudo:
 ```bash
-mvn spring-boot:run
+docker compose -f docker/docker-compose.yml down -v
 ```
-
-**4. Acessar o Swagger**
-
-```
-http://localhost:8080/swagger-ui.html
-```
+(o `-v` limpa os volumes, apagando dados do banco e SonarQube)
 
 ---
 
-## Banco de dados
+## Configurações por Contexto
 
-| Propriedade | Valor        |
-| ----------- | ------------ |
-| Host        | `localhost`  |
-| Porta       | `5432`       |
-| Database    | `lata_velha` |
-| Usuário     | `admin`      |
-| Senha       | `admin123`   |
+**Desenvolvimento local:**
+- Banco: PostgreSQL em localhost:5432
+- App: http://localhost:8080
+- Sem profile especial — pega a `application.yaml` default
+
+**Via Docker:**
+- App roda num container Docker
+- Seta `ENVIRONMENT=docker` automaticamente
+- Banco fica em `postgres:5432` (nome do hostname no Docker)
+- App na porta 8080, SonarQube na 9000
+
+**Durante testes:**
+- BD em memória (H2)
+- Profile `test` ativa automaticamente
+- Migrations desligadas (schema é criado fresh cada vez)
+
+**Credenciais padrão (de desenvolvimento):**
+- Host BD: `localhost` (ou `postgres` se Docker)
+- Porta: 5432
+- Database: `lata_velha`
+- Usuário: `admin`
+- Senha: `admin123`
+
+### Soft-Delete
+
+Todas as entidades importantes têm uma coluna `ATIVO` (true/false). Quando você deleta algo, na verdade é só marcado como `ATIVO = false`. Quando lista, só aparecem os ativos.
+
+Use `PATCH /recurso/{id}/desativar` pra inativar e `PATCH /recurso/{id}/reativar` pra ativar novamente.
 
 ---
 
 ## Autenticação
 
-O sistema utiliza **JWT com chaves RSA** para autenticação. Após o login, o token deve ser informado no Swagger para acessar os endpoints protegidos.
+O sistema usa JWT com RSA (chaves de 2048 bits). Basicamente: você faz login, recebe um token, envia o token em toda requisição protegida.
 
-**Usuários pré-cadastrados:**
+**Detalhes do token:**
+- Válido por 1 hora (3600 segundos)
+- Assinado com chave privada RSA (em `app.key`)
+- Quando o servidor vê o token, valida com a chave pública (em `app.pub`)
+- Header esperado: `Authorization: Bearer <token>`
 
-| Usuário                    | Senha       | Role     |
-| -------------------------- | ----------- | -------- |
-| `admin@latavelha.com`      | `Admin@123` | ADMIN    |
-| `atendente@latavelha.com`  | `Atend@123` | USER     |
-| `mecanico@latavelha.com`   | `Mecan@123` | MECANICO |
-
-**Como autenticar no Swagger:**
-
-1. Faça `POST /auth/login` com username e senha
-2. Copie o token retornado (sem aspas)
-3. Clique em **Authorize** no Swagger
-4. Cole o token e confirme
-
----
+**Usuários de teste (só desenvolvimento):**
+- `admin@latavelha.com` / `Admin@123` — acesso total
+- `atendente@latavelha.com` / `Atend@123` — pode abrir OS, aprovar, entregar
+- `mecanico@latavelha.com` / `Mecan@123` — pode fazer diagnóstico e executar serviços
 
 ## Testes
 
-**Rodar todos os testes:**
-
+Rode os testes com:
 ```bash
-mvn clean test
+./mvnw clean test
 ```
 
-**Visualizar cobertura (JaCoCo):**
-
+Pra ver cobertura (JaCoCo):
 ```bash
-mvn clean verify
+./mvnw clean verify
+```
+
+Gera um relatório em `target/site/jacoco/index.html`. Para abrir:
+
+**Linux/WSL:**
+```bash
+xdg-open target/site/jacoco/index.html
+```
+
+**macOS:**
+```bash
 open target/site/jacoco/index.html
 ```
 
----
+**Windows:**
+```bash
+start target\site\jacoco\index.html
+```
+
+Ou abrir o arquivo no navegador.
+
+**Regra importante:** cobertura tem que ser mínimo 80%. O comando `verify` falha se ficar abaixo disso.
 
 ## SonarQube
 
-O projeto utiliza **SonarQube Community Edition** para análise estática de código. Ele identifica bugs, vulnerabilidades, code smells e mede a cobertura de testes.
+Para análise estática foi implementado o SonarQube (procura bugs, code smells, duplicação, etc).
 
-**1. Subir o SonarQube (já incluso no docker-compose)**
+Executado com o docker-compose principal:
 
+Abre http://localhost:9000. Login padrão é `admin` / `admin` (vai pedir pra trocar na primeira vez).
+
+Antes de rodar a análise, precisa gerar um token:
+1. Avatar (canto direito em cima) → My Account
+2. Ir em Security → Generate Tokens
+3. Criar um token chamado `lata-velha`
+4. Copiar o token
+
+Executar:
 ```bash
-docker compose -f docker/docker-compose.yml up -d
+./mvnw clean test sonar:sonar -Dsonar.token=SEU_TOKEN_AQUI
 ```
 
-**2. Acessar o painel**
-
-```
-http://localhost:9000
-```
-
-Login padrão: `admin` / `admin` (será pedido para trocar na primeira vez)
-
-**3. Gerar token de análise**
-
-- Avatar (canto superior direito) → **My Account** → **Security**
-- Em **Generate Tokens**: nome `lata-velha`, tipo **Global Analysis Token**
-- Clique **Generate** e copie o token
-
-**4. Rodar a análise**
-
-```bash
-mvn clean test sonar:sonar -Dsonar.token=SEU_TOKEN_AQUI
-```
-
-**5. Ver os resultados**
-
-Acesse `http://localhost:9000` e clique no projeto **Lata-Velha**.
-
-| Métrica         | Descrição                               |
-| --------------- | --------------------------------------- |
-| Security        | Vulnerabilidades de segurança           |
-| Reliability     | Bugs que podem causar falhas            |
-| Maintainability | Code smells que dificultam manutenção   |
-| Coverage        | Percentual de código coberto por testes |
-| Duplications    | Trechos de código duplicados            |
-
----
-
-## Parar tudo
-
-```bash
-docker compose -f docker/docker-compose.yml down -v
-```
-
-O flag `-v` remove os volumes, limpando os dados do banco e do SonarQube.
+Quando terminar, voltar em http://localhost:9000 e clicar no projeto **Lata-Velha** para ver resultados.
 
 ---
 
 ## Tecnologias
 
-| Tecnologia      | Uso                            |
-| --------------- | ------------------------------ |
-| Java 21         | Linguagem principal            |
-| Spring Boot 3.2 | Framework web e DI             |
-| Spring Security | Autenticação JWT com RSA       |
-| Spring Data JPA | Persistência                   |
-| PostgreSQL 16   | Banco de dados relacional      |
-| Flyway          | Versionamento de migrations    |
-| Swagger/OpenAPI | Documentação interativa da API |
-| JUnit 5         | Testes unitários               |
-| JaCoCo          | Cobertura de testes            |
-| SonarQube       | Análise estática de código     |
-| Docker Compose  | Orquestração de containers     |
-| Lombok          | Redução de boilerplate         |
+| Tecnologia           | Versão  | Uso                            |
+| -------------------- | ------- | ------------------------------ |
+| Java                 | 21      | Linguagem principal            |
+| Spring Boot          | 3.2.5   | Framework web e DI             |
+| Spring Security      | via 3.2 | Autenticação JWT com RSA       |
+| Spring Data JPA      | via 3.2 | Persistência + Hibernate       |
+| PostgreSQL           | 15      | Banco de dados relacional      |
+| Flyway               | via 3.2 | Versionamento de migrations    |
+| Springdoc OpenAPI    | 2.6.0   | Documentação interativa (Swagger) |
+| JUnit 5              | via 3.2 | Testes unitários               |
+| Mockito              | via 3.2 | Mocks em testes                |
+| H2 Database          | test    | BD em memória para testes      |
+| JaCoCo               | 0.8.12  | Cobertura de testes            |
+| SonarQube            | Community | Análise estática de código     |
+| Docker Compose       | 3.8     | Orquestração de containers     |
+| Lombok               | 1.18.32 | Redução de boilerplate         |
+| Spring Mail          | via 3.2 | Envio de emails (Gmail SMTP)   |
+| Thymeleaf            | via 3.2 | Templates de email             |
 
 ---
 
-## Guias para desenvolvimento
-- idioma usado
-    - ingles -> nome dos metodos
-    - portugues -> dominio, mensagem de erro
-- injeção de dependência por @RequiredArgsConstructor e remover os construtores
-- usecases com apenas 1 metodo, anotar com @Component
-    - obs: caso tenha busca por campos diferentes, criar um usecase para campos diferentes
-- usar Records para DTO
-- adicionar testes unitários e integração (pelo menos nos usecases)
-    - usar jacoco, mockito
-    - cobertura mínima é 80%
+## Desenvolvimento
+
+### Idioma
+
+- Métodos em **inglês** (`execute()`, `findByCpf()`, `build()`)
+- Domínios e entidades em **português** (`Veiculo`, `Proprietario`, `placa`)
+- Mensagens de erro em **português**
+
+### Injeção de Dependência
+
+Use **EXCLUSIVAMENTE** `@RequiredArgsConstructor` do Lombok. Nada de `@Autowired` em campos, nada de constructores manuais.
+
+### DTOs
+
+Use **`Record`** nativos do Java 17+:
+```java
+public record CriarProprietarioRequest(
+    @NotBlank String nome,
+    @NotBlank @Email String email,
+    String documento
+) {}
+```
+
+### Testes
+
+Obrigatório: Unitários + Integração para Use Cases.  
+Ecossistema: JUnit 5, Mockito, JaCoCo.  
+Cobertura mínima: 80%.
+
+Padrão de nomes:
+- `*Test.java` → unitários
+- `*IT.java` → integração (com Spring Context + H2)
