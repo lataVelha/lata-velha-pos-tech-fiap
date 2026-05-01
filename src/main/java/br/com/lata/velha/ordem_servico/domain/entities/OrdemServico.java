@@ -153,14 +153,18 @@ public final class OrdemServico {
         if (!this.isEmExecucao())
             throw new IllegalStateException("Esta Ordem de Serviço não está em execução: " + this.getId());
 
-        var execucao = this.getExecucaoServicos().stream()
-                .filter(e -> e.getId().equals(execucaoId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado na OS: " + execucaoId));
+        var execucao = getExecucaoById(execucaoId);
         execucao.finalizar();
 
         if (this.todosServicosConcluidos())
             this.finalizar(mecanicoId);
+    }
+
+    public ExecucaoServico getExecucaoById(Long execucaoId) {
+        return this.getExecucaoServicos().stream()
+                .filter(e -> e.getId().equals(execucaoId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado na OS: " + execucaoId));
     }
 
     public boolean isAprovada() {

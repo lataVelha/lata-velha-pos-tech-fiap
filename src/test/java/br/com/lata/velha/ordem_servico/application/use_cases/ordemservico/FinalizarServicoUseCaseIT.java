@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -188,6 +189,12 @@ class FinalizarServicoUseCaseIT {
         pecaAlocada.setStatus(StatusPecaAlocada.RESERVADA);
         pecaAlocada.setAtualizado(LocalDateTime.now());
         em.persist(pecaAlocada);
+
+        PecaEstoqueEntity estoqueEntity = new PecaEstoqueEntity();
+        estoqueEntity.setPecaId(peca.getId());
+        estoqueEntity.setQuantidadeArmazenada(10);
+        estoqueEntity.setQuantidadeDisponivel(8);
+        em.persist(estoqueEntity);
         em.flush();
 
         useCase.execute(new FinalizarServicoUseCase.Input(osId, execucaoId, UserId.create(mecanicoUserId)));
@@ -199,5 +206,131 @@ class FinalizarServicoUseCaseIT {
         PecaAlocadaEntity pecaAtualizada = execEntity.getPecas().iterator().next();
         assertThat(pecaAtualizada.getStatus()).isEqualTo(StatusPecaAlocada.INSTALADA);
         assertThat(pecaAtualizada.getQuantidadeInstalada()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("deve reduzir a quantidade armazenada no estoque ao finalizar execução com peças")
+    void deveRetirarEstoqueNoBancoDeDadosAoFinalizar() {
+        PecaEntity peca = new PecaEntity();
+        peca.setNome("Filtro de óleo");
+        peca.setDescricao("Filtro premium");
+        peca.setValor(new BigDecimal("35.00"));
+        em.persist(peca);
+
+        PecaAlocadaEntity pecaAlocada = new PecaAlocadaEntity();
+        pecaAlocada.setExecucaoServicoId(execucaoId);
+        pecaAlocada.setPecaId(peca.getId());
+        pecaAlocada.setValorUnitario(new BigDecimal("35.00"));
+        pecaAlocada.setQuantidadeSolicitada(2);
+        pecaAlocada.setQuantidadeReservada(2);
+        pecaAlocada.setQuantidadeEncomendada(0);
+        pecaAlocada.setQuantidadeInstalada(0);
+        pecaAlocada.setStatus(StatusPecaAlocada.RESERVADA);
+        pecaAlocada.setAtualizado(LocalDateTime.now());
+        em.persist(pecaAlocada);
+
+        PecaEstoqueEntity estoqueEntity = new PecaEstoqueEntity();
+        estoqueEntity.setPecaId(peca.getId());
+        estoqueEntity.setQuantidadeArmazenada(10);
+        estoqueEntity.setQuantidadeDisponivel(8);
+        em.persist(estoqueEntity);
+        em.flush();
+
+        useCase.execute(new FinalizarServicoUseCase.Input(osId, execucaoId, UserId.create(mecanicoUserId)));
+
+        em.flush();
+        em.clear();
+
+        PecaEstoqueEntity estoqueAtualizado = em.find(PecaEstoqueEntity.class, peca.getId());
+        assertThat(estoqueAtualizado.getQuantidadeArmazenada()).isEqualTo(8);
+        assertThat(estoqueAtualizado.getQuantidadeDisponivel()).isEqualTo(8);
+    }
+
+    @Test
+    @DisplayName("deve reduzir estoque de múltiplas peças ao finalizar execução")
+    void deveRetirarEstoqueDeMultiplasPecasAoFinalizar() {
+        PecaEntity peca1 = new PecaEntity();
+        peca1.setNome("Filtro de óleo");
+        peca1.setDescricao("Filtro premium");
+        peca1.setValor(new BigDecimal("35.00"));
+        em.persist(peca1);
+
+        PecaEntity peca2 = new PecaEntity();
+        peca2.setNome("Filtro de ar");
+        peca2.setDescricao("Filtro de ar premium");
+        peca2.setValor(new BigDecimal("25.00"));
+        em.persist(peca2);
+
+        PecaAlocadaEntity pecaAlocada1 = new PecaAlocadaEntity();
+        pecaAlocada1.setExecucaoServicoId(execucaoId);
+        pecaAlocada1.setPecaId(peca1.getId());
+        pecaAlocada1.setValorUnitario(new BigDecimal("35.00"));
+        pecaAlocada1.setQuantidadeSolicitada(2);
+        pecaAlocada1.setQuantidadeReservada(2);
+        pecaAlocada1.setQuantidadeEncomendada(0);
+        pecaAlocada1.setQuantidadeInstalada(0);
+        pecaAlocada1.setStatus(StatusPecaAlocada.RESERVADA);
+        pecaAlocada1.setAtualizado(LocalDateTime.now());
+        em.persist(pecaAlocada1);
+
+        PecaAlocadaEntity pecaAlocada2 = new PecaAlocadaEntity();
+        pecaAlocada2.setExecucaoServicoId(execucaoId);
+        pecaAlocada2.setPecaId(peca2.getId());
+        pecaAlocada2.setValorUnitario(new BigDecimal("25.00"));
+        pecaAlocada2.setQuantidadeSolicitada(3);
+        pecaAlocada2.setQuantidadeReservada(3);
+        pecaAlocada2.setQuantidadeEncomendada(0);
+        pecaAlocada2.setQuantidadeInstalada(0);
+        pecaAlocada2.setStatus(StatusPecaAlocada.RESERVADA);
+        pecaAlocada2.setAtualizado(LocalDateTime.now());
+        em.persist(pecaAlocada2);
+
+        PecaEstoqueEntity estoque1 = new PecaEstoqueEntity();
+        estoque1.setPecaId(peca1.getId());
+        estoque1.setQuantidadeArmazenada(10);
+        estoque1.setQuantidadeDisponivel(8);
+        em.persist(estoque1);
+
+        PecaEstoqueEntity estoque2 = new PecaEstoqueEntity();
+        estoque2.setPecaId(peca2.getId());
+        estoque2.setQuantidadeArmazenada(15);
+        estoque2.setQuantidadeDisponivel(12);
+        em.persist(estoque2);
+        em.flush();
+
+        useCase.execute(new FinalizarServicoUseCase.Input(osId, execucaoId, UserId.create(mecanicoUserId)));
+
+        em.flush();
+        em.clear();
+
+        assertThat(em.find(PecaEstoqueEntity.class, peca1.getId()).getQuantidadeArmazenada()).isEqualTo(8);
+        assertThat(em.find(PecaEstoqueEntity.class, peca2.getId()).getQuantidadeArmazenada()).isEqualTo(12);
+    }
+
+    @Test
+    @DisplayName("deve lançar exceção quando não existe registro de estoque para peça da execução")
+    void deveLancarExcecaoQuandoNaoHaRegistroDeEstoque() {
+        PecaEntity peca = new PecaEntity();
+        peca.setNome("Filtro de óleo");
+        peca.setDescricao("Filtro premium");
+        peca.setValor(new BigDecimal("35.00"));
+        em.persist(peca);
+
+        PecaAlocadaEntity pecaAlocada = new PecaAlocadaEntity();
+        pecaAlocada.setExecucaoServicoId(execucaoId);
+        pecaAlocada.setPecaId(peca.getId());
+        pecaAlocada.setValorUnitario(new BigDecimal("35.00"));
+        pecaAlocada.setQuantidadeSolicitada(2);
+        pecaAlocada.setQuantidadeReservada(2);
+        pecaAlocada.setQuantidadeEncomendada(0);
+        pecaAlocada.setQuantidadeInstalada(0);
+        pecaAlocada.setStatus(StatusPecaAlocada.RESERVADA);
+        pecaAlocada.setAtualizado(LocalDateTime.now());
+        em.persist(pecaAlocada);
+        em.flush();
+
+        assertThatThrownBy(() -> useCase.execute(new FinalizarServicoUseCase.Input(osId, execucaoId, UserId.create(mecanicoUserId))))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("estoque");
     }
 }

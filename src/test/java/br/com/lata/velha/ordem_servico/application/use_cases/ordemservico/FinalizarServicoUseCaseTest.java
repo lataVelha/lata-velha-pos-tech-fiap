@@ -3,10 +3,14 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
+import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
+import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,16 +25,19 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class FinalizarServicoUseCaseTest {
 
     @Mock private OrdemServicoRepository ordemServicoRepository;
+    @Mock private PecaEstoqueRepository pecaEstoqueRepository;
     @Mock private FuncionarioRepository funcionarioRepository;
     @Mock private NotificarOrdemServicoUseCase notificarUseCase;
 
@@ -54,6 +61,17 @@ class FinalizarServicoUseCaseTest {
         return new ExecucaoServico(id, 99L, OS_ID, StatusExecucaoServico.EM_EXECUCAO,
                 new BigDecimal("150"), new HashSet<>(), 1L, MECANICO_ID,
                 LocalDateTime.now(), null, LocalDateTime.now());
+    }
+
+    private ExecucaoServico buildExecEmExecucaoComPecas(Long id, Set<PecaAlocada> pecas) {
+        return new ExecucaoServico(id, 99L, OS_ID, StatusExecucaoServico.EM_EXECUCAO,
+                new BigDecimal("150"), new HashSet<>(pecas), 1L, MECANICO_ID,
+                LocalDateTime.now(), null, LocalDateTime.now());
+    }
+
+    private PecaAlocada buildPecaReservada(Long pecaId, int quantidade) {
+        return new PecaAlocada(null, pecaId, EXEC_ID, new BigDecimal("50.00"),
+                quantidade, quantidade, 0, 0, StatusPecaAlocada.RESERVADA, LocalDateTime.now());
     }
 
     private ExecucaoServico buildExecAprovado(Long id) {
@@ -176,5 +194,62 @@ class FinalizarServicoUseCaseTest {
         useCase.execute(new FinalizarServicoUseCase.Input(OS_ID, EXEC_ID, userId));
 
         assertThat(os.getMecanicoResponsavelId()).isEqualTo(MECANICO_ID);
+    }
+
+    @Test
+    @DisplayName("deve retirar do estoque a quantidade solicitada de cada peça ao finalizar execução")
+    void deveRetirarEstoqueAoFinalizarExecucaoComPecas() {
+        Long pecaId = 100L;
+        int quantidadeSolicitada = 2;
+        var peca = buildPecaReservada(pecaId, quantidadeSolicitada);
+        var exec = buildExecEmExecucaoComPecas(EXEC_ID, Set.of(peca));
+        var os = buildOsEmExecucao(List.of(exec));
+
+        var estoque = new PecaEstoque(pecaId, 10, 8);
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
+        when(funcionarioRepository.getByUserId(userId)).thenReturn(mecanico);
+        when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(List.of(estoque));
+        when(ordemServicoRepository.save(any())).thenReturn(os);
+
+        useCase.execute(new FinalizarServicoUseCase.Input(OS_ID, EXEC_ID, userId));
+
+        assertThat(estoque.getQuantidadeArmazenada()).isEqualTo(8);
+        verify(pecaEstoqueRepository).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("deve lançar exceção quando peça da execução não possui registro de estoque")
+    void deveLancarExcecaoQuandoPecaNaoTemRegistroDeEstoque() {
+        Long pecaId = 100L;
+        var peca = buildPecaReservada(pecaId, 2);
+        var exec = buildExecEmExecucaoComPecas(EXEC_ID, Set.of(peca));
+        var os = buildOsEmExecucao(List.of(exec));
+
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
+        when(funcionarioRepository.getByUserId(userId)).thenReturn(mecanico);
+        when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(List.of());
+
+        assertThatThrownBy(() -> useCase.execute(new FinalizarServicoUseCase.Input(OS_ID, EXEC_ID, userId)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("estoque");
+
+        verify(pecaEstoqueRepository, never()).saveAll(any());
+        verify(ordemServicoRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("não deve interagir com estoque quando execução não possui peças")
+    void naoInterageComEstoqueQuandoExecucaoSemPecas() {
+        var exec = buildExecEmExecucao(EXEC_ID);
+        var os = buildOsEmExecucao(List.of(exec));
+
+        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
+        when(funcionarioRepository.getByUserId(userId)).thenReturn(mecanico);
+        when(pecaEstoqueRepository.findAllByPecaIds(any())).thenReturn(List.of());
+        when(ordemServicoRepository.save(any())).thenReturn(os);
+
+        useCase.execute(new FinalizarServicoUseCase.Input(OS_ID, EXEC_ID, userId));
+
+        verify(pecaEstoqueRepository, never()).saveAll(argThat(c -> !c.isEmpty()));
     }
 }
