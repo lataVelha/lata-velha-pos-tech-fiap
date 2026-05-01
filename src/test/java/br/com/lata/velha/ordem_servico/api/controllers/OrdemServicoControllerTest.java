@@ -253,7 +253,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /ordens-servico/{idOs}/aprovar deve retornar 200")
     void shouldReturn200OnAprovar() throws Exception {
-        var servico = new AprovarOrdemServicoRequest.Servico(10L, StatusExecucaoServico.APROVADO);
+        var servico = new AprovarOrdemServicoRequest.Servico(10L, "APROVADO");
         var request = new AprovarOrdemServicoRequest(List.of(servico));
         var output = new AprovarOrdemServicoUseCase.Output(1L, "EM_EXECUCAO",
                 List.of(new AprovarOrdemServicoUseCase.Output.Servico(10L, "APROVADO")), null);
