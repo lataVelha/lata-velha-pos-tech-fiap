@@ -6,5 +6,13 @@ public enum StatusExecucaoServico {
     RECUSADO,
     EM_EXECUCAO,
     AGUARDANDO_PECA,
-    FINALIZADO
-}
+    FINALIZADO;
+
+        public static StatusExecucaoServico tryParseOrRecusado(String value) {
+            try {
+                return StatusExecucaoServico.valueOf(value);
+            } catch (IllegalArgumentException ignored) {
+                return StatusExecucaoServico.RECUSADO;
+            }
+        }
+    }

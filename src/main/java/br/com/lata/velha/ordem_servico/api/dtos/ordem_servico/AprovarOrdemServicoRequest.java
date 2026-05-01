@@ -19,7 +19,7 @@ public record AprovarOrdemServicoRequest(
 ) {
         public AprovarOrdemServicoUseCase.Input toInput(UserId userId, Long idOs) {
                 List<AprovarOrdemServicoUseCase.Input.ServicoAprovacao> servicosInput = servicos.stream()
-                        .map(s -> new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(s.execucaoServicoId(), s.status()))
+                        .map(s -> new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(s.execucaoServicoId(), StatusExecucaoServico.tryParseOrRecusado(s.status())))
                         .toList();
                 return new AprovarOrdemServicoUseCase.Input(idOs, userId, servicosInput);
         }
@@ -31,7 +31,7 @@ public record AprovarOrdemServicoRequest(
                 Long execucaoServicoId,
 
                 @NotNull(message = "Status do serviço é obrigatório")
-                @Schema(description = "Novo status: APROVADO ou RECUSADO")
-                StatusExecucaoServico status
+                @Schema(description = "Novo status: APROVADO ou RECUSADO", example = "APROVADO")
+                String status
         ) {}
 }

@@ -11,7 +11,7 @@ services:
       - pgadmin_data:/var/lib/pgadmin
       - ./pgadmin/servers.json:/pgadmin4/servers.json
     networks:
-      - db_network
+      - lata-velha-pos-tech-fiap_db_network
 
   sonarqube:
     image: sonarqube:community
@@ -25,4 +25,5 @@ volumes:
   pgadmin_data:
 
 networks:
-  db_network:
+  lata-velha-pos-tech-fiap_db_network:
+    external: true

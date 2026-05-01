@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: lata-velha
+    hostname: lata-velha
+    build: "."
+    restart: always
+    environment:
+      - ENVIRONMENT=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/lata_velha
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin123
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - app_network
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-lata-velha
+    restart: always
+    environment:
+      POSTGRES_DB: lata_velha
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+      - db_network
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+  db_network:

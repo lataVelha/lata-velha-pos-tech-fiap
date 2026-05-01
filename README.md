@@ -71,7 +71,7 @@ O código é dividido em 3 contextos bem separados:
 
 O arquivo principal traz PostgreSQL + aplicação:
 ```bash
-docker compose -f docker/docker-compose.yml up -d
+docker compose up --build -d
 ```
 
 Se necessário acesso ao banco com PgAdmin e SonarQube, rode:
@@ -100,7 +100,7 @@ Pra acessar os endpoints protegidos, é necessário fazer login primeiro:
 
 Para parar tudo:
 ```bash
-docker compose -f docker/docker-compose.yml down -v
+docker compose down -v
 ```
 (o `-v` limpa os volumes, apagando dados do banco e SonarQube)
 
