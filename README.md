@@ -27,7 +27,7 @@ O projeto segue **Domain-Driven Design (DDD)** com arquitetura em camadas, onde 
 
 ```
 br.com.lata.velha
-├── presentation/        → Entrada HTTP (controllers, exception handlers)
+├── api/                 → Entrada HTTP (controllers, exception handlers)
 ├── application/         → Casos de uso, DTOs (com mapeamento) e portas de saída
 ├── domain/              → Regras de negócio puras (zero frameworks)
 └── infrastructure/      → JPA, JWT, configs do Spring
@@ -94,7 +94,7 @@ Pra acessar os endpoints protegidos, é necessário fazer login primeiro:
 2. Clique em `POST /auth/login`
 3. Passe `admin@latavelha.com` como login e `Admin@123` como senha
 4. Copie o token que é retornado
-5. Clice no botão **Authorize** (canto direito em cima)
+5. Clique no botão **Authorize** (canto direito em cima)
 6. Cole o token (sem prefixo `Bearer`) e confirme
 7. Pronto, todos os endpoints autenticados funcionam
 
@@ -230,38 +230,3 @@ Quando terminar, voltar em http://localhost:9000 e clicar no projeto **Lata-Velh
 | Lombok               | 1.18.32 | Redução de boilerplate         |
 | Spring Mail          | via 3.2 | Envio de emails (Gmail SMTP)   |
 | Thymeleaf            | via 3.2 | Templates de email             |
-
----
-
-## Desenvolvimento
-
-### Idioma
-
-- Métodos em **inglês** (`execute()`, `findByCpf()`, `build()`)
-- Domínios e entidades em **português** (`Veiculo`, `Proprietario`, `placa`)
-- Mensagens de erro em **português**
-
-### Injeção de Dependência
-
-Use **EXCLUSIVAMENTE** `@RequiredArgsConstructor` do Lombok. Nada de `@Autowired` em campos, nada de constructores manuais.
-
-### DTOs
-
-Use **`Record`** nativos do Java 17+:
-```java
-public record CriarProprietarioRequest(
-    @NotBlank String nome,
-    @NotBlank @Email String email,
-    String documento
-) {}
-```
-
-### Testes
-
-Obrigatório: Unitários + Integração para Use Cases.  
-Ecossistema: JUnit 5, Mockito, JaCoCo.  
-Cobertura mínima: 80%.
-
-Padrão de nomes:
-- `*Test.java` → unitários
-- `*IT.java` → integração (com Spring Context + H2)
