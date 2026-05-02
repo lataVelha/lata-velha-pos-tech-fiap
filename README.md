@@ -104,6 +104,11 @@ docker compose down -v
 ```
 (o `-v` limpa os volumes, apagando dados do banco e SonarQube)
 
+E pgAdmin e Sonar:
+```bash
+docker compose -f docker/docker-compose-dev.yml down -v
+```
+
 ---
 
 ## Configurações por Contexto
@@ -158,12 +163,12 @@ O sistema usa JWT com RSA (chaves de 2048 bits). Basicamente: você faz login, r
 
 Rode os testes com:
 ```bash
-./mvnw clean test
+mvn clean test
 ```
 
 Pra ver cobertura (JaCoCo):
 ```bash
-./mvnw clean verify
+mvn clean verify
 ```
 
 Gera um relatório em `target/site/jacoco/index.html`. Para abrir:
@@ -203,7 +208,7 @@ Antes de rodar a análise, precisa gerar um token:
 
 Executar:
 ```bash
-./mvnw clean test sonar:sonar -Dsonar.token=SEU_TOKEN_AQUI
+mvn clean test sonar:sonar -Dsonar.token=SEU_TOKEN_AQUI
 ```
 
 Quando terminar, voltar em http://localhost:9000 e clicar no projeto **Lata-Velha** para ver resultados.
