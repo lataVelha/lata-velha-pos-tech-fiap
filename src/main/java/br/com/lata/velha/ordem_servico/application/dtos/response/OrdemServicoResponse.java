@@ -25,8 +25,8 @@ public record OrdemServicoResponse(
         @Schema(description = "Status da ordem", example = "EM_DIAGNOSTICO")
         String status,
 
-        @Schema(description = "Reclamação do cliente", example = "Barulho ao frear")
-        String reclamacaoCliente,
+        @Schema(description = "Reclamação do proprietário", example = "Barulho ao frear")
+        String reclamacaoProprietario,
 
         @Schema(description = "Atendente responsável pela abertura")
         FuncionarioResumoResponse atendente,
@@ -98,7 +98,7 @@ public record OrdemServicoResponse(
         return new OrdemServicoResponse(
                 domain.getId(),
                 domain.getStatus() != null ? domain.getStatus().name() : null,
-                domain.getReclamacaoCliente(),
+                domain.getReclamacaoProprietario(),
                 new FuncionarioResumoResponse(domain.getAtendenteInicioId(), atendenteNome),
                 new FuncionarioResumoResponse(domain.getMecanicoResponsavelId(), mecanicoNome),
                 new ProprietarioResumoResponse(domain.getProprietarioId(), proprietarioNome),
@@ -128,7 +128,7 @@ public record OrdemServicoResponse(
         return new OrdemServicoResponse(
                 p.getId(),
                 p.getStatus(),
-                p.getReclamacaoCliente(),
+                p.getReclamacaoProprietario(),
                 new FuncionarioResumoResponse(p.getAtendenteInicioId(), p.getAtendenteNome()),
                 new FuncionarioResumoResponse(p.getMecanicoFinalId(), p.getMecanicoNome()),
                 new ProprietarioResumoResponse(p.getProprietarioId(), p.getProprietarioNome()),

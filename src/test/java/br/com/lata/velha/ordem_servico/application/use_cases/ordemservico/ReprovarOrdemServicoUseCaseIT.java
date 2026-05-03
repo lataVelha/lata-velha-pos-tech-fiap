@@ -96,7 +96,7 @@ class ReprovarOrdemServicoUseCaseIT {
         OrdemServicoEntity os = new OrdemServicoEntity();
         os.setProprietarioId(proprietario.getId());
         os.setVeiculoId(veiculo.getId());
-        os.setReclamacaoCliente("Manutenção periódica");
+        os.setReclamacaoProprietario("Manutenção periódica");
         os.setStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
         os.setAtendenteInicioId(atendenteId);
         os.setAtualizadoEm(LocalDateTime.now());

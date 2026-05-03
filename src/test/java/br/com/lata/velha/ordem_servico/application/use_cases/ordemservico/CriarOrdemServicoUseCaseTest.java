@@ -98,7 +98,7 @@ class CriarOrdemServicoUseCaseTest {
         assertThat(created.getProprietarioId()).isEqualTo(4L);
         assertThat(created.getVeiculoId()).isEqualTo(3L);
         assertThat(created.getAtendenteInicioId()).isEqualTo(2L);
-        assertThat(created.getReclamacaoCliente()).isEqualTo("Barulho ao frear");
+        assertThat(created.getReclamacaoProprietario()).isEqualTo("Barulho ao frear");
     }
 
     @Test

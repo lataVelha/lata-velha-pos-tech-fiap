@@ -12,7 +12,7 @@ public final class OrdemServico {
     private final Long id;
     private final Long proprietarioId;
     private final Long veiculoId;
-    private final String reclamacaoCliente;
+    private final String reclamacaoProprietario;
     private StatusOrdemServico status;
 
     private final LocalDateTime criadoEm;
@@ -27,11 +27,11 @@ public final class OrdemServico {
 
     private final List<ExecucaoServico> execucaoServicos;
 
-    public OrdemServico(Long id, Long proprietarioId, Long veiculoId, String reclamacaoCliente, StatusOrdemServico status, LocalDateTime criadoEm, LocalDateTime iniciadoEm, LocalDateTime finalizadoEm, LocalDateTime entregueEm, LocalDateTime atualizadoEm, Long atendenteInicioId, Long mecanicoResponsavelId, List<ExecucaoServico> execucaoServicos) {
+    public OrdemServico(Long id, Long proprietarioId, Long veiculoId, String reclamacaoProprietario, StatusOrdemServico status, LocalDateTime criadoEm, LocalDateTime iniciadoEm, LocalDateTime finalizadoEm, LocalDateTime entregueEm, LocalDateTime atualizadoEm, Long atendenteInicioId, Long mecanicoResponsavelId, List<ExecucaoServico> execucaoServicos) {
         this.id = id;
         this.proprietarioId = proprietarioId;
         this.veiculoId = veiculoId;
-        this.reclamacaoCliente = reclamacaoCliente;
+        this.reclamacaoProprietario = reclamacaoProprietario;
         this.status = status;
         this.criadoEm = criadoEm;
         this.iniciadoEm = iniciadoEm;
@@ -43,8 +43,8 @@ public final class OrdemServico {
         this.execucaoServicos = execucaoServicos;
     }
 
-    public static OrdemServico create(Long proprietarioId, Long veiculoId, String reclamacaoCliente, Long atendenteInicioId) {
-        return new OrdemServico(null, proprietarioId, veiculoId, reclamacaoCliente, StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, null, atendenteInicioId, null, new ArrayList<>());
+    public static OrdemServico create(Long proprietarioId, Long veiculoId, String reclamacaoProprietario, Long atendenteInicioId) {
+        return new OrdemServico(null, proprietarioId, veiculoId, reclamacaoProprietario, StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, null, atendenteInicioId, null, new ArrayList<>());
     }
 
     /* ================== FLUXO ================== */
@@ -220,7 +220,7 @@ public final class OrdemServico {
     public Long getId() { return id; }
     public Long getProprietarioId() { return proprietarioId; }
     public Long getVeiculoId() { return veiculoId; }
-    public String getReclamacaoCliente() { return reclamacaoCliente; }
+    public String getReclamacaoProprietario() { return reclamacaoProprietario; }
     public StatusOrdemServico getStatus() { return status; }
     public LocalDateTime getCriadoEm() { return criadoEm; }
     public LocalDateTime getIniciadoEm() { return iniciadoEm; }

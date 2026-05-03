@@ -29,7 +29,7 @@ public class CriarOrdemServicoUseCase {
         var ordemServico = OrdemServico.create(
                 proprietario.getId(),
                 veiculo.getId(),
-                input.reclamacaoCliente(),
+                input.reclamacaoProprietario(),
                 funcionario.getId()
         );
 
@@ -43,5 +43,5 @@ public class CriarOrdemServicoUseCase {
                 veiculo.getMarca() + " " + veiculo.getModelo());
     }
 
-    public record Input(Long veiculoId, Long proprietarioId, UserId userId, String reclamacaoCliente) {}
+    public record Input(Long veiculoId, Long proprietarioId, UserId userId, String reclamacaoProprietario) {}
 }

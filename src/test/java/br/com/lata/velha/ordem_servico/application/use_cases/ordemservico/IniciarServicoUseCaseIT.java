@@ -91,7 +91,7 @@ class IniciarServicoUseCaseIT {
         OrdemServicoEntity os = new OrdemServicoEntity();
         os.setProprietarioId(proprietario.getId());
         os.setVeiculoId(veiculo.getId());
-        os.setReclamacaoCliente("Troca de óleo periódica");
+        os.setReclamacaoProprietario("Troca de óleo periódica");
         os.setStatus(StatusOrdemServico.APROVADA);
         os.setAtendenteInicioId(1L);
         os.setAtualizadoEm(LocalDateTime.now());

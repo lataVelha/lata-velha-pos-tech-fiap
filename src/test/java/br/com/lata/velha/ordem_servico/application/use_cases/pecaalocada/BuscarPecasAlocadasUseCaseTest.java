@@ -31,8 +31,8 @@ class BuscarPecasAlocadasUseCaseTest {
     @Test
     void deveBuscarPecasDeUmServicoComSucesso() {
         // Arrange
-        PecaAlocada peca1 = new PecaAlocada(1L, 2L, 99L, BigDecimal.ZERO, 2, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
-        PecaAlocada peca2 = new PecaAlocada(2L, 2L, 99L, BigDecimal.ZERO, 4, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
+        PecaAlocada peca1 = new PecaAlocada(1L, 2L, 99L, BigDecimal.ZERO, 2, 0, 0, 0, StatusPecaAlocada.PENDENTE, LocalDateTime.now());
+        PecaAlocada peca2 = new PecaAlocada(2L, 2L, 99L, BigDecimal.ZERO, 4, 0, 0, 0, StatusPecaAlocada.PENDENTE, LocalDateTime.now());
         
         PaginatedResult<PecaAlocada> paginatedResult = new PaginatedResult<>(
                 List.of(peca1, peca2), 0, 10, 2L, 1

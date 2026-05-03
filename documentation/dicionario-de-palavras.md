@@ -39,11 +39,11 @@
 - **Ordem de Serviço Em Diagnóstico:** Status da OS enquanto o Mecânico realiza o Diagnóstico do Veículo.
 - **Ordem de Serviço Aguardando Aprovação:** Status da OS após o Diagnóstico, aguardando decisão do Proprietário sobre as Execuções do Serviço identificadas.
 - **Ordem de Serviço Aprovada:** Status da OS quando ao menos uma Execução do Serviço foi aprovada pelo Proprietário. A OS permanece nesse status enquanto nenhuma Execução do Serviço aprovada entrou em execução.
-- **Ordem de Serviço Recusada:** Status da OS quando todas as Execuções do Serviço identificadas foram recusadas pelo Proprietário.
+- **Ordem de Serviço Reprovada:** Status da OS quando todas as Execuções do Serviço identificadas foram recusadas pelo Proprietário.
 - **Ordem de Serviço Em Execução:** Status da OS quando a primeira Execução do Serviço aprovada entra em execução.
 - **Ordem de Serviço Finalizada:** Status da OS quando todas as Execuções do Serviço aprovadas foram finalizadas.
 - **Ordem de Serviço Entregue:** Status da OS após o Proprietário retirar o Veículo.
-- **Notificação por E-mail:** Comunicação enviada pelo Sistema por e-mail para informar atores sobre eventos da OS e do Estoque, como OS recebida, diagnóstico iniciado, aprovação solicitada, OS aprovada, OS recusada, execução iniciada, OS finalizada, veículo entregue ou encomenda de peça.
+- **Notificação por E-mail:** Comunicação enviada pelo Sistema por e-mail para informar atores sobre eventos da OS e do Estoque, como OS recebida, diagnóstico iniciado, aprovação solicitada, OS aprovada, OS reprovada, execução iniciada, OS finalizada, veículo entregue ou encomenda de peça.
 
 ---
 
@@ -52,7 +52,7 @@
 - **Orçamento:** usar **Serviços Identificados**, quando se referir ao conjunto apresentado ao Proprietário para aprovação.
 - **Proposta de Serviços da OS:** usar **Serviços Identificados**.
 - **Orçamento Aprovado:** usar **Valor Aprovado da OS** ou **Execuções do Serviço Aprovadas**, conforme o contexto.
-- **Orçamento Recusado:** usar **Ordem de Serviço Recusada**, quando todas as Execuções do Serviço forem recusadas; ou **Execução do Serviço Recusada**, quando a recusa for individual.
+- **Orçamento Recusado:** usar **Ordem de Serviço Reprovada**, quando todas as Execuções do Serviço forem recusadas; ou **Execução do Serviço Recusada**, quando a recusa for individual.
 - **Valor do Orçamento:** usar **Valor Aprovado da OS** ou **Valor Final da OS**, conforme o momento do fluxo.
 - **Produto:** usar **Peça**.
 - **Insumo:** usar **Peça**.
@@ -62,7 +62,6 @@
 - **Serviço Aguardando Peça:** usar **Execução do Serviço Aguardando Peça**.
 - **Serviço Em Execução:** usar **Execução do Serviço Em Execução**.
 - **Serviço Finalizado:** usar **Execução do Serviço Finalizada**.
-- **OS Recusada:** usar **Ordem de Serviço Recusada**.
 - **Ticket:** usar **Ordem de Serviço**.
 - **Chamado:** usar **Ordem de Serviço**.
 - **Demanda:** usar **Ordem de Serviço**.

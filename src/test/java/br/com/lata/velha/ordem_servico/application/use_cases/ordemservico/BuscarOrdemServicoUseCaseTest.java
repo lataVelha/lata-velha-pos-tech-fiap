@@ -44,7 +44,7 @@ class BuscarOrdemServicoUseCaseTest {
             public Long getMecanicoFinalId() { return 20L; }
             public String getMecanicoNome() { return "Carlos"; }
             public String getStatus() { return status; }
-            public String getReclamacaoCliente() { return "Barulho ao frear"; }
+            public String getReclamacaoProprietario() { return "Barulho ao frear"; }
             public LocalDateTime getIniciadoEm() { return null; }
             public LocalDateTime getFinalizadoEm() { return null; }
             public LocalDateTime getEntregueEm() { return null; }
@@ -189,7 +189,7 @@ class BuscarOrdemServicoUseCaseTest {
         var response = result.content().get(0);
         assertThat(response.id()).isEqualTo(99L);
         assertThat(response.status()).isEqualTo("EM_DIAGNOSTICO");
-        assertThat(response.reclamacaoCliente()).isEqualTo("Barulho ao frear");
+        assertThat(response.reclamacaoProprietario()).isEqualTo("Barulho ao frear");
         assertThat(response.atendente().nome()).isEqualTo("Ana");
         assertThat(response.mecanico().nome()).isEqualTo("Carlos");
         assertThat(response.proprietario().nome()).isEqualTo("João");

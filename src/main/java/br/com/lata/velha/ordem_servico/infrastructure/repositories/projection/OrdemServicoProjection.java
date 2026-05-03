@@ -19,7 +19,7 @@ public interface OrdemServicoProjection {
     String getMecanicoNome();
 
     String getStatus();
-    String getReclamacaoCliente();
+    String getReclamacaoProprietario();
 
     LocalDateTime getIniciadoEm();
     LocalDateTime getFinalizadoEm();

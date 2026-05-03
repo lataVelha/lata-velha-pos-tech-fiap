@@ -64,7 +64,7 @@ class OrdemServicoTest {
     }
 
     private static PecaAlocada pecaNaoProcessada() {
-        return new PecaAlocada(1L, 1L, 1L, BigDecimal.ZERO, 5, 1, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
+        return new PecaAlocada(1L, 1L, 1L, BigDecimal.ZERO, 5, 1, 0, 0, StatusPecaAlocada.PENDENTE, LocalDateTime.now());
     }
 
     @Nested
@@ -87,7 +87,7 @@ class OrdemServicoTest {
             assertThat(os.getProprietarioId()).isEqualTo(4L);
             assertThat(os.getVeiculoId()).isEqualTo(3L);
             assertThat(os.getAtendenteInicioId()).isEqualTo(2L);
-            assertThat(os.getReclamacaoCliente()).isEqualTo("Barulho ao frear");
+            assertThat(os.getReclamacaoProprietario()).isEqualTo("Barulho ao frear");
         }
 
         @Test
