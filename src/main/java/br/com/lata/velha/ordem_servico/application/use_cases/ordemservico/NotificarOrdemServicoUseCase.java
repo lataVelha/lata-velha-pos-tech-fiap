@@ -25,6 +25,21 @@ public class NotificarOrdemServicoUseCase {
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
     private final ServicoRepository servicoRepository;
+    private static final  String VALOR = "valor";
+    private static final String RECEBIDA = "Recebida";
+    private static final String EM_DIAGNOSTICO = "Em Diagnóstico";
+    private static final String FINALIZADA = "Finalizada";
+    private static final String ENTREGUE = "Entregue";
+    private static final String AGUARDANDO_APROVACAO = "Aguardando Aprovação";
+
+    private static final String MSG_VEICULO_RECEBIDO = "Veículo recebido pela oficina";
+    private static final String MSG_MECANICO_AVALIOU = "Mecânico avaliando o veículo";
+    private static final String MSG_VEICULO_RETIRADO = "Veículo retirado pelo cliente";
+
+    private static final String STATUS = "status";
+    private static final String RECUSADO = "RECUSADO";
+    private static final String CONCLUIDO = "CONCLUIDO";
+
 
     public void execute(OrdemServico os) {
         try {
@@ -154,13 +169,13 @@ public class NotificarOrdemServicoUseCase {
                         map.put("nome", servico.getNome());
                         map.put("descricao", servico.getDescricao());
                     }
-                    map.put("valor", calcularTotalServico(s));
+                    map.put(VALOR, calcularTotalServico(s));
                     return map;
                 })
                 .toList();
 
         var valorTotal = servicos.stream()
-                .map(s -> (BigDecimal) s.get("valor"))
+                .map(s -> (BigDecimal) s.get(VALOR))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         variables.put("servicos", servicos);
@@ -218,7 +233,7 @@ public class NotificarOrdemServicoUseCase {
         var servico = this.servicoRepository.getActiveById(s.getServicoId());
         Map<String, Object> map = new HashMap<>();
         map.put("nome", servico.getNome());
-        map.put("valor", calcularTotalServico(s));
+        map.put(VALOR, calcularTotalServico(s));
         return map;
     }
 
@@ -242,30 +257,31 @@ public class NotificarOrdemServicoUseCase {
 
     private List<Map<String, Object>> buildTimeline(StatusOrdemServico statusAtual, boolean fluxoReprovado, boolean semServicos) {
         List<TimelineStep> steps;
+
         if (semServicos) {
             steps = List.of(
-                    new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
-                    new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliou o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
-                    new TimelineStep(3, "Finalizada", "Nenhum serviço identificado", StatusOrdemServico.FINALIZADA),
-                    new TimelineStep(4, "Entregue", "Veículo retirado pelo cliente", StatusOrdemServico.ENTREGUE)
+                    new TimelineStep(1, RECEBIDA, MSG_VEICULO_RECEBIDO, StatusOrdemServico.RECEBIDA),
+                    new TimelineStep(2, EM_DIAGNOSTICO, MSG_MECANICO_AVALIOU, StatusOrdemServico.EM_DIAGNOSTICO),
+                    new TimelineStep(3, FINALIZADA, "Nenhum serviço identificado", StatusOrdemServico.FINALIZADA),
+                    new TimelineStep(4, ENTREGUE, MSG_VEICULO_RETIRADO, StatusOrdemServico.ENTREGUE)
             );
         } else if (fluxoReprovado) {
             steps = List.of(
-                    new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
-                    new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliou o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
-                    new TimelineStep(3, "Aguardando Aprovação", "Serviços apresentados ao cliente", StatusOrdemServico.AGUARDANDO_APROVACAO),
+                    new TimelineStep(1, RECEBIDA, MSG_VEICULO_RECEBIDO, StatusOrdemServico.RECEBIDA),
+                    new TimelineStep(2, EM_DIAGNOSTICO, MSG_MECANICO_AVALIOU, StatusOrdemServico.EM_DIAGNOSTICO),
+                    new TimelineStep(3, AGUARDANDO_APROVACAO,"Serviços apresentados ao cliente", StatusOrdemServico.AGUARDANDO_APROVACAO),
                     new TimelineStep(4, "Reprovada", "Todos os serviços foram recusados", StatusOrdemServico.REPROVADA),
-                    new TimelineStep(5, "Entregue", "Veículo retirado pelo cliente", StatusOrdemServico.ENTREGUE)
+                    new TimelineStep(5, ENTREGUE, MSG_VEICULO_RETIRADO, StatusOrdemServico.ENTREGUE)
             );
         } else {
             steps = List.of(
-                    new TimelineStep(1, "Recebida", "Veículo recebido pela oficina", StatusOrdemServico.RECEBIDA),
-                    new TimelineStep(2, "Em Diagnóstico", "Mecânico avaliando o veículo", StatusOrdemServico.EM_DIAGNOSTICO),
-                    new TimelineStep(3, "Aguardando Aprovação", "Aprovação dos serviços identificados", StatusOrdemServico.AGUARDANDO_APROVACAO),
+                    new TimelineStep(1, RECEBIDA, MSG_VEICULO_RECEBIDO, StatusOrdemServico.RECEBIDA),
+                    new TimelineStep(2, EM_DIAGNOSTICO, MSG_MECANICO_AVALIOU, StatusOrdemServico.EM_DIAGNOSTICO),
+                    new TimelineStep(3, AGUARDANDO_APROVACAO, "Aprovação dos serviços identificados", StatusOrdemServico.AGUARDANDO_APROVACAO),
                     new TimelineStep(4, "Aprovada", "Serviços aprovados, aguardando início da execução", StatusOrdemServico.APROVADA),
                     new TimelineStep(5, "Em Execução", "Mecânico executando os serviços", StatusOrdemServico.EM_EXECUCAO),
-                    new TimelineStep(6, "Finalizada", "Serviços concluídos", StatusOrdemServico.FINALIZADA),
-                    new TimelineStep(7, "Entregue", "Veículo retirado pelo cliente", StatusOrdemServico.ENTREGUE)
+                    new TimelineStep(6, FINALIZADA, "Serviços concluídos", StatusOrdemServico.FINALIZADA),
+                    new TimelineStep(7, ENTREGUE, MSG_VEICULO_RETIRADO, StatusOrdemServico.ENTREGUE)
             );
         }
 
@@ -289,15 +305,15 @@ public class NotificarOrdemServicoUseCase {
             map.put("descricao", step.descricao());
 
             if (step.numero() < currentIndex) {
-                map.put("status", step.status() == StatusOrdemServico.REPROVADA ? "RECUSADO" : "CONCLUIDO");
+                map.put(STATUS, step.status() == StatusOrdemServico.REPROVADA ? RECUSADO : CONCLUIDO);
             } else if (step.numero() == currentIndex) {
                 if (isStepConcluido) {
-                    map.put("status", step.status() == StatusOrdemServico.REPROVADA ? "RECUSADO" : "CONCLUIDO");
+                    map.put(STATUS, step.status() == StatusOrdemServico.REPROVADA ? RECUSADO : CONCLUIDO);
                 } else {
-                    map.put("status", "ATUAL");
+                    map.put(STATUS, "ATUAL");
                 }
             } else {
-                map.put("status", "PENDENTE");
+                map.put(STATUS, "PENDENTE");
             }
 
             timeline.add(map);

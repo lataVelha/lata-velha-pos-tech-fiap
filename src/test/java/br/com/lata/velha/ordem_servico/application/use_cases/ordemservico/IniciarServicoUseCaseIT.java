@@ -178,8 +178,6 @@ class IniciarServicoUseCaseIT {
         peca.setValor(new BigDecimal("35.00"));
         em.persist(peca);
 
-        ExecucaoServicoEntity execEntity = em.find(ExecucaoServicoEntity.class, execucaoId);
-
         PecaAlocadaEntity pecaAlocada = new PecaAlocadaEntity();
         pecaAlocada.setExecucaoServicoId(execucaoId);
         pecaAlocada.setPecaId(peca.getId());

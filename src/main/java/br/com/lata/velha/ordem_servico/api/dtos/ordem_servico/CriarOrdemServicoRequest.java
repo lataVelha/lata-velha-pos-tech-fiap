@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.util.UUID;
 
 @Schema(name = "OrdemServicoRequest", description = "Dados para criação da Ordem de Serviço")
 public record CriarOrdemServicoRequest(

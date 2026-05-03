@@ -62,6 +62,10 @@ public class AprovarOrdemServicoUseCase {
                 }
 
                 case RECUSADO -> execucaoServico.recusar(funcionario.getId());
+
+                default -> throw new IllegalArgumentException(
+                        "Status não suportado: " + novoStatus
+                );
             }
         });
 
@@ -115,7 +119,7 @@ public class AprovarOrdemServicoUseCase {
                         Servico::getId,
                         Servico::getNome
                 ));
-        if(servicosIds.size() != servicos.size())
+        if (servicosIds.size() != servicos.size())
             throw new IllegalArgumentException("Alguns serviços solicitados não foram encontrados ou estão inativos");
         return servicos;
     }
@@ -129,10 +133,12 @@ public class AprovarOrdemServicoUseCase {
                     ));
         }
 
-        public record ServicoAprovacao(Long execucaoServicoId, StatusExecucaoServico status) {}
+        public record ServicoAprovacao(Long execucaoServicoId, StatusExecucaoServico status) {
+        }
     }
 
     public record Output(Long idOs, String status, List<Servico> servicos, TotaisOrdemServicoResponse totais) {
-        public record Servico(Long idServicoOs, String statusServico) {}
+        public record Servico(Long idServicoOs, String statusServico) {
+        }
     }
 }

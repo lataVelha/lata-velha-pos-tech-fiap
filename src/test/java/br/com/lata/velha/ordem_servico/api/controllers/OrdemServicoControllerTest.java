@@ -7,7 +7,6 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoReques
 import br.com.lata.velha.ordem_servico.application.dtos.request.ServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
-import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -197,15 +196,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "MECANICO")
     @DisplayName("PATCH /ordens-servico/{idOs}/{idMecanico}/iniciar deve retornar 200")
     void shouldReturn200OnIniciarDiagnostico() throws Exception {
-        var response = new OrdemServicoResponse(
-                1L, "EM_DIAGNOSTICO", "Barulho",
-                new FuncionarioResumoResponse(2L, "Maria"),
-                new FuncionarioResumoResponse(5L, "Carlos Mecânico"),
-                new ProprietarioResumoResponse(4L, "João"),
-                new VeiculoResumoResponse(3L, "Fiat Uno"),
-                LocalDateTime.now(), null, null, LocalDateTime.now(),
-                List.of(), null
-        );
+
         mockMvc.perform(patch("/ordens-servico/1/iniciar-diagnostico")
                         .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_MECANICO"))))
                 .andExpect(status().isOk());
