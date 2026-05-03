@@ -19,9 +19,9 @@ public class ReprovarOrdemServicoUseCase {
         var ordemServico = ordemServicoRepository.getByIdWithExecucoesAndPecas(input.osId());
         var funcionario = funcionarioRepository.getByUserId(input.userId());
 
-        ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
-            execucaoServico.recusar(funcionario.getId());
-        });
+        ordemServico.getExecucaoServicos().forEach(execucaoServico ->
+            execucaoServico.recusar(funcionario.getId())
+        );
         ordemServico.reprovar(funcionario.getId());
         ordemServicoRepository.save(ordemServico);
         notificarUseCase.execute(ordemServico);

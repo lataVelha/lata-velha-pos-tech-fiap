@@ -3,7 +3,6 @@ package br.com.lata.velha.ordem_servico.domain.repositories;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public interface ExecucaoServicoRepository {

@@ -56,15 +56,23 @@ public record ExecucaoServicoResponse(
             Map<Long, String> mecanicoNomes,
             Map<Long, Peca> pecaMap
     ) {
+
         List<PecaServicoResponse> pecas = domain.getPecas() != null
                 ? domain.getPecas().stream()
-                        .map(p -> {
-                            Peca peca = pecaMap.get(p.getPecaId());
-                            String nome = peca != null ? peca.getNome() : null;
-                            BigDecimal valor = peca != null ? peca.getValor() : null;
-                            return PecaServicoResponse.from(p, nome, valor);
-                        })
-                        .toList()
+                .map(p -> {
+                    Peca peca = pecaMap.get(p.getPecaId());
+
+                    String nome = null;
+                    BigDecimal valor = null;
+
+                    if (peca != null) {
+                        nome = peca.getNome();
+                        valor = peca.getValor();
+                    }
+
+                    return PecaServicoResponse.from(p, nome, valor);
+                })
+                .toList()
                 : List.of();
 
         Long mecId = domain.getMecanicoResponsavelId();

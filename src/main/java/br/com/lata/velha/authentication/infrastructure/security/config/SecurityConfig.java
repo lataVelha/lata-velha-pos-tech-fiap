@@ -17,6 +17,9 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     private final JwtDecoder jwtDecoder;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
+    private static final String ADMIN = "ADMIN";
+    private static final String USER = "USER";
+    private static final String MECANICO = "MECANICO";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -29,20 +32,20 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
 
                         // CRUD — USER e ADMIN
-                        .requestMatchers("/proprietarios/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/veiculos/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/funcionarios/**").hasAnyRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/ordens-servico").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/aprovar").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/reprovar").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/retirar-veiculo").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/iniciar-diagnostico").hasAnyRole("MECANICO", "ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/adicionar-servico").hasAnyRole("MECANICO", "ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/finalizar-diagnostico").hasAnyRole("MECANICO", "ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/iniciar-servico/*").hasAnyRole("MECANICO", "ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/finalizar-servico/*").hasAnyRole("MECANICO", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/ordens-servico/metricas/**").hasRole("ADMIN")
-                        .requestMatchers("/ordens-servico/**").hasAnyRole("USER", "MECANICO", "ADMIN")
+                        .requestMatchers("/proprietarios/**").hasAnyRole(USER, ADMIN)
+                        .requestMatchers("/veiculos/**").hasAnyRole(USER, ADMIN)
+                        .requestMatchers("/funcionarios/**").hasAnyRole(ADMIN)
+                        .requestMatchers(HttpMethod.POST, "/ordens-servico").hasAnyRole(USER, ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/aprovar").hasAnyRole(USER, ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/reprovar").hasAnyRole(USER, ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/retirar-veiculo").hasAnyRole(USER, ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/iniciar-diagnostico").hasAnyRole(MECANICO, ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/adicionar-servico").hasAnyRole(MECANICO, ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/finalizar-diagnostico").hasAnyRole(MECANICO, ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/iniciar-servico/*").hasAnyRole(MECANICO, ADMIN)
+                        .requestMatchers(HttpMethod.PATCH, "/ordens-servico/*/finalizar-servico/*").hasAnyRole(MECANICO, ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/ordens-servico/metricas/**").hasRole(ADMIN)
+                        .requestMatchers("/ordens-servico/**").hasAnyRole(USER, MECANICO, ADMIN)
 
 
                         // qualquer outra rota exige autenticação

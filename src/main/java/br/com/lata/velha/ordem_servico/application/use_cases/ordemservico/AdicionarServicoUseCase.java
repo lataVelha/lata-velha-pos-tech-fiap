@@ -92,7 +92,7 @@ public class AdicionarServicoUseCase {
     }
 
     private void validateIds(Set<Long> servicoIds, Set<Servico> servicos) {
-        if(servicos.size() == 0)
+        if(servicos.isEmpty())
             throw new IllegalArgumentException("Nenhum serviço solicitado existe");
         var invalidIds = servicos.stream()
                 .map(Servico::getId)
