@@ -167,6 +167,13 @@ public class NotificarOrdemServicoUseCase {
         variables.put("valorTotal", valorTotal);
     }
 
+    private static final Set<StatusExecucaoServico> STATUS_APROVADOS = Set.of(
+            StatusExecucaoServico.APROVADO,
+            StatusExecucaoServico.EM_EXECUCAO,
+            StatusExecucaoServico.AGUARDANDO_PECA,
+            StatusExecucaoServico.FINALIZADO
+    );
+
     private void addAprovadosRecusados(Map<String, Object> variables, OrdemServico os) {
         if ((os.getStatus() != StatusOrdemServico.EM_EXECUCAO && os.getStatus() != StatusOrdemServico.APROVADA)
                 || os.getExecucaoServicos().isEmpty()) {
@@ -174,7 +181,7 @@ public class NotificarOrdemServicoUseCase {
         }
 
         List<Map<String, Object>> aprovados = os.getExecucaoServicos().stream()
-                .filter(s -> s.getStatus() == StatusExecucaoServico.APROVADO)
+                .filter(s -> STATUS_APROVADOS.contains(s.getStatus()))
                 .map(this::toServicoMap)
                 .toList();
 
@@ -185,8 +192,8 @@ public class NotificarOrdemServicoUseCase {
 
         variables.put("servicosAprovados", aprovados);
         variables.put("servicosRecusados", recusados);
-        variables.put("valorAprovado", calcularTotal(os, StatusExecucaoServico.APROVADO));
-        variables.put("valorRecusado", calcularTotal(os, StatusExecucaoServico.RECUSADO));
+        variables.put("valorAprovado", calcularTotal(os, STATUS_APROVADOS));
+        variables.put("valorRecusado", calcularTotal(os, Set.of(StatusExecucaoServico.RECUSADO)));
     }
 
     private void addTodosRecusados(Map<String, Object> variables, OrdemServico os) {
@@ -222,9 +229,9 @@ public class NotificarOrdemServicoUseCase {
         return map;
     }
 
-    private BigDecimal calcularTotal(OrdemServico os, StatusExecucaoServico status) {
+    private BigDecimal calcularTotal(OrdemServico os, Set<StatusExecucaoServico> statuses) {
         return os.getExecucaoServicos().stream()
-                .filter(s -> s.getStatus() == status)
+                .filter(s -> statuses.contains(s.getStatus()))
                 .map(this::calcularTotalServico)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
