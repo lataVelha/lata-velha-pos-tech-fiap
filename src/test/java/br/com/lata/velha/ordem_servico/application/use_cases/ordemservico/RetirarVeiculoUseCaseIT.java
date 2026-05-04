@@ -83,7 +83,7 @@ class RetirarVeiculoUseCaseIT {
         OrdemServicoEntity os = new OrdemServicoEntity();
         os.setProprietarioId(proprietario.getId());
         os.setVeiculoId(veiculo.getId());
-        os.setReclamacaoCliente("Manutenção periódica");
+        os.setReclamacaoProprietario("Manutenção periódica");
         os.setStatus(StatusOrdemServico.FINALIZADA);
         os.setAtendenteInicioId(atendenteId);
         os.setMecanicoResponsavelId(atendenteId);

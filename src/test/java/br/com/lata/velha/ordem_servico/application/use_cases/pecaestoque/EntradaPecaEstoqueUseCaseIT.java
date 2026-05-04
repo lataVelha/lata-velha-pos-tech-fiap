@@ -50,7 +50,7 @@ class EntradaPecaEstoqueUseCaseIT {
         OrdemServicoEntity os = new OrdemServicoEntity();
         os.setProprietarioId(1L);
         os.setVeiculoId(1L);
-        os.setReclamacaoCliente("test");
+        os.setReclamacaoProprietario("test");
         os.setStatus(StatusOrdemServico.EM_EXECUCAO);
         os.setAtendenteInicioId(1L);
         os.setAtualizadoEm(LocalDateTime.now());

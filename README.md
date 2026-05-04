@@ -51,7 +51,7 @@ O código é dividido em 3 contextos bem separados:
 **Ordem de Serviço**
 - Aqui roda o core business da oficina: proprietários, veículos, serviços, peças, ordens de serviço
 - Uma OS passa por diferentes estados quando criada: recebida → diagnóstico → aguardando aprovação → aprovada → execução → finalizada → entregue
-- Se o cliente rejeitar o orçamento em qualquer ponto, a OS fica reprovada e o processo é encerrado
+- Se o proprietário recusar todos os serviços identificados, a Ordem de Serviço é reprovada, liberando a retirada do veículo
 - Fica tudo em `ordem_servico/`
 
 **Shared**

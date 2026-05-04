@@ -33,11 +33,11 @@ class PecaAlocadaRepositoryImplTest {
     private PecaAlocadaRepositoryImpl repository;
 
     private PecaAlocada domainPeca() {
-        return new PecaAlocada(1L, 10L, 99L, new BigDecimal("10.00"), 3, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
+        return new PecaAlocada(1L, 10L, 99L, new BigDecimal("10.00"), 3, 0, 0, 0, StatusPecaAlocada.PENDENTE, LocalDateTime.now());
     }
 
     private PecaAlocadaEntity entityPeca() {
-        return new PecaAlocadaEntity(1L, 10L, 99L, new BigDecimal("10.00"), 3, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
+        return new PecaAlocadaEntity(1L, 10L, 99L, new BigDecimal("10.00"), 3, 0, 0, 0, StatusPecaAlocada.PENDENTE, LocalDateTime.now());
     }
 
     @Nested
@@ -56,7 +56,7 @@ class PecaAlocadaRepositoryImplTest {
             assertThat(result.getPecaId()).isEqualTo(10L);
             assertThat(result.getExecucaoServicoId()).isEqualTo(99L);
             assertThat(result.getQuantidadeSolicitada()).isEqualTo(3);
-            assertThat(result.getStatus()).isEqualTo(StatusPecaAlocada.ORCAMENTO);
+            assertThat(result.getStatus()).isEqualTo(StatusPecaAlocada.PENDENTE);
             verify(jpaRepository).save(any());
         }
     }

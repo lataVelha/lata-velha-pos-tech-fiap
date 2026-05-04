@@ -99,7 +99,7 @@ class AdicionarServicoUseCaseIT {
         OrdemServicoEntity os = new OrdemServicoEntity();
         os.setProprietarioId(proprietario.getId());
         os.setVeiculoId(veiculo.getId());
-        os.setReclamacaoCliente("Troca de óleo periódica");
+        os.setReclamacaoProprietario("Troca de óleo periódica");
         os.setStatus(StatusOrdemServico.EM_DIAGNOSTICO);
         os.setAtendenteInicioId(atendenteId);
         os.setAtualizadoEm(LocalDateTime.now());
@@ -150,7 +150,7 @@ class AdicionarServicoUseCaseIT {
         assertThat(pecaAlocada.getPecaId()).isEqualTo(pecaId);
         assertThat(pecaAlocada.getQuantidadeSolicitada()).isEqualTo(3);
         assertThat(pecaAlocada.getValorUnitario()).isEqualByComparingTo("35.00");
-        assertThat(pecaAlocada.getStatus()).isEqualTo(StatusPecaAlocada.ORCAMENTO);
+        assertThat(pecaAlocada.getStatus()).isEqualTo(StatusPecaAlocada.PENDENTE);
     }
 
     @Test

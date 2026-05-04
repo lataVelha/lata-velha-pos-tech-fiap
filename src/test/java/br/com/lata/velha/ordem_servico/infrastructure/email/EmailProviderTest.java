@@ -60,12 +60,12 @@ class EmailProviderTest {
     @Test
     void thymeleafEmailTemplateProvider_deveRenderizarTemplateComVariaveis() {
         var variables = Map.<String, Object>of("nome", "João", "total", "R$ 500,00");
-        when(templateEngine.process(eq("orcamento"), any(org.thymeleaf.context.IContext.class))).thenReturn("<html>João</html>");
+        when(templateEngine.process(eq("notificacao-os"), any(org.thymeleaf.context.IContext.class))).thenReturn("<html>João</html>");
 
-        var result = thymeleafEmailTemplateProvider.render("orcamento", variables);
+        var result = thymeleafEmailTemplateProvider.render("notificacao-os", variables);
 
         assertThat(result).isEqualTo("<html>João</html>");
-        verify(templateEngine).process(eq("orcamento"), any(org.thymeleaf.context.IContext.class));
+        verify(templateEngine).process(eq("notificacao-os"), any(org.thymeleaf.context.IContext.class));
     }
 
     @Test

@@ -67,7 +67,7 @@ class AprovarOrdemServicoUseCaseTest {
     }
 
     private PecaAlocada buildPecaAlocada(Long pecaId, Long execId, int solicitada) {
-        return new PecaAlocada(null, pecaId, execId, BigDecimal.ZERO, solicitada, 0, 0, 0, StatusPecaAlocada.ORCAMENTO, LocalDateTime.now());
+        return new PecaAlocada(null, pecaId, execId, BigDecimal.ZERO, solicitada, 0, 0, 0, StatusPecaAlocada.PENDENTE, LocalDateTime.now());
     }
 
     private OrdemServico buildOs(List<ExecucaoServico> execucoes) {

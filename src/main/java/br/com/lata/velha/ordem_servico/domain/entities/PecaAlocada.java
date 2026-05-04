@@ -42,7 +42,7 @@ public final class PecaAlocada {
         var quantidadeReservadaInicial = 0;
         var quantidadeEncomendadaInicial = 0;
         var quantidadeInstaladaInicial = 0;
-        var statusInicial = StatusPecaAlocada.ORCAMENTO;
+        var statusInicial = StatusPecaAlocada.PENDENTE;
         return new PecaAlocada(null, pecaId, execucaoServicoId, valorPecaUnitaria, quantidadeSolicitada, quantidadeReservadaInicial, quantidadeEncomendadaInicial, quantidadeInstaladaInicial, statusInicial, LocalDateTime.now());
     }
 

@@ -1,7 +1,7 @@
 package br.com.lata.velha.ordem_servico.domain.enums;
 
 public enum StatusPecaAlocada {
-    ORCAMENTO,
+    PENDENTE,
     RESERVADA,
     ENCOMENDA,
     PARCIAL,

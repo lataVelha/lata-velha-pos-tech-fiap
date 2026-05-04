@@ -83,7 +83,7 @@ class IniciarDiagnosticoUseCaseIT {
         OrdemServicoEntity os = new OrdemServicoEntity();
         os.setProprietarioId(proprietario.getId());
         os.setVeiculoId(veiculo.getId());
-        os.setReclamacaoCliente("Barulho ao frear");
+        os.setReclamacaoProprietario("Barulho ao frear");
         os.setStatus(StatusOrdemServico.RECEBIDA);
         os.setAtendenteInicioId(mecanicoId);
         os.setIniciadoEm(LocalDateTime.now());

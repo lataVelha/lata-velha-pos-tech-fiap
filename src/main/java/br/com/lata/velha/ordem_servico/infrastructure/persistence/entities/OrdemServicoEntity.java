@@ -30,8 +30,8 @@ public class OrdemServicoEntity {
     @Column(name = "VEICULO_ID", nullable = false)
     private Long veiculoId;
 
-    @Column(name = "RECLAMACAO_CLIENTE")
-    private String reclamacaoCliente;
+    @Column(name = "RECLAMACAO_PROPRIETARIO")
+    private String reclamacaoProprietario;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS", length = 30)
@@ -73,7 +73,7 @@ public class OrdemServicoEntity {
                 domain.getId(),
                 domain.getProprietarioId(),
                 domain.getVeiculoId(),
-                domain.getReclamacaoCliente(),
+                domain.getReclamacaoProprietario(),
                 domain.getStatus(),
                 domain.getCriadoEm(),
                 domain.getIniciadoEm(),
@@ -106,7 +106,7 @@ public class OrdemServicoEntity {
                 id,
                 proprietarioId,
                 veiculoId,
-                reclamacaoCliente,
+                reclamacaoProprietario,
                 status,
                 criadoEm,
                 iniciadoEm,

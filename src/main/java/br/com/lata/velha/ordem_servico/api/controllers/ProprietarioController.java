@@ -55,7 +55,7 @@ public class ProprietarioController {
     }
 
     @GetMapping("/documento/{documento}")
-    @Operation(summary = "Buscar proprietário por CPF/CNPJ", description = "Útil para verificar se o cliente já está cadastrado antes de abrir uma OS.")
+    @Operation(summary = "Buscar proprietário por CPF/CNPJ", description = "Útil para verificar se o proprietário já está cadastrado antes de abrir uma OS.")
     @ApiResponse(responseCode = "200", description = "Proprietário encontrado")
     @ApiResponse(responseCode = "404", description = "Nenhum proprietário encontrado com o documento informado")
     public ResponseEntity<ProprietarioResponse> buscarPorDocumento(@PathVariable String documento) {

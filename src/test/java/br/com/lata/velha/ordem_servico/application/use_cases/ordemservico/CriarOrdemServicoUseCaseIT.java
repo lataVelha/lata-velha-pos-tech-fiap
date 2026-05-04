@@ -109,12 +109,12 @@ class CriarOrdemServicoUseCaseIT {
         assertThat(entity.getVeiculoId()).isEqualTo(veiculoId);
         assertThat(entity.getProprietarioId()).isEqualTo(proprietarioId);
         assertThat(entity.getAtendenteInicioId()).isEqualTo(funcionarioId);
-        assertThat(entity.getReclamacaoCliente()).isEqualTo("Barulho ao frear");
+        assertThat(entity.getReclamacaoProprietario()).isEqualTo("Barulho ao frear");
     }
 
     @Test
-    @DisplayName("deve persistir reclamação do cliente corretamente")
-    void devePersistirReclamacaoCliente() {
+    @DisplayName("deve persistir reclamação do proprietário corretamente")
+    void devePersistirReclamacaoProprietario() {
         var funcionarioUserId = UserId.create(funcionario.getUserId());
         var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Motor superaquecendo");
 
@@ -124,7 +124,7 @@ class CriarOrdemServicoUseCaseIT {
         em.clear();
 
         OrdemServicoEntity entity = em.find(OrdemServicoEntity.class, output.id());
-        assertThat(entity.getReclamacaoCliente()).isEqualTo("Motor superaquecendo");
+        assertThat(entity.getReclamacaoProprietario()).isEqualTo("Motor superaquecendo");
     }
 
     @Test

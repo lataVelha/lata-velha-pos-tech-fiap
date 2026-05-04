@@ -100,7 +100,7 @@ class AprovarOrdemServicoUseCaseIT {
         OrdemServicoEntity os = new OrdemServicoEntity();
         os.setProprietarioId(proprietario.getId());
         os.setVeiculoId(veiculo.getId());
-        os.setReclamacaoCliente("Troca de óleo periódica");
+        os.setReclamacaoProprietario("Troca de óleo periódica");
         os.setStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
         os.setAtendenteInicioId(funcionarioId);
         os.setIniciadoEm(LocalDateTime.now());
@@ -125,7 +125,7 @@ class AprovarOrdemServicoUseCaseIT {
         pecaAlocada.setQuantidadeReservada(0);
         pecaAlocada.setQuantidadeEncomendada(0);
         pecaAlocada.setQuantidadeInstalada(0);
-        pecaAlocada.setStatus(StatusPecaAlocada.ORCAMENTO);
+        pecaAlocada.setStatus(StatusPecaAlocada.PENDENTE);
         pecaAlocada.setAtualizado(LocalDateTime.now());
         em.persist(pecaAlocada);
 

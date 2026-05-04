@@ -29,10 +29,10 @@ public class SwaggerConfig {
                                 1. `POST /ordens-servico` — ATENDENTE abre a OS → status `RECEBIDA`
                                 2. `PATCH /ordens-servico/{idOs}/iniciar-diagnostico` — MECANICO assume a OS → `EM_DIAGNOSTICO`
                                 3. `PATCH /ordens-servico/adiciona-servico` — MECANICO adiciona serviços e peças (pode chamar múltiplas vezes)
-                                4. `PATCH /ordens-servico/{idOs}/finalizar-diagnostico` — MECANICO encerra diagnóstico → `AGUARDANDO_APROVACAO` _(e-mail de orçamento ao cliente)_
-                                5. `PATCH /ordens-servico/aprovar` — ATENDENTE aprova ou recusa cada serviço → `APROVADA` _(e-mail de confirmação ao cliente; e-mail ao ADMIN se houver peças a encomendar)_
+                                4. `PATCH /ordens-servico/{idOs}/finalizar-diagnostico` — MECANICO encerra diagnóstico → `AGUARDANDO_APROVACAO` _(e-mail de aprovação da ordem de serviço ao proprietário)_
+                                5. `PATCH /ordens-servico/aprovar` — ATENDENTE aprova ou recusa cada serviço → `APROVADA` _(e-mail de confirmação ao proprietário; e-mail ao ADMIN se houver peças a encomendar)_
                                 6. `PATCH /ordens-servico/{idOs}/iniciar-servico/{servicoId}` — MECANICO inicia um serviço por vez → serviço `EM_EXECUCAO`
-                                7. `PATCH /ordens-servico/{idOs}/finalizar-servico/{servicoId}` — MECANICO conclui o serviço → serviço `FINALIZADO` _(ao finalizar o último: OS → `FINALIZADA` e e-mail ao cliente)_
+                                7. `PATCH /ordens-servico/{idOs}/finalizar-servico/{servicoId}` — MECANICO conclui o serviço → serviço `FINALIZADO` _(ao finalizar o último: OS → `FINALIZADA` e e-mail ao proprietário)_
                                 8. `PATCH /ordens-servico/{idOs}/retirar-veiculo` — ATENDENTE registra entrega → `ENTREGUE`
 
                                 ---
@@ -45,9 +45,16 @@ public class SwaggerConfig {
                                 ---
 
                                 **Notificações automáticas por e-mail:**
-                                - Cliente ao finalizar diagnóstico (orçamento estimado)
-                                - ADMIN ao aprovar serviço com peça sem estoque suficiente (encomenda)
-                                - Cliente ao finalizar todos os serviços (veículo pronto para retirada)
+                                - Proprietário, ao ser cadastrado pelo atendente (proprietário cadastrado)
+                                - Proprietário, ao atendente criar a ordem de serviço (ordem de serviço aberta)
+                                - Proprietário, ao mecânico iniciar o diagnóstico (diagnóstico iniciado)
+                                - Proprietário, ao mecânico finalizar o diagnóstico (diagnóstico finalizado com lista de serviços identificados)
+                                - Proprietário, ao atendente aprovar ordem de serviço (ordem de serviço aprovada)
+                                - Proprietário, ao atendente reprovar ordem de serviço (ordem de serviço reprovada, retirar veículo)
+                                - Administrador, ao aprovar a execução do serviço com peça sem estoque suficiente (encomenda de peça)
+                                - Proprietário, ao mecânico iniciar a primeira execução do serviço (serviços em execução)
+                                - Proprietário, ao mecânico finalizar todos os serviços (veículo pronto para retirada)
+                                - Proprietário, ao retirar veículo da oficia (veículo entregue)
 
                                 ---
 

@@ -58,7 +58,7 @@ public class VeiculoController {
     }
 
     @GetMapping("/proprietario/{proprietarioId}")
-    @Operation(summary = "Listar veículos de um proprietário", description = "Retorna todos os veículos ativos vinculados a um proprietário. Útil na abertura de uma OS para selecionar o veículo do cliente.")
+    @Operation(summary = "Listar veículos de um proprietário", description = "Retorna todos os veículos ativos vinculados a um proprietário. Útil na abertura de uma OS para selecionar o veículo do proprietário.")
     @ApiResponse(responseCode = "200", description = "Lista de veículos do proprietário")
     public ResponseEntity<List<VeiculoResponse>> listarPorProprietario(@PathVariable Long proprietarioId) {
         return ResponseEntity.ok(listarPorProprietarioUseCase.execute(proprietarioId));

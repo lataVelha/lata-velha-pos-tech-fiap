@@ -46,7 +46,7 @@ public class OrdemServicoController {
     @PostMapping
     @Operation(
             summary = "Abrir ordem de serviço",
-            description = "**ATENDENTE** — Registra a entrada do veículo e a reclamação do cliente. O atendente logado é vinculado automaticamente. Status resultante: `RECEBIDA`."
+            description = "**ATENDENTE** — Registra a entrada do veículo e a reclamação do proprietário. O atendente logado é vinculado automaticamente. Status resultante: `RECEBIDA`."
     )
     @ApiResponse(responseCode = "201", description = "OS criada — status RECEBIDA")
     @ApiResponse(responseCode = "400", description = "Dados inválidos")
@@ -131,9 +131,9 @@ public class OrdemServicoController {
     @PatchMapping("/{idOs}/finalizar-diagnostico")
     @Operation(
             summary = "Finalizar diagnóstico",
-            description = "**MECANICO** — Encerra o diagnóstico e envia e-mail ao cliente com o orçamento dos serviços. Transição: `EM_DIAGNOSTICO` → `AGUARDANDO_APROVACAO`."
+            description = "**MECANICO** — Encerra o diagnóstico e envia e-mail ao proprietário com os serviços identificados. Transição: `EM_DIAGNOSTICO` → `AGUARDANDO_APROVACAO`."
     )
-    @ApiResponse(responseCode = "200", description = "Diagnóstico finalizado — status AGUARDANDO_APROVACAO. E-mail enviado ao cliente.")
+    @ApiResponse(responseCode = "200", description = "Diagnóstico finalizado — status AGUARDANDO_APROVACAO. E-mail enviado ao proprietário.")
     @ApiResponse(responseCode = "404", description = "OS ou mecânico não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está no status EM_DIAGNOSTICO")
     public ResponseEntity<Void> finalDiagnostic(
@@ -150,7 +150,7 @@ public class OrdemServicoController {
             description = """
                     **ATENDENTE** — Avalia cada serviço com `APROVADO` ou `RECUSADO`. Serviços não informados são automaticamente recusados. Pelo menos um deve ser aprovado.
 
-                    Ao aprovar: peças são reservadas no estoque; se insuficiente, e-mail é enviado ao ADMIN para encomenda. E-mail de confirmação enviado ao cliente. Transição: `AGUARDANDO_APROVACAO` → `APROVADA`."""
+                    Ao aprovar: peças são reservadas no estoque; se insuficiente, e-mail é enviado ao ADMIN para encomenda. E-mail de confirmação enviado ao proprietário. Transição: `AGUARDANDO_APROVACAO` → `APROVADA`."""
     )
     @ApiResponse(responseCode = "200", description = "OS aprovada com totais calculados")
     @ApiResponse(responseCode = "400", description = "Status inválido ou ID de serviço não pertence à OS")
@@ -169,7 +169,7 @@ public class OrdemServicoController {
     @PatchMapping("/{idOs}/reprovar")
     @Operation(
             summary = "Reprovar a OS inteira",
-            description = "**ATENDENTE** — Recusa todos os serviços e encerra a OS. Use quando o cliente não autorizar nenhum serviço. Para aprovação parcial, use `PATCH /aprovar`. Transição: `AGUARDANDO_APROVACAO` → `REPROVADA` (terminal)."
+            description = "**ATENDENTE** — Recusa todos os serviços e encerra a OS. Use quando o proprietário recusar todos os serviços identificados. Para aprovação parcial, use `PATCH /aprovar`. Transição: `AGUARDANDO_APROVACAO` → `REPROVADA` (terminal)."
     )
     @ApiResponse(responseCode = "200", description = "OS reprovada — status REPROVADA")
     @ApiResponse(responseCode = "404", description = "OS ou funcionário não encontrado")
@@ -202,9 +202,9 @@ public class OrdemServicoController {
     @PatchMapping("/{idOs}/finalizar-servico/{servicoId}")
     @Operation(
             summary = "Finalizar execução de um serviço",
-            description = "**MECANICO** — Conclui um serviço (`EM_EXECUCAO` → `FINALIZADO`). Ao finalizar o último serviço, a OS passa para `FINALIZADA` e um e-mail é enviado ao cliente."
+            description = "**MECANICO** — Conclui um serviço (`EM_EXECUCAO` → `FINALIZADO`). Ao finalizar o último serviço, a OS passa para `FINALIZADA` e um e-mail é enviado ao proprietário."
     )
-    @ApiResponse(responseCode = "200", description = "Serviço finalizado. Se for o último, OS → FINALIZADA e e-mail enviado ao cliente.")
+    @ApiResponse(responseCode = "200", description = "Serviço finalizado. Se for o último, OS → FINALIZADA e e-mail enviado ao proprietário.")
     @ApiResponse(responseCode = "404", description = "OS, serviço ou mecânico não encontrado")
     @ApiResponse(responseCode = "422", description = "OS não está em EM_EXECUCAO ou serviço não está em EM_EXECUCAO")
     public ResponseEntity<Void> finishService(
@@ -219,7 +219,7 @@ public class OrdemServicoController {
     @PatchMapping("/{idOs}/retirar-veiculo")
     @Operation(
             summary = "Registrar retirada do veículo",
-            description = "**ATENDENTE** — Registra a entrega do veículo ao cliente. Baixa definitivamente o estoque das peças instaladas e retorna os totais financeiros da OS. Transição: `FINALIZADA` → `ENTREGUE` (terminal)."
+            description = "**ATENDENTE** — Registra a entrega do veículo ao proprietário. Baixa definitivamente o estoque das peças instaladas e retorna os totais financeiros da OS. Transição: `FINALIZADA` → `ENTREGUE` (terminal)."
     )
     @ApiResponse(responseCode = "200", description = "Veículo entregue — status ENTREGUE. Resposta inclui totais financeiros.")
     @ApiResponse(responseCode = "404", description = "OS ou funcionário não encontrado")

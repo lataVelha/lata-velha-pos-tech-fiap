@@ -34,7 +34,7 @@ public class NotificarOrdemServicoUseCase {
 
     private static final String MSG_VEICULO_RECEBIDO = "Veículo recebido pela oficina";
     private static final String MSG_MECANICO_AVALIOU = "Mecânico avaliando o veículo";
-    private static final String MSG_VEICULO_RETIRADO = "Veículo retirado pelo cliente";
+    private static final String MSG_VEICULO_RETIRADO = "Veículo retirado pelo proprietário";
 
     private static final String STATUS = "status";
     private static final String RECUSADO = "RECUSADO";
@@ -144,7 +144,7 @@ public class NotificarOrdemServicoUseCase {
         if (os.getStatus() == StatusOrdemServico.RECEBIDA
                 || os.getStatus() == StatusOrdemServico.EM_DIAGNOSTICO
                 || os.getStatus() == StatusOrdemServico.AGUARDANDO_APROVACAO) {
-            variables.put("reclamacao", os.getReclamacaoCliente());
+            variables.put("reclamacao", os.getReclamacaoProprietario());
         }
     }
 
@@ -276,7 +276,7 @@ public class NotificarOrdemServicoUseCase {
             steps = List.of(
                     new TimelineStep(1, RECEBIDA, MSG_VEICULO_RECEBIDO, StatusOrdemServico.RECEBIDA),
                     new TimelineStep(2, EM_DIAGNOSTICO, MSG_MECANICO_AVALIOU, StatusOrdemServico.EM_DIAGNOSTICO),
-                    new TimelineStep(3, AGUARDANDO_APROVACAO,"Serviços apresentados ao cliente", StatusOrdemServico.AGUARDANDO_APROVACAO),
+                    new TimelineStep(3, AGUARDANDO_APROVACAO,"Serviços apresentados ao proprietário", StatusOrdemServico.AGUARDANDO_APROVACAO),
                     new TimelineStep(4, "Reprovada", "Todos os serviços foram recusados", StatusOrdemServico.REPROVADA),
                     new TimelineStep(5, ENTREGUE, MSG_VEICULO_RETIRADO, StatusOrdemServico.ENTREGUE)
             );
