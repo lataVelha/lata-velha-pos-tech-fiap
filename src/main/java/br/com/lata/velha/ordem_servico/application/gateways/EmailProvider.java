@@ -1,4 +1,4 @@
-package br.com.lata.velha.ordem_servico.application.ports;
+package br.com.lata.velha.ordem_servico.application.gateways;
 
 public interface EmailProvider {
 

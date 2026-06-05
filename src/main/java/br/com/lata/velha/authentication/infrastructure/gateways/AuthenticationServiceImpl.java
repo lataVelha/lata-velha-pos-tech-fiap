@@ -1,4 +1,4 @@
-package br.com.lata.velha.authentication.application.adapters;
+package br.com.lata.velha.authentication.infrastructure.gateways;
 
 import br.com.lata.velha.authentication.domain.entities.Role;
 import br.com.lata.velha.authentication.domain.entities.User;
@@ -7,9 +7,9 @@ import br.com.lata.velha.authentication.domain.repositories.UserRepository;
 import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import br.com.lata.velha.authentication.domain.value_objects.Credential;
 import br.com.lata.velha.authentication.domain.value_objects.Senha;
-import br.com.lata.velha.ordem_servico.application.ports.authentication.AuthenticationService;
-import br.com.lata.velha.ordem_servico.application.ports.authentication.dtos.CreateAuthUserDto;
-import br.com.lata.velha.ordem_servico.application.ports.authentication.dtos.CreateAuthUserResponseDto;
+import br.com.lata.velha.ordem_servico.application.gateways.authentication.AuthenticationService;
+import br.com.lata.velha.ordem_servico.application.gateways.authentication.dtos.CreateAuthUserDto;
+import br.com.lata.velha.ordem_servico.application.gateways.authentication.dtos.CreateAuthUserResponseDto;
 import br.com.lata.velha.ordem_servico.domain.repositories.CargoRepository;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.value_objects.Email;

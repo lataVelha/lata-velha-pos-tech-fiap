@@ -1,4 +1,4 @@
-package br.com.lata.velha.ordem_servico.infrastructure.repositories.projection;
+package br.com.lata.velha.ordem_servico.domain.view;
 
 import java.time.LocalDateTime;
 

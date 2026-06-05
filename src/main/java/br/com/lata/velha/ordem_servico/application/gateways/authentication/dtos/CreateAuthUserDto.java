@@ -1,4 +1,4 @@
-package br.com.lata.velha.ordem_servico.application.ports.authentication.dtos;
+package br.com.lata.velha.ordem_servico.application.gateways.authentication.dtos;
 
 import java.util.Set;
 

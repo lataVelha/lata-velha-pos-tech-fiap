@@ -1,9 +1,8 @@
 package br.com.lata.velha.ordem_servico.domain.repositories;
 
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
-import br.com.lata.velha.ordem_servico.infrastructure.repositories.projection.OrdemServicoProjection;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 
 public interface OrdemServicoRepository {
 
@@ -13,9 +12,10 @@ public interface OrdemServicoRepository {
 
     OrdemServico getByIdWithExecucoesAndPecas(Long id);
 
-    Page<OrdemServicoProjection> findByAllOrdemSevico(Long id,
-                                                      String status,
-                                                      Long proprietarioId,
-                                                      Long mecanicoId,
-                                                      Pageable pageable);
+    PaginatedResult<OrdemServicoProjection> findByAllOrdemSevico(Long id,
+                                                                 String status,
+                                                                 Long proprietarioId,
+                                                                 Long mecanicoId,
+                                                                 int page,
+                                                                 int size);
 }

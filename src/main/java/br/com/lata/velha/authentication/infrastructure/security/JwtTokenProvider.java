@@ -1,6 +1,6 @@
 package br.com.lata.velha.authentication.infrastructure.security;
 
-import br.com.lata.velha.authentication.application.security.TokenProvider;
+import br.com.lata.velha.authentication.application.gateways.TokenProvider;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;

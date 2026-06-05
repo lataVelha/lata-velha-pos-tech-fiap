@@ -1,8 +1,8 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.authentication.domain.repositories.UserRepository;
-import br.com.lata.velha.ordem_servico.application.ports.EmailProvider;
-import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
+import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;

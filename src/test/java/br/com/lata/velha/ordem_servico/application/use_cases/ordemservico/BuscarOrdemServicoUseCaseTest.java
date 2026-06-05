@@ -2,22 +2,21 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
-import br.com.lata.velha.ordem_servico.infrastructure.repositories.projection.OrdemServicoProjection;
+import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
+import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
@@ -53,8 +52,13 @@ class BuscarOrdemServicoUseCaseTest {
         };
     }
 
-    private Page<OrdemServicoProjection> pageOf(List<OrdemServicoProjection> projections) {
-        return new PageImpl<>(projections, PageRequest.of(0, 10), projections.size());
+    private PaginatedResult<OrdemServicoProjection> paginatedResultOf(List<OrdemServicoProjection> projections) {
+        return new PaginatedResult<>(projections, 0, 10, projections.size(), 1);
+    }
+
+    private PaginatedResult<OrdemServicoProjection> paginatedResultOf(List<OrdemServicoProjection> projections, int page, int size, long total) {
+        int totalPages = (int) Math.ceil((double) total / size);
+        return new PaginatedResult<>(projections, page, size, total, totalPages);
     }
 
     // ------------------------------------------------------------------
@@ -63,8 +67,8 @@ class BuscarOrdemServicoUseCaseTest {
     @DisplayName("deve retornar lista paginada quando há OS")
     void deveRetornarListaPaginadaComOs() {
         var projection = buildProjection(1L, "RECEBIDA");
-        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), any()))
-                .thenReturn(pageOf(List.of(projection)));
+        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(List.of(projection)));
 
         var result = useCase.execute(null, null, null, null, 0, 10);
 
@@ -76,8 +80,8 @@ class BuscarOrdemServicoUseCaseTest {
     @Test
     @DisplayName("deve retornar lista vazia quando não há OS")
     void deveRetornarListaVaziaQuandoNaoHaOs() {
-        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), any()))
-                .thenReturn(pageOf(List.of()));
+        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(List.of()));
 
         var result = useCase.execute(null, null, null, null, 0, 10);
 
@@ -88,61 +92,61 @@ class BuscarOrdemServicoUseCaseTest {
     @Test
     @DisplayName("deve converter status enum para string ao chamar o repositório")
     void deveConverterStatusEnumParaStringNoRepositorio() {
-        when(ordemServicoRepository.findByAllOrdemSevico(any(), eq("APROVADA"), any(), any(), any()))
-                .thenReturn(pageOf(List.of()));
+        when(ordemServicoRepository.findByAllOrdemSevico(any(), eq("APROVADA"), any(), any(), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(List.of()));
 
         useCase.execute(null, StatusOrdemServico.APROVADA, null, null, 0, 10);
 
         verify(ordemServicoRepository)
-                .findByAllOrdemSevico(isNull(), eq("APROVADA"), isNull(), isNull(), any());
+                .findByAllOrdemSevico(isNull(), eq("APROVADA"), isNull(), isNull(), eq(0), eq(10));
     }
 
     @Test
     @DisplayName("deve passar null ao repositório quando status é null")
     void devePassarNullAoRepositorioQuandoStatusEhNull() {
-        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), any()))
-                .thenReturn(pageOf(List.of()));
+        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(List.of()));
 
         useCase.execute(null, null, null, null, 0, 10);
 
         verify(ordemServicoRepository)
-                .findByAllOrdemSevico(isNull(), isNull(), isNull(), isNull(), any());
+                .findByAllOrdemSevico(isNull(), isNull(), isNull(), isNull(), eq(0), eq(10));
     }
 
     @Test
     @DisplayName("deve filtrar por id quando informado")
     void deveFiltrarPorId() {
-        when(ordemServicoRepository.findByAllOrdemSevico(eq(5L), any(), any(), any(), any()))
-                .thenReturn(pageOf(List.of()));
+        when(ordemServicoRepository.findByAllOrdemSevico(eq(5L), any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(List.of()));
 
         useCase.execute(5L, null, null, null, 0, 10);
 
         verify(ordemServicoRepository)
-                .findByAllOrdemSevico(eq(5L), isNull(), isNull(), isNull(), any());
+                .findByAllOrdemSevico(eq(5L), isNull(), isNull(), isNull(), eq(0), eq(10));
     }
 
     @Test
     @DisplayName("deve filtrar por proprietarioId quando informado")
     void deveFiltrarPorProprietarioId() {
-        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), eq(30L), any(), any()))
-                .thenReturn(pageOf(List.of()));
+        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), eq(30L), any(), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(List.of()));
 
         useCase.execute(null, null, 30L, null, 0, 10);
 
         verify(ordemServicoRepository)
-                .findByAllOrdemSevico(isNull(), isNull(), eq(30L), isNull(), any());
+                .findByAllOrdemSevico(isNull(), isNull(), eq(30L), isNull(), eq(0), eq(10));
     }
 
     @Test
     @DisplayName("deve filtrar por mecanicoId quando informado")
     void deveFiltrarPorMecanicoId() {
-        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), eq(20L), any()))
-                .thenReturn(pageOf(List.of()));
+        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), eq(20L), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(List.of()));
 
         useCase.execute(null, null, null, 20L, 0, 10);
 
         verify(ordemServicoRepository)
-                .findByAllOrdemSevico(isNull(), isNull(), isNull(), eq(20L), any());
+                .findByAllOrdemSevico(isNull(), isNull(), isNull(), eq(20L), eq(0), eq(10));
     }
 
     @Test
@@ -152,9 +156,8 @@ class BuscarOrdemServicoUseCaseTest {
                 buildProjection(1L, "RECEBIDA"),
                 buildProjection(2L, "APROVADA")
         );
-        var pagina = new PageImpl<>(projections, PageRequest.of(0, 10), 25L);
-        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), any()))
-                .thenReturn(pagina);
+        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(projections, 0, 10, 25L));
 
         var result = useCase.execute(null, null, null, null, 0, 10);
 
@@ -166,23 +169,23 @@ class BuscarOrdemServicoUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve passar o PageRequest correto para o repositório")
-    void devePassarPageRequestCorreto() {
-        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), eq(PageRequest.of(2, 5))))
-                .thenReturn(pageOf(List.of()));
+    @DisplayName("deve passar page e size corretos para o repositório")
+    void devePassarPageSizeCorreto() {
+        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), eq(2), eq(5)))
+                .thenReturn(paginatedResultOf(List.of(), 2, 5, 0L));
 
         useCase.execute(null, null, null, null, 2, 5);
 
         verify(ordemServicoRepository)
-                .findByAllOrdemSevico(isNull(), isNull(), isNull(), isNull(), eq(PageRequest.of(2, 5)));
+                .findByAllOrdemSevico(isNull(), isNull(), isNull(), isNull(), eq(2), eq(5));
     }
 
     @Test
     @DisplayName("deve mapear campos do projection no response")
     void deveMapearCamposDoProjectionNoResponse() {
         var projection = buildProjection(99L, "EM_DIAGNOSTICO");
-        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), any()))
-                .thenReturn(pageOf(List.of(projection)));
+        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(List.of(projection)));
 
         var result = useCase.execute(null, null, null, null, 0, 10);
 
@@ -204,8 +207,8 @@ class BuscarOrdemServicoUseCaseTest {
                 buildProjection(2L, "APROVADA"),
                 buildProjection(3L, "FINALIZADA")
         );
-        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), any()))
-                .thenReturn(pageOf(projections));
+        when(ordemServicoRepository.findByAllOrdemSevico(any(), any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(projections));
 
         var result = useCase.execute(null, null, null, null, 0, 10);
 
@@ -217,12 +220,12 @@ class BuscarOrdemServicoUseCaseTest {
     @Test
     @DisplayName("deve filtrar combinando id, status, proprietarioId e mecanicoId")
     void deveFiltrarComTodosOsParametros() {
-        when(ordemServicoRepository.findByAllOrdemSevico(eq(1L), eq("EM_EXECUCAO"), eq(30L), eq(20L), any()))
-                .thenReturn(pageOf(List.of()));
+        when(ordemServicoRepository.findByAllOrdemSevico(eq(1L), eq("EM_EXECUCAO"), eq(30L), eq(20L), anyInt(), anyInt()))
+                .thenReturn(paginatedResultOf(List.of()));
 
         useCase.execute(1L, StatusOrdemServico.EM_EXECUCAO, 30L, 20L, 0, 10);
 
         verify(ordemServicoRepository)
-                .findByAllOrdemSevico(eq(1L), eq("EM_EXECUCAO"), eq(30L), eq(20L), any());
+                .findByAllOrdemSevico(eq(1L), eq("EM_EXECUCAO"), eq(30L), eq(20L), eq(0), eq(10));
     }
 }

@@ -1,7 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.funcionario;
 
-import br.com.lata.velha.ordem_servico.application.ports.authentication.AuthenticationService;
-import br.com.lata.velha.ordem_servico.application.ports.authentication.dtos.CreateAuthUserDto;
+import br.com.lata.velha.ordem_servico.application.gateways.authentication.AuthenticationService;
+import br.com.lata.velha.ordem_servico.application.gateways.authentication.dtos.CreateAuthUserDto;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.repositories.CargoRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;

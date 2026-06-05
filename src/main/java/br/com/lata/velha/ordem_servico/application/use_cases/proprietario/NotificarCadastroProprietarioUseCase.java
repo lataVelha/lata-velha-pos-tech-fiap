@@ -1,7 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
-import br.com.lata.velha.ordem_servico.application.ports.EmailProvider;
-import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
+import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

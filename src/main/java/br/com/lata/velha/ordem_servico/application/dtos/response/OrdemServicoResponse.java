@@ -3,7 +3,7 @@ package br.com.lata.velha.ordem_servico.application.dtos.response;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
-import br.com.lata.velha.ordem_servico.infrastructure.repositories.projection.OrdemServicoProjection;
+import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;

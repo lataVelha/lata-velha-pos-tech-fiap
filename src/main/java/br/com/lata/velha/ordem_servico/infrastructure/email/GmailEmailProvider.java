@@ -1,6 +1,6 @@
 package br.com.lata.velha.ordem_servico.infrastructure.email;
 
-import br.com.lata.velha.ordem_servico.application.ports.EmailProvider;
+import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

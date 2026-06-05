@@ -1,6 +1,6 @@
 package br.com.lata.velha.authentication.application.use_cases;
 
-import br.com.lata.velha.authentication.application.security.TokenProvider;
+import br.com.lata.velha.authentication.application.gateways.TokenProvider;
 import br.com.lata.velha.authentication.domain.entities.Role;
 import br.com.lata.velha.authentication.domain.entities.User;
 import br.com.lata.velha.authentication.domain.repositories.UserRepository;

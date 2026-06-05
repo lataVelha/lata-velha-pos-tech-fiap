@@ -1,6 +1,6 @@
 package br.com.lata.velha.ordem_servico.infrastructure.email;
 
-import br.com.lata.velha.ordem_servico.application.ports.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;

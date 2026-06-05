@@ -1,7 +1,7 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.OrdemServicoEntity;
-import br.com.lata.velha.ordem_servico.infrastructure.repositories.projection.OrdemServicoProjection;
+import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
