@@ -215,6 +215,70 @@ Quando terminar, voltar em http://localhost:9000 e clicar no projeto **Lata-Velh
 
 ---
 
+## Infraestrutura (Terraform)
+
+A pasta `infra/` contém a infraestrutura como código para rodar o projeto na AWS, usando **Terraform >= 1.6**.
+
+### O que é provisionado
+
+| Recurso | Descrição |
+|---|---|
+| **VPC** | Rede isolada com subnets públicas e privadas em 2 AZs |
+| **NAT Gateway** | Permite que os nodes privados acessem a internet |
+| **EKS** | Cluster Kubernetes gerenciado (versão 1.33 por padrão) |
+| **Node Group** | EC2 `t3.small` com autoscaling (min 1 / desired 2 / max 3) |
+| **NGINX Ingress** | Ingress Controller com LoadBalancer na AWS |
+
+### Pré-requisitos
+
+- **Terraform >= 1.6** — `terraform -version`
+- **AWS CLI** configurado — `aws configure`
+- **kubectl** — para interagir com o cluster após provisionado
+- Permissões AWS com acesso a EC2, EKS, VPC e IAM (ou `LabRole` no AWS Academy)
+
+### Como usar
+
+```bash
+cd infra
+
+# Inicializa providers e módulos
+terraform init
+
+# Verifica o que será criado
+terraform plan
+
+# Aplica a infraestrutura (~10-15 min)
+terraform apply
+
+# Configura o kubectl para apontar ao cluster
+aws eks update-kubeconfig --region us-east-1 --name <cluster-name>
+
+# Destrói tudo quando não precisar mais
+terraform destroy
+```
+
+### Estado remoto (recomendado)
+
+Por padrão o estado fica local. Para usar S3, edite `infra/backend.tf`, descomente o bloco e rode:
+
+```bash
+aws s3 mb s3://SEU-BUCKET-tfstate
+terraform init -migrate-state
+```
+
+### Variáveis principais
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `region` | `us-east-1` | Região AWS |
+| `project_name` | `meu-projeto` | Prefixo dos recursos |
+| `environment` | `dev` | Ambiente |
+| `kubernetes_version` | `1.33` | Versão do EKS |
+| `node_instance_type` | `t3.small` | Tipo EC2 dos nodes |
+| `node_desired_size` | `2` | Nodes desejados |
+
+---
+
 ## Tecnologias
 
 | Tecnologia           | Versão  | Uso                            |
@@ -232,6 +296,8 @@ Quando terminar, voltar em http://localhost:9000 e clicar no projeto **Lata-Velh
 | JaCoCo               | 0.8.12  | Cobertura de testes            |
 | SonarQube            | Community | Análise estática de código     |
 | Docker Compose       | 3.8     | Orquestração de containers     |
+| Terraform            | >= 1.6  | Infraestrutura como código (AWS) |
+| AWS EKS              | 1.33    | Cluster Kubernetes gerenciado  |
 | Lombok               | 1.18.32 | Redução de boilerplate         |
 | Spring Mail          | via 3.2 | Envio de emails (Gmail SMTP)   |
 | Thymeleaf            | via 3.2 | Templates de email             |
