@@ -5,17 +5,11 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  cluster_name = "${var.project_name}-eks"
-
-  # sts:GetCallerIdentity retorna assumed-role ARN (arn:aws:sts::ACCOUNT:assumed-role/ROLE/SESSION).
-  # EKS access entry precisa do IAM role ARN (arn:aws:iam::ACCOUNT:role/ROLE).
-  # Aqui convertemos automaticamente sem precisar de iam:GetRole.
+  cluster_name = "${var.project_name}-eks"E).
   caller_arn      = data.aws_caller_identity.current.arn
   is_assumed_role = can(regex(":assumed-role/", local.caller_arn))
   role_name       = local.is_assumed_role ? split("/", split(":", local.caller_arn)[5])[1] : ""
   admin_arn       = local.is_assumed_role ? "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.role_name}" : local.caller_arn
-
-  # AWS Academy nao permite criar IAM roles — usa a LabRole pre-existente para tudo
   lab_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
 }
 
