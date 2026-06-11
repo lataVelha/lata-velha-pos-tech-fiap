@@ -43,13 +43,13 @@ variable "node_desired_size" {
 variable "node_min_size" {
   description = "Minimo de nodes"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "node_max_size" {
-  description = "Maximo de nodes"
+  description = "Maximo de nodes (deve suportar o maxReplicas do HPA)"
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "docker_image" {

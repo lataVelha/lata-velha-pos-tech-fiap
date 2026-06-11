@@ -74,4 +74,10 @@ resource "aws_eks_node_group" "default" {
   update_config {
     max_unavailable = 1
   }
+
+  # Tags necessárias para o Cluster Autoscaler descobrir o Auto Scaling Group
+  tags = {
+    "k8s.io/cluster-autoscaler/enabled"             = "true"
+    "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
+  }
 }

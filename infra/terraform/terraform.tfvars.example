@@ -4,52 +4,20 @@
 #   cp terraform.tfvars.example terraform.tfvars
 
 # -----------------------------------------------------------------------------
-# AWS
-# -----------------------------------------------------------------------------
-region       = "us-east-1"
-project_name = "lata-velha"
-environment  = "dev"
-
-# -----------------------------------------------------------------------------
-# Rede
-# -----------------------------------------------------------------------------
-vpc_cidr = "10.0.0.0/16"
-
-# -----------------------------------------------------------------------------
-# EKS
-# -----------------------------------------------------------------------------
-kubernetes_version = "1.33"
-node_instance_type = "t3.small"
-node_min_size      = 2
-node_desired_size  = 2
-node_max_size      = 3
-
-# -----------------------------------------------------------------------------
-# Aplicação
-# -----------------------------------------------------------------------------
-# docker_image é definido automaticamente pelo apply.sh --pipeline.
-# Só precisa preencher aqui se for rodar terraform apply manualmente:
-#   docker_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/lata-velha:<tag>"
-
-# -----------------------------------------------------------------------------
-# Credenciais AWS (NÃO colocar aqui)
-# -----------------------------------------------------------------------------
-# aws_access_key_id, aws_secret_access_key e aws_session_token são passadas
-# automaticamente via TF_VAR_ pelo apply.sh (lidas do ambiente ou aws configure).
-# No GitHub Actions vêm dos secrets AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY /
-# AWS_SESSION_TOKEN. Expiram a cada sessão do AWS Academy — nunca commitar.
-
-# -----------------------------------------------------------------------------
 # Banco de dados (RDS PostgreSQL)
 # -----------------------------------------------------------------------------
-rds_instance_class = "db.t3.micro"
-db_name            = "lata_velha"
-db_username        = "lata_velha_user"
-db_password        = "admin123"
+db_password = "troque-por-uma-senha-forte"
 
 # -----------------------------------------------------------------------------
 # E-mail (Gmail — use uma Senha de App, não a senha da conta)
 # https://myaccount.google.com/apppasswords
 # -----------------------------------------------------------------------------
-mail_username = "lata.velha.fiap@gmail.com"
-mail_password = "suxj nonb utdn dokg"
+mail_username = "seu-email@gmail.com"
+mail_password = "xxxx xxxx xxxx xxxx"
+
+# -----------------------------------------------------------------------------
+# Credenciais AWS — NÃO definir aqui
+# -----------------------------------------------------------------------------
+# aws_access_key_id, aws_secret_access_key e aws_session_token são injetadas
+# automaticamente via TF_VAR_ pelo apply.sh (ou pelos secrets do GitHub Actions).
+# Expiram a cada sessão do AWS Academy — nunca commitar.

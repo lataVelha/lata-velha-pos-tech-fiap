@@ -58,6 +58,32 @@ resource "kubernetes_secret" "aws_credentials" {
   depends_on = [module.eks, time_sleep.wait_for_eks]
 }
 
+module "cluster_autoscaler" {
+  source = "./modules/cluster-autoscaler"
+
+  cluster_name       = local.cluster_name
+  region             = var.region
+  kubernetes_version = var.kubernetes_version
+
+  depends_on = [module.eks, kubernetes_secret.aws_credentials]
+}
+
+# Metrics Server — obrigatório para o HPA ler CPU/memória dos pods.
+resource "helm_release" "metrics_server" {
+  name       = "metrics-server"
+  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart      = "metrics-server"
+  namespace  = "kube-system"
+  version    = "3.12.1"
+
+  set {
+    name  = "args[0]"
+    value = "--kubelet-use-node-status-port"
+  }
+
+  depends_on = [module.eks, time_sleep.wait_for_eks]
+}
+
 module "alb_controller" {
   source = "./modules/alb-controller"
 
@@ -145,53 +171,59 @@ resource "null_resource" "cleanup_alb_on_destroy" {
   provisioner "local-exec" {
     when    = destroy
     command = <<-EOT
-      echo "==> [cleanup] Procurando ALBs na VPC ${self.triggers.vpc_id}..."
+      REGION="${self.triggers.region}"
+      VPC="${self.triggers.vpc_id}"
 
-      ARNS=$(aws elbv2 describe-load-balancers \
-        --region "${self.triggers.region}" \
-        --query "LoadBalancers[?VpcId=='${self.triggers.vpc_id}'].LoadBalancerArn" \
+      echo "==> [cleanup] Deletando ALBs na VPC $VPC..."
+      ARNS=$(aws elbv2 describe-load-balancers --region "$REGION" \
+        --query "LoadBalancers[?VpcId=='$VPC'].LoadBalancerArn" \
         --output text 2>/dev/null || true)
-
       for ARN in $ARNS; do
         [ -z "$ARN" ] && continue
-        echo "    Deletando ALB: $ARN"
-        aws elbv2 delete-load-balancer \
-          --load-balancer-arn "$ARN" \
-          --region "${self.triggers.region}" 2>/dev/null || true
+        echo "    ALB: $ARN"
+        aws elbv2 delete-load-balancer --load-balancer-arn "$ARN" --region "$REGION" 2>/dev/null || true
       done
 
-      TGS=$(aws elbv2 describe-target-groups \
-        --region "${self.triggers.region}" \
-        --query "TargetGroups[?VpcId=='${self.triggers.vpc_id}'].TargetGroupArn" \
+      echo "==> [cleanup] Deletando target groups na VPC $VPC..."
+      TGS=$(aws elbv2 describe-target-groups --region "$REGION" \
+        --query "TargetGroups[?VpcId=='$VPC'].TargetGroupArn" \
         --output text 2>/dev/null || true)
-
       for TG in $TGS; do
         [ -z "$TG" ] && continue
-        echo "    Deletando target group: $TG"
-        aws elbv2 delete-target-group \
-          --target-group-arn "$TG" \
-          --region "${self.triggers.region}" 2>/dev/null || true
+        echo "    TG: $TG"
+        aws elbv2 delete-target-group --target-group-arn "$TG" --region "$REGION" 2>/dev/null || true
       done
 
-      if [ -n "$ARNS" ]; then
-        echo "    Aguardando ENIs serem liberados pela AWS (60s)..."
-        sleep 60
-      fi
+      echo "    Aguardando ENIs serem liberados (90s)..."
+      sleep 90
 
-      echo "==> [cleanup] Removendo security groups do ALB Controller..."
-      SGs=$(aws ec2 describe-security-groups \
-        --region "${self.triggers.region}" \
-        --filters "Name=vpc-id,Values=${self.triggers.vpc_id}" \
-        --query "SecurityGroups[?GroupName!='default' && starts_with(GroupName,'k8s-')].GroupId" \
+      echo "==> [cleanup] Revogando regras e deletando todos os SGs não-default na VPC $VPC..."
+      SGs=$(aws ec2 describe-security-groups --region "$REGION" \
+        --filters "Name=vpc-id,Values=$VPC" \
+        --query "SecurityGroups[?GroupName!='default'].GroupId" \
         --output text 2>/dev/null || true)
 
+      # Primeira passagem: revogar todas as regras (resolve dependências cruzadas)
       for SG in $SGs; do
         [ -z "$SG" ] && continue
-        echo "    Deletando security group: $SG"
-        aws ec2 delete-security-group \
-          --group-id "$SG" \
-          --region "${self.triggers.region}" 2>/dev/null || true
+        INGRESS=$(aws ec2 describe-security-groups --group-ids "$SG" --region "$REGION" \
+          --query "SecurityGroups[0].IpPermissions" --output json 2>/dev/null || echo "[]")
+        EGRESS=$(aws ec2 describe-security-groups --group-ids "$SG" --region "$REGION" \
+          --query "SecurityGroups[0].IpPermissionsEgress" --output json 2>/dev/null || echo "[]")
+        [ "$INGRESS" != "[]" ] && aws ec2 revoke-security-group-ingress \
+          --group-id "$SG" --ip-permissions "$INGRESS" --region "$REGION" 2>/dev/null || true
+        [ "$EGRESS" != "[]" ] && aws ec2 revoke-security-group-egress \
+          --group-id "$SG" --ip-permissions "$EGRESS" --region "$REGION" 2>/dev/null || true
       done
+
+      # Segunda passagem: deletar os SGs
+      for SG in $SGs; do
+        [ -z "$SG" ] && continue
+        echo "    SG: $SG"
+        aws ec2 delete-security-group --group-id "$SG" --region "$REGION" 2>/dev/null || true
+      done
+
+      echo "==> [cleanup] Concluído."
     EOT
   }
 

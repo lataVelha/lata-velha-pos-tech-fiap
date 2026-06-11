@@ -81,6 +81,12 @@ terraform init -reconfigure \
 if $DESTROY; then
   echo "==> Destruindo infraestrutura..."
   terraform destroy $AUTO
+
+  echo "==> Removendo bucket de estado S3: $BUCKET"
+  aws s3 rm "s3://$BUCKET" --recursive --region "$REGION" 2>/dev/null || true
+  aws s3api delete-bucket --bucket "$BUCKET" --region "$REGION" 2>/dev/null && \
+    echo "    Bucket deletado." || echo "    Bucket não encontrado ou já deletado."
+
   exit 0
 fi
 
