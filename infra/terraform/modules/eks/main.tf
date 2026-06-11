@@ -4,8 +4,9 @@ resource "aws_eks_cluster" "this" {
   role_arn = var.iam_role_arn
 
   vpc_config {
-    subnet_ids             = var.subnet_ids
-    endpoint_public_access = true
+    subnet_ids              = var.subnet_ids
+    endpoint_public_access  = true
+    endpoint_private_access = true
   }
 
   access_config {
@@ -35,12 +36,34 @@ resource "aws_eks_access_policy_association" "admin" {
   depends_on = [aws_eks_access_entry.admin]
 }
 
+
+resource "aws_launch_template" "nodes" {
+  name_prefix = "${var.cluster_name}-nodes-"
+
+  # Hop limit 2 permite que pods acessem o IMDS para obter
+  # credenciais do LabRole via instance profile (padrão = 1, inacessível de pods).
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "optional"
+    http_put_response_hop_limit = 2
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_eks_node_group" "default" {
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "default"
   node_role_arn   = var.iam_role_arn
   subnet_ids      = var.subnet_ids
   instance_types  = [var.node_instance_type]
+
+  launch_template {
+    id      = aws_launch_template.nodes.id
+    version = aws_launch_template.nodes.latest_version
+  }
 
   scaling_config {
     desired_size = var.node_desired_size

@@ -8,11 +8,6 @@ variable "kubernetes_version" {
   type        = string
 }
 
-variable "vpc_id" {
-  description = "ID da VPC"
-  type        = string
-}
-
 variable "subnet_ids" {
   description = "Subnets privadas para os nodes"
   type        = list(string)

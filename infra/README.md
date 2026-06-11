@@ -1,228 +1,294 @@
-# terraform-aws-eks-nginx
+# Infraestrutura — Lata Velha (AWS + EKS)
 
-Infraestrutura completa na AWS usando **Terraform**: VPC, cluster EKS com node group gerenciado e **nginx rodando como pods**, exposto publicamente via **AWS Classic Load Balancer**. Tudo provisionado e configurado pelo Terraform — incluindo os objetos Kubernetes.
+Infraestrutura como código para o projeto **Lata Velha** na AWS usando **Terraform >= 1.6**.
 
-Compatível com **AWS Academy (Learner Lab)** — detecta automaticamente o usuário/role atual e usa a `LabRole` pré-existente, sem precisar criar IAM roles.
+Compatível com **AWS Academy (Learner Lab)** — usa a `LabRole` pré-existente sem precisar criar IAM roles ou OIDC providers.
 
 ---
 
-## O que é criado
+## Arquitetura
 
 ```
 Internet
    │
    ▼
-AWS Load Balancer       ← provisionado automaticamente pelo Service Kubernetes
+AWS ALB (Application Load Balancer)       ← provisionado pelo aws-load-balancer-controller
    │
    ▼
-EKS Node Group (EC2 t3.small)   ← nodes em subnet privada
+EKS Node Group (EC2 t3.small × 2)        ← nodes em subnet privada
    │
    ▼
-Pods nginx (2 réplicas)
+Pods lata-velha-api (2 réplicas, HPA até 10)
+   │
+   ▼
+RDS PostgreSQL 15 (db.t3.micro)           ← subnet privada, sem acesso público
 ```
-
-### Recursos AWS
-
-| Recurso               | Descrição                                                    |
-| --------------------- | ------------------------------------------------------------ |
-| VPC                   | CIDR `10.0.0.0/16`, 2 AZs                                    |
-| Subnets públicas      | Para o Load Balancer                                         |
-| Subnets privadas      | Para os nodes EKS                                            |
-| Internet Gateway      | Saída pública                                                |
-| NAT Gateway           | Permite que os nodes (privados) puxem imagens da internet    |
-| EKS Cluster           | Control plane gerenciado pela AWS                            |
-| EKS Node Group        | EC2s que executam os pods                                    |
-| EKS Access Entry      | Acesso admin concedido ao usuário/role atual automaticamente |
-| Classic Load Balancer | Criado pelo Kubernetes ao aplicar o Service                  |
-
-### Recursos Kubernetes
-
-| Recurso              | Descrição                                 |
-| -------------------- | ----------------------------------------- |
-| Deployment           | 2 pods nginx:1.27                         |
-| Service LoadBalancer | Expõe os pods via ELB público na porta 80 |
 
 ---
 
-## Estrutura do projeto
+## O que é provisionado
+
+### Recursos AWS
+
+| Recurso        | Descrição                                                            |
+| -------------- | -------------------------------------------------------------------- |
+| VPC            | CIDR `10.0.0.0/16`, 2 AZs, subnets públicas + privadas + NAT Gateway |
+| ECR            | Repositório Docker privado (`lata-velha`)                            |
+| EKS Cluster    | Control plane gerenciado, Kubernetes 1.33                            |
+| EKS Node Group | EC2 `t3.small`, autoscaling min 2 / max 3                            |
+| ALB Controller | Helm chart `aws-load-balancer-controller` no `kube-system`           |
+| RDS PostgreSQL | `db.t3.micro`, 20 GB, sem multi-AZ                                   |
+
+### Recursos Kubernetes (módulo `app`)
+
+| Recurso                  | Descrição                                            |
+| ------------------------ | ---------------------------------------------------- |
+| Namespace                | `lata-velha`                                         |
+| Secret `aws-credentials` | Credenciais AWS para o ALB Controller (kube-system)  |
+| ConfigMap                | Variáveis não-sensíveis da aplicação                 |
+| Secret                   | Credenciais do banco e e-mail (base64 via Terraform) |
+| Deployment               | 2 réplicas com probes de liveness/readiness/startup  |
+| Service                  | ClusterIP na porta 80 → 8080                         |
+| HPA                      | Autoscaling por CPU (70%) entre 2 e 10 réplicas      |
+| Ingress                  | ALB internet-facing, HTTP 80, target-type IP         |
+
+---
+
+## Estrutura de arquivos
 
 ```
-terraform-aws-eks-nginx/
-├── main.tf                    # data sources, locals e chamadas de módulos
-├── variables.tf               # variáveis de entrada
-├── outputs.tf                 # outputs (URL do nginx, comando kubectl)
-├── providers.tf               # providers aws e kubernetes
-├── versions.tf                # versões mínimas do Terraform e providers
-├── backend.tf                 # estado remoto S3 (opcional, comentado)
-├── terraform.tfvars.example   # exemplo de valores
-└── modules/
-    ├── vpc/                   # VPC, subnets, IGW, NAT Gateway, route tables
-    ├── eks/                   # cluster EKS, node group, access entry
-    └── nginx/                 # Deployment e Service do nginx
+infra/
+├── k8s/                        # Manifests Kubernetes
+│   ├── namespace.yaml
+│   ├── configmap.yaml
+│   ├── secret.yaml             # template — valores base64 injetados pelo Terraform
+│   ├── deployment.yaml         # template — docker_image injetado pelo Terraform
+│   ├── service.yaml
+│   ├── hpa.yaml
+│   └── ingress.yaml
+└── terraform/
+    ├── apply.sh                # Script de deploy (local e CI/CD)
+    ├── main.tf                 # recursos principais e módulos
+    ├── variables.tf
+    ├── outputs.tf
+    ├── providers.tf            # aws, helm, kubectl, kubernetes
+    ├── versions.tf
+    ├── backend.tf              # estado remoto S3 (partial config)
+    ├── terraform.tfvars.example
+    └── modules/
+        ├── vpc/                # VPC, subnets, IGW, NAT, route tables
+        ├── eks/                # Cluster, node group, launch template
+        ├── rds/                # RDS PostgreSQL, subnet group, security group
+        ├── alb-controller/     # Helm release do aws-load-balancer-controller
+        └── app/                # kubectl_manifest para todos os objetos k8s
 ```
-
-Cada módulo tem responsabilidade única:
-
-- **vpc** — apenas rede
-- **eks** — apenas cluster e nodes
-- **nginx** — apenas a aplicação
 
 ---
 
 ## Compatibilidade com AWS Academy
 
-O AWS Academy (Learner Lab) restringe várias operações IAM. Este projeto contorna essas restrições automaticamente:
+O AWS Academy (Learner Lab) tem restrições de IAM. A tabela abaixo mostra como cada uma é resolvida:
 
-| Restrição do Academy                | Como é resolvida                                                            |
-| ----------------------------------- | --------------------------------------------------------------------------- |
-| `iam:CreateRole` negado             | Usa a `LabRole` pré-existente para cluster e nodes                          |
-| `iam:GetRole` negado                | Não usa `data "aws_iam_role"` — ARN construído via account ID               |
-| `ssm:GetParameter` negado           | Não usa o community EKS module (que buscava AMI via SSM)                    |
-| ARN de assumed-role no Access Entry | Convertido automaticamente para ARN de IAM role via `sts:GetCallerIdentity` |
-
-Nenhuma configuração manual necessária — tudo é detectado automaticamente.
+| Restrição                                 | Como é resolvida                                                            |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| `iam:CreateRole` negado                   | Usa a `LabRole` pré-existente para cluster, nodes e ALB                     |
+| `iam:CreateOpenIDConnectProvider` negado  | IRSA removido — credenciais injetadas via `kubernetes_secret`               |
+| IMDS hop limit = 1 nos nodes              | Pods não alcançam instance profile — resolvido pelo secret acima            |
+| ARN de assumed-role no Access Entry       | Convertido automaticamente para ARN de IAM role via `sts:GetCallerIdentity` |
+| Recursos k8s-\* bloqueando VPC no destroy | `null_resource` apaga ALBs e SGs automaticamente antes da VPC               |
 
 ---
 
-## Pré-requisitos
+## Pré-requisitos locais
 
-| Ferramenta | Versão mínima | Para que serve                                           |
-| ---------- | ------------- | -------------------------------------------------------- |
-| Terraform  | 1.6           | provisionar tudo                                         |
-| AWS CLI v2 | qualquer      | autenticar o provider Kubernetes via `aws eks get-token` |
-| kubectl    | qualquer      | opcional, para inspecionar o cluster                     |
+| Ferramenta   | Versão mínima | Para que serve                                    |
+| ------------ | ------------- | ------------------------------------------------- |
+| Terraform    | >= 1.6        | provisionar a infra                               |
+| AWS CLI      | v2            | autenticar providers e rodar `aws eks get-token`  |
+| Docker       | qualquer      | build e push da imagem para o ECR                 |
+| kubectl      | qualquer      | inspecionar o cluster (opcional, mas recomendado) |
+| Java + Maven | Java 21       | rodar os testes (necessário para `--pipeline`)    |
 
-Configure as credenciais antes de rodar:
+---
+
+## Configuração local — passo a passo
+
+### 1. Credenciais AWS
+
+No **AWS Academy**, abra o Learner Lab, clique em **AWS Details** e copie as credenciais. Cole no terminal:
 
 ```bash
-# Conta AWS normal
-aws configure
-
-# AWS Academy — cole as credenciais do Learner Lab (AWS Details > AWS CLI)
-aws configure
-# informe: Access Key ID, Secret Access Key, Session Token, região
+export AWS_ACCESS_KEY_ID=ASIA...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_SESSION_TOKEN=...
+export AWS_DEFAULT_REGION=us-east-1
 ```
 
----
+> As credenciais do Academy expiram em ~4 horas. Renove-as sempre que a sessão expirar.
 
-## Como subir
+### 2. Arquivo de variáveis
 
 ```bash
-# 1. Copie o arquivo de variáveis
+cd infra/terraform
 cp terraform.tfvars.example terraform.tfvars
-
-# 2. Inicialize os providers
-terraform init
-
-# 3. Veja o que será criado (opcional)
-terraform plan
-
-# 4. Aplique
-terraform apply
 ```
 
-O `apply` demora **15–20 minutos**. Ao final, o Terraform exibe:
+Abra o `terraform.tfvars` e preencha:
+
+```hcl
+db_password   = "sua_senha_do_banco"     # mínimo 8 caracteres
+mail_username = "seu@gmail.com"
+mail_password = "xxxx xxxx xxxx xxxx"    # Senha de App do Gmail (não a senha da conta)
+```
+
+> As demais variáveis já têm valores padrão adequados para o Academy.
+> **Nunca commite o `terraform.tfvars`** — ele já está no `.gitignore`.
+
+### 3. Deploy
+
+```bash
+./apply.sh --pipeline --auto
+```
+
+O pipeline executa automaticamente:
 
 ```
-cluster_name      = "meu-projeto-eks"
-cluster_endpoint  = "https://..."
-configure_kubectl = "aws eks update-kubeconfig --region us-east-1 --name meu-projeto-eks"
-nginx_url         = "http://<hostname>.us-east-1.elb.amazonaws.com"
+[Testes]    →  PostgreSQL Docker efêmero + mvn test
+[Fase 1]    →  terraform apply  (VPC + EKS + RDS + ECR)
+[Docker]    →  docker build --platform linux/amd64 + push para ECR
+[Fase 2]    →  terraform apply  (ALB Controller + app + secret de credenciais)
+[Verificar] →  kubectl rollout status  (timeout 5 min)
 ```
 
-Abra o `nginx_url` no navegador — se aparecer **"Welcome to nginx!"**, o deploy funcionou.
+Tempo total: **~20–30 minutos** (na primeira execução; EKS demora ~15 min).
 
-> O ELB leva ~2 minutos após o `apply` para estar pronto. Se a URL retornar erro, aguarde e tente novamente.
-
-> Se o `apply` falhar na etapa do Kubernetes por timing (cluster ainda inicializando), rode `terraform apply` de novo — ele continua de onde parou.
-
----
-
-## Verificando o deploy
+### 4. Verificar
 
 ```bash
 # Aponta o kubectl para o cluster
-aws eks update-kubeconfig --region us-east-1 --name meu-projeto-eks
+aws eks update-kubeconfig --region us-east-1 --name lata-velha-eks
 
-# Lista os pods
-kubectl get pods
+# Pods em execução
+kubectl get pods -n lata-velha
 
-# Verifica o Service e o endereço do Load Balancer
-kubectl get svc nginx
+# URL pública do ALB (aguarde ~2 min após o deploy)
+kubectl get ingress lata-velha-api -n lata-velha
+
+# Testar a API
+curl http://<ADDRESS>/actuator/health
 ```
 
 ---
 
-## Variáveis disponíveis
+## Destruir o ambiente
 
-| Variável             | Padrão        | Descrição                    |
-| -------------------- | ------------- | ---------------------------- |
-| `region`             | `us-east-1`   | Região AWS                   |
-| `project_name`       | `meu-projeto` | Prefixo de todos os recursos |
-| `environment`        | `dev`         | Tag de ambiente              |
-| `vpc_cidr`           | `10.0.0.0/16` | CIDR da VPC                  |
-| `kubernetes_version` | `1.33`        | Versão do Kubernetes         |
-| `node_instance_type` | `t3.small`    | Tipo de EC2 dos nodes        |
-| `node_desired_size`  | `2`           | Quantidade inicial de nodes  |
-| `node_min_size`      | `1`           | Mínimo de nodes              |
-| `node_max_size`      | `3`           | Máximo de nodes              |
-| `nginx_replicas`     | `2`           | Quantidade de pods nginx     |
+```bash
+./apply.sh --destroy --auto
+```
+
+O destroy é totalmente automatizado:
+
+1. Terraform apaga os manifests Kubernetes (Ingress, Deployment, etc.)
+2. Um `null_resource` usa o AWS CLI para deletar ALBs, Target Groups e Security Groups `k8s-*` criados pelo ALB Controller
+3. Aguarda os ENIs serem liberados pela AWS
+4. VPC é deletada sem erros
+
+> **Destrua o ambiente quando não precisar** — o EKS control plane custa ~US$ 73/mês mesmo sem tráfego.
+
+---
+
+## Outras flags do apply.sh
+
+```bash
+./apply.sh                          # ambas as fases com confirmação interativa
+./apply.sh --auto                   # ambas as fases sem confirmação
+./apply.sh --phase 1 --auto         # somente Fase 1 (VPC + EKS + RDS + ECR)
+./apply.sh --phase 2 --auto         # somente Fase 2 (ALB Controller + app)
+./apply.sh --pipeline --skip-tests  # pipeline sem rodar os testes Maven
+./apply.sh --destroy --auto         # destroi tudo sem confirmação
+./apply.sh --bucket meu-bucket      # usar bucket S3 específico para o estado
+```
+
+---
+
+## GitHub Actions — configuração de secrets e variáveis
+
+O pipeline CI/CD (`.github/workflows/main.yml`) roda automaticamente em todo push para `master`. Para funcionar, configure os seguintes valores no repositório GitHub:
+
+### Como acessar
+
+`Settings → Secrets and variables → Actions`
+
+### Secrets (`Settings → Secrets → Actions → New repository secret`)
+
+| Nome                    | Valor                 | Onde obter                                                          |
+| ----------------------- | --------------------- | ------------------------------------------------------------------- |
+| `AWS_ACCESS_KEY_ID`     | `ASIA...`             | AWS Academy → AWS Details                                           |
+| `AWS_SECRET_ACCESS_KEY` | `...`                 | AWS Academy → AWS Details                                           |
+| `AWS_SESSION_TOKEN`     | `...`                 | AWS Academy → AWS Details                                           |
+| `TF_DB_PASSWORD`        | senha do banco        | você define (mínimo 8 chars)                                        |
+| `TF_DB_USERNAME`        | `lata_velha_user`     | padrão ou personalize                                               |
+| `TF_MAIL_USERNAME`      | `seu@gmail.com`       | sua conta Gmail                                                     |
+| `TF_MAIL_PASSWORD`      | `xxxx xxxx xxxx xxxx` | [Senha de App do Google](https://myaccount.google.com/apppasswords) |
+
+### Variables (`Settings → Variables → Actions → New repository variable`)
+
+| Nome               | Valor            |
+| ------------------ | ---------------- |
+| `AWS_REGION`       | `us-east-1`      |
+| `EKS_CLUSTER_NAME` | `lata-velha-eks` |
+
+> **Importante:** As credenciais AWS (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`) expiram com cada sessão do Academy. Atualize-as antes de cada push para `master`.
+
+### Pipeline do GitHub Actions
+
+```
+CI · 1 · Testes          →  compila e roda mvn test com PostgreSQL efêmero
+CD · 2 · Infraestrutura  →  apply.sh --phase 1  (VPC + EKS + RDS + ECR)
+CD · 3 · Build Docker    →  docker build --platform linux/amd64 + push ECR
+CD · 4 · Deploy          →  apply.sh --phase 2  (ALB Controller + app)
+CD · 5 · Verificar       →  kubectl rollout status
+```
+
+As etapas CD só rodam em push direto para `master` (não em Pull Requests).
+
+---
+
+## Variáveis do Terraform
+
+| Variável                | Padrão            | Descrição                                                    |
+| ----------------------- | ----------------- | ------------------------------------------------------------ |
+| `region`                | `us-east-1`       | Região AWS                                                   |
+| `project_name`          | `lata-velha`      | Prefixo de todos os recursos                                 |
+| `environment`           | `dev`             | Tag de ambiente                                              |
+| `vpc_cidr`              | `10.0.0.0/16`     | CIDR da VPC                                                  |
+| `kubernetes_version`    | `1.33`            | Versão do Kubernetes                                         |
+| `node_instance_type`    | `t3.small`        | Tipo de EC2 dos nodes                                        |
+| `node_desired_size`     | `2`               | Quantidade inicial de nodes                                  |
+| `node_min_size`         | `2`               | Mínimo de nodes                                              |
+| `node_max_size`         | `3`               | Máximo de nodes                                              |
+| `docker_image`          | `placeholder`     | Imagem ECR (definida automaticamente pelo pipeline)          |
+| `db_name`               | `lata_velha`      | Nome do banco                                                |
+| `db_username`           | `lata_velha_user` | Usuário do banco                                             |
+| `db_password`           | —                 | Senha do banco (**obrigatória**)                             |
+| `rds_instance_class`    | `db.t3.micro`     | Classe da instância RDS                                      |
+| `mail_username`         | —                 | Email remetente Gmail (**obrigatório**)                      |
+| `mail_password`         | —                 | App password do Gmail (**obrigatório**)                      |
+| `aws_access_key_id`     | —                 | Injetado via `TF_VAR_` pelo apply.sh — não colocar no tfvars |
+| `aws_secret_access_key` | —                 | Injetado via `TF_VAR_` pelo apply.sh — não colocar no tfvars |
+| `aws_session_token`     | —                 | Injetado via `TF_VAR_` pelo apply.sh — não colocar no tfvars |
 
 ---
 
 ## Custo aproximado (us-east-1)
 
-> Cobrado por hora enquanto os recursos existirem.
+| Recurso                  | Configuração  | Custo/mês        |
+| ------------------------ | ------------- | ---------------- |
+| EKS control plane        | fixo          | ~US$ 73          |
+| EC2 nodes (t3.small × 2) | On-Demand     | ~US$ 30          |
+| NAT Gateway              | 1 AZ          | ~US$ 32          |
+| ALB                      | 1 ALB         | ~US$ 18          |
+| RDS db.t3.micro          | PostgreSQL 15 | ~US$ 15          |
+| **Total estimado**       |               | **~US$ 168/mês** |
 
-| Recurso                            | Configuração | Custo/mês        |
-| ---------------------------------- | ------------ | ---------------- |
-| EKS control plane                  | fixo         | ~US$ 73          |
-| EC2 nodes (t3.small x2, On-Demand) | 2 nodes      | ~US$ 30          |
-| NAT Gateway                        | 1 AZ         | ~US$ 32          |
-| Load Balancer                      | 1 ELB        | ~US$ 18          |
-| **Total estimado**                 |              | **~US$ 153/mês** |
-
-O **EKS control plane (US$73/mês)** é o maior custo e não pode ser reduzido enquanto o cluster existir.
-
-Não é free tier. **Destrua o ambiente quando terminar de testar.**
-
----
-
-## Como destruir
-
-```bash
-terraform destroy
-```
-
-> Se o destroy travar no Load Balancer, delete o Service manualmente e rode novamente:
->
-> ```bash
-> kubectl delete svc nginx
-> terraform destroy
-> ```
-
----
-
-## Ajustes comuns
-
-**Outra região:**
-
-```hcl
-# terraform.tfvars
-region = "us-west-2"
-```
-
-**Menos nodes (reduzir custo):**
-
-```hcl
-node_desired_size = 1
-node_min_size     = 1
-```
-
-**Mais réplicas do nginx:**
-
-```hcl
-nginx_replicas = 3
-```
-
-**Estado remoto no S3** (recomendado para times): descomente o bloco em `backend.tf` e rode `terraform init -migrate-state`.
+> No **AWS Academy** o crédito é limitado (~US$ 50). Destrua o ambiente com `./apply.sh --destroy --auto` após cada uso.

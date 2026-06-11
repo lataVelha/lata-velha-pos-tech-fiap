@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lata-velha-api
+  namespace: lata-velha
+  labels:
+    app: lata-velha-api
+spec:
+  selector:
+    app: lata-velha-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP
