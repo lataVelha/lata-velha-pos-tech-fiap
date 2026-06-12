@@ -5,23 +5,23 @@ spring:
     active: ${ENVIRONMENT:}
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/lata_velha
-    username: admin
-    password: admin123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/lata_velha}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin123}
 
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:none}
 
   flyway:
-    enabled: true
+    enabled: ${SPRING_FLYWAY_ENABLED:true}
     locations: classpath:db/migration,classpath:db/migration-postgresql
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: lata.velha.fiap@gmail.com
-    password: suxj nonb utdn dokg
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -37,8 +37,24 @@ jwt:
   private:
     key: classpath:app.key
     jwt:
-  issuer: lata-velha
-  expires-in: 3600
+  issuer: ${JWT_ISSUER:lata-velha}
+  expires-in: ${JWT_EXPIRES_IN:3600}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
 
 springdoc:
   swagger-ui:

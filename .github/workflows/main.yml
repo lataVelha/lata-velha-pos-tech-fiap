@@ -1,13 +1,204 @@
+name: CI/CD
+
 on:
-  workflow_dispatch:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
 
 jobs:
-  compilarSpring:
-    name: compilar spring
+  # ============================================================
+  # ETAPA 1 — TESTES  (CI)
+  # Compila o projeto e roda todos os testes automatizados.
+  # Executa em todo push e em todo PR aberto para master.
+  # Se falhar, as etapas seguintes não rodam.
+  # ============================================================
+  test:
+    name: "CI · 1 · Testes"
     runs-on: ubuntu-22.04
+
     steps:
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'corretto'
+          java-version: "21"
+          distribution: corretto
+          cache: maven
+
+      - name: Compilar e rodar testes
+        run: mvn -B test -Dspring.profiles.active=test
+
+  # ============================================================
+  # ETAPA 2 — BOOTSTRAP  (CD)
+  # Garante que VPC, EKS, RDS e ECR existem na AWS.
+  # Somente provider AWS — sem dependencia do cluster estar ativo.
+  # Só executa em push direto para master (não em PRs).
+  # ============================================================
+  tf-bootstrap:
+    name: "CD · 2 · Bootstrap (VPC + EKS + RDS + ECR)"
+    needs: test
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-22.04
+
+    outputs:
+      ecr_url: ${{ steps.outputs.outputs.ecr_url }}
+      cluster_endpoint: ${{ steps.outputs.outputs.cluster_endpoint }}
+      cluster_ca_data: ${{ steps.outputs.outputs.cluster_ca_data }}
+      cluster_name: ${{ steps.outputs.outputs.cluster_name }}
+      state_bucket: ${{ steps.outputs.outputs.state_bucket }}
+
+    defaults:
+      run:
+        working-directory: infra/terraform
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Aplicar Bootstrap (VPC + EKS + RDS + ECR)
+        run: ./apply.sh --bootstrap --auto
+        env:
+          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
+          TF_VAR_region: ${{ vars.AWS_REGION }}
+          TF_VAR_db_username: ${{ secrets.TF_DB_USERNAME }}
+          TF_VAR_db_password: ${{ secrets.TF_DB_PASSWORD }}
+
+      - name: Capturar outputs do bootstrap
+        id: outputs
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "ecr_url=$(terraform -chdir=bootstrap output -raw ecr_repository_url)" >> $GITHUB_OUTPUT
+          echo "cluster_endpoint=$(terraform -chdir=bootstrap output -raw cluster_endpoint)" >> $GITHUB_OUTPUT
+          echo "cluster_ca_data=$(terraform -chdir=bootstrap output -raw cluster_certificate_authority_data)" >> $GITHUB_OUTPUT
+          echo "cluster_name=$(terraform -chdir=bootstrap output -raw cluster_name)" >> $GITHUB_OUTPUT
+          echo "state_bucket=lata-velha-tfstate-${ACCOUNT_ID}" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # ETAPA 3 — BUILD DA IMAGEM DOCKER  (CD)
+  # Constrói a imagem Docker e envia para o ECR criado na etapa
+  # anterior. A imagem recebe como tag o SHA do commit.
+  # ============================================================
+  build:
+    name: "CD · 3 · Build Docker → ECR"
+    needs: tf-bootstrap
+    runs-on: ubuntu-22.04
+
+    outputs:
+      image: ${{ steps.push.outputs.image }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login no Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build e push da imagem
+        id: push
+        run: |
+          IMAGE=${{ needs.tf-bootstrap.outputs.ecr_url }}:${{ github.sha }}
+          docker build --platform linux/amd64 -t $IMAGE .
+          docker push $IMAGE
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # ETAPA 4 — DEPLOY  (CD)
+  # Aplica ALB + app + autoscaler usando os outputs do bootstrap
+  # para configurar os providers kubectl e helm.
+  # ============================================================
+  tf-deploy:
+    name: "CD · 4 · Deploy (ALB + app + autoscaler)"
+    needs: build
+    runs-on: ubuntu-22.04
+
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+
+    defaults:
+      run:
+        working-directory: infra/terraform
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Instalar kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Aplicar Deploy (ALB + app + autoscaler)
+        run: ./apply.sh --deploy --auto
+        env:
+          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
+          TF_VAR_region: ${{ vars.AWS_REGION }}
+          TF_VAR_docker_image: ${{ needs.build.outputs.image }}
+          TF_VAR_mail_username: ${{ secrets.TF_MAIL_USERNAME }}
+          TF_VAR_mail_password: ${{ secrets.TF_MAIL_PASSWORD }}
+          TF_VAR_aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          TF_VAR_aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_aws_session_token: ${{ secrets.AWS_SESSION_TOKEN }}
+          TF_VAR_state_bucket: ${{ needs.tf-bootstrap.outputs.state_bucket }}
+          TF_VAR_cluster_endpoint: ${{ needs.tf-bootstrap.outputs.cluster_endpoint }}
+          TF_VAR_cluster_ca_data: ${{ needs.tf-bootstrap.outputs.cluster_ca_data }}
+          TF_VAR_cluster_name: ${{ needs.tf-bootstrap.outputs.cluster_name }}
+
+  # ============================================================
+  # ETAPA 5 — VERIFICAÇÃO DO DEPLOY  (CD)
+  # Aguarda os pods subirem com a nova imagem e confirma que
+  # o rollout foi concluído com sucesso dentro de 5 minutos.
+  # Se algum pod travar ou crashar, essa etapa falha e alerta.
+  # ============================================================
+  verify:
+    name: "CD · 5 · Verificar Deploy"
+    needs: tf-deploy
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Instalar kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configurar acesso ao cluster
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ vars.AWS_REGION }} \
+            --name ${{ vars.EKS_CLUSTER_NAME }}
+
+      - name: Aguardar rollout
+        run: |
+          kubectl rollout status deployment/lata-velha-api \
+            -n lata-velha \
+            --timeout=5m
