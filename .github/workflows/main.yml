@@ -17,21 +17,6 @@ jobs:
     name: "CI · 1 · Testes"
     runs-on: ubuntu-22.04
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: lata_velha
-          POSTGRES_USER: admin
-          POSTGRES_PASSWORD: admin123
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
 
@@ -42,11 +27,7 @@ jobs:
           cache: maven
 
       - name: Compilar e rodar testes
-        run: mvn -B test
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/lata_velha
-          SPRING_DATASOURCE_USERNAME: admin
-          SPRING_DATASOURCE_PASSWORD: admin123
+        run: mvn -B test -Dspring.profiles.active=test
 
   # ============================================================
   # ETAPA 2 — BOOTSTRAP  (CD)
