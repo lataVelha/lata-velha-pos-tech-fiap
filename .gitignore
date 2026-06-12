@@ -33,16 +33,16 @@ build/
 .vscode/
 
 ### Terraform ###
-infra/terraform/.terraform/
-infra/terraform/.terraform.lock.hcl
-infra/terraform/*.tfstate
-infra/terraform/*.tfstate.backup
-infra/terraform/*.tfstate.*.backup
-infra/terraform/terraform.tfvars
-infra/terraform/*.auto.tfvars
-infra/terraform/override.tf
-infra/terraform/override.tf.json
-infra/terraform/*_override.tf
-infra/terraform/*_override.tf.json
-infra/terraform/crash.log
-infra/terraform/crash.*.log
+infra/terraform/**/.terraform/
+infra/terraform/**/.terraform.lock.hcl
+infra/terraform/**/terraform.tfvars
+infra/terraform/**/*.tfstate
+infra/terraform/**/*.tfstate.backup
+infra/terraform/**/*.tfstate.*.backup
+infra/terraform/**/*.auto.tfvars
+infra/terraform/**/override.tf
+infra/terraform/**/override.tf.json
+infra/terraform/**/*_override.tf
+infra/terraform/**/*_override.tf.json
+infra/terraform/**/crash.log
+infra/terraform/**/crash.*.log

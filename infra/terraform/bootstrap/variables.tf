@@ -52,12 +52,6 @@ variable "node_max_size" {
   default     = 2
 }
 
-variable "docker_image" {
-  description = "Imagem ECR da aplicacao. Definido automaticamente pelo apply.sh --pipeline."
-  type        = string
-  default     = "placeholder"
-}
-
 variable "db_name" {
   description = "Nome do banco de dados"
   type        = string
@@ -81,41 +75,4 @@ variable "rds_instance_class" {
   description = "Classe da instancia RDS"
   type        = string
   default     = "db.t3.micro"
-}
-
-
-variable "mail_username" {
-  description = "Email remetente (Gmail)"
-  type        = string
-  sensitive   = true
-}
-
-variable "mail_password" {
-  description = "Senha de app do Gmail"
-  type        = string
-  sensitive   = true
-}
-
-# Credenciais AWS para o Cluster Autoscaler no AWS Academy.
-# O AWS Academy não permite IRSA (sem OIDC) — injetadas via kubernetes_secret.
-# Passadas via TF_VAR_ no apply.sh e no GitHub Actions — nunca no tfvars.
-variable "aws_access_key_id" {
-  description = "AWS Access Key ID (Cluster Autoscaler — AWS Academy)"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "aws_secret_access_key" {
-  description = "AWS Secret Access Key (Cluster Autoscaler — AWS Academy)"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "aws_session_token" {
-  description = "AWS Session Token (Cluster Autoscaler — AWS Academy)"
-  type        = string
-  sensitive   = true
-  default     = ""
 }

@@ -49,20 +49,23 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: admin123
 
   # ============================================================
-  # ETAPA 2 — INFRAESTRUTURA BASE / FASE 1  (CD)
+  # ETAPA 2 — BOOTSTRAP  (CD)
   # Garante que VPC, EKS, RDS e ECR existem na AWS.
-  # Usa apply.sh --phase 1 que também cria o bucket S3 de estado
-  # automaticamente. Se tudo já existir, não faz nada (idempotente).
+  # Somente provider AWS — sem dependencia do cluster estar ativo.
   # Só executa em push direto para master (não em PRs).
   # ============================================================
-  tf-infra:
-    name: "CD · 2 · Infraestrutura (Fase 1)"
+  tf-bootstrap:
+    name: "CD · 2 · Bootstrap (VPC + EKS + RDS + ECR)"
     needs: test
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-22.04
 
     outputs:
-      ecr_url: ${{ steps.ecr_url.outputs.url }}
+      ecr_url: ${{ steps.outputs.outputs.ecr_url }}
+      cluster_endpoint: ${{ steps.outputs.outputs.cluster_endpoint }}
+      cluster_ca_data: ${{ steps.outputs.outputs.cluster_ca_data }}
+      cluster_name: ${{ steps.outputs.outputs.cluster_name }}
+      state_bucket: ${{ steps.outputs.outputs.state_bucket }}
 
     defaults:
       run:
@@ -81,20 +84,23 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
 
-      - name: Aplicar Fase 1 (VPC + EKS + RDS + ECR)
-        run: ./apply.sh --auto --phase 1
+      - name: Aplicar Bootstrap (VPC + EKS + RDS + ECR)
+        run: ./apply.sh --bootstrap --auto
         env:
           AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
           TF_VAR_region: ${{ vars.AWS_REGION }}
-          TF_VAR_docker_image: placeholder
           TF_VAR_db_username: ${{ secrets.TF_DB_USERNAME }}
           TF_VAR_db_password: ${{ secrets.TF_DB_PASSWORD }}
-          TF_VAR_mail_username: ${{ secrets.TF_MAIL_USERNAME }}
-          TF_VAR_mail_password: ${{ secrets.TF_MAIL_PASSWORD }}
 
-      - name: Capturar URL do ECR
-        id: ecr_url
-        run: echo "url=$(terraform output -raw ecr_repository_url)" >> $GITHUB_OUTPUT
+      - name: Capturar outputs do bootstrap
+        id: outputs
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "ecr_url=$(terraform -chdir=bootstrap output -raw ecr_repository_url)" >> $GITHUB_OUTPUT
+          echo "cluster_endpoint=$(terraform -chdir=bootstrap output -raw cluster_endpoint)" >> $GITHUB_OUTPUT
+          echo "cluster_ca_data=$(terraform -chdir=bootstrap output -raw cluster_certificate_authority_data)" >> $GITHUB_OUTPUT
+          echo "cluster_name=$(terraform -chdir=bootstrap output -raw cluster_name)" >> $GITHUB_OUTPUT
+          echo "state_bucket=lata-velha-tfstate-${ACCOUNT_ID}" >> $GITHUB_OUTPUT
 
   # ============================================================
   # ETAPA 3 — BUILD DA IMAGEM DOCKER  (CD)
@@ -103,7 +109,7 @@ jobs:
   # ============================================================
   build:
     name: "CD · 3 · Build Docker → ECR"
-    needs: tf-infra
+    needs: tf-bootstrap
     runs-on: ubuntu-22.04
 
     outputs:
@@ -126,19 +132,18 @@ jobs:
       - name: Build e push da imagem
         id: push
         run: |
-          IMAGE=${{ needs.tf-infra.outputs.ecr_url }}:${{ github.sha }}
+          IMAGE=${{ needs.tf-bootstrap.outputs.ecr_url }}:${{ github.sha }}
           docker build --platform linux/amd64 -t $IMAGE .
           docker push $IMAGE
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
   # ============================================================
-  # ETAPA 4 — DEPLOY / FASE 2  (CD)
-  # Aplica os manifests Kubernetes com a nova imagem.
-  # O ALB já foi criado na Fase 1 via module.alb (Terraform).
-  # Usa apply.sh --phase 2 que reaproveita o estado da Fase 1.
+  # ETAPA 4 — DEPLOY  (CD)
+  # Aplica ALB + app + autoscaler usando os outputs do bootstrap
+  # para configurar os providers kubectl e helm.
   # ============================================================
   tf-deploy:
-    name: "CD · 4 · Deploy (Fase 2)"
+    name: "CD · 4 · Deploy (ALB + app + autoscaler)"
     needs: build
     runs-on: ubuntu-22.04
 
@@ -166,19 +171,21 @@ jobs:
       - name: Instalar kubectl
         uses: azure/setup-kubectl@v4
 
-      - name: Aplicar Fase 2 (aplicacao)
-        run: ./apply.sh --auto --phase 2
+      - name: Aplicar Deploy (ALB + app + autoscaler)
+        run: ./apply.sh --deploy --auto
         env:
           AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
           TF_VAR_region: ${{ vars.AWS_REGION }}
           TF_VAR_docker_image: ${{ needs.build.outputs.image }}
-          TF_VAR_db_username: ${{ secrets.TF_DB_USERNAME }}
-          TF_VAR_db_password: ${{ secrets.TF_DB_PASSWORD }}
           TF_VAR_mail_username: ${{ secrets.TF_MAIL_USERNAME }}
           TF_VAR_mail_password: ${{ secrets.TF_MAIL_PASSWORD }}
           TF_VAR_aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           TF_VAR_aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           TF_VAR_aws_session_token: ${{ secrets.AWS_SESSION_TOKEN }}
+          TF_VAR_state_bucket: ${{ needs.tf-bootstrap.outputs.state_bucket }}
+          TF_VAR_cluster_endpoint: ${{ needs.tf-bootstrap.outputs.cluster_endpoint }}
+          TF_VAR_cluster_ca_data: ${{ needs.tf-bootstrap.outputs.cluster_ca_data }}
+          TF_VAR_cluster_name: ${{ needs.tf-bootstrap.outputs.cluster_name }}
 
   # ============================================================
   # ETAPA 5 — VERIFICAÇÃO DO DEPLOY  (CD)

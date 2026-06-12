@@ -1,61 +1,87 @@
 #!/usr/bin/env bash
-# Aplica a infra em duas fases.
 #
-# Fase 1: VPC + EKS + RDS + ECR — necessário porque os providers helm/kubectl
-#         precisam do endpoint do cluster para ser configurados.
-# Fase 2: Apply completo — ALB (Terraform) + manifests Kubernetes.
+# apply.sh — orquestra o deploy da infra em duas etapas independentes:
 #
-# Uso:
-#   ./apply.sh                         — ambas as fases com confirmação interativa
-#   ./apply.sh --auto                  — ambas as fases sem confirmação
-#   ./apply.sh --phase 1               — somente Fase 1 (infra base + ECR)
-#   ./apply.sh --phase 2               — somente Fase 2 (ALB + app)
-#   ./apply.sh --pipeline              — fluxo completo igual ao CI/CD:
-#                                        testes → Fase 1 → docker build/push → Fase 2 → verificar
-#   ./apply.sh --pipeline --auto       — mesmo acima, sem confirmação
-#   ./apply.sh --pipeline --skip-tests — pula os testes (útil se já rodou antes)
-#   ./apply.sh --destroy               — destroi tudo em ordem reversa
-#   ./apply.sh --bucket meu-bucket     — bucket S3 do estado remoto
+#   bootstrap  — VPC + EKS + RDS + ECR
+#                Somente provider AWS. Roda antes do docker build.
 #
-# Variáveis do Terraform são lidas do terraform.tfvars (copie do .example):
-#   cp terraform.tfvars.example terraform.tfvars
+#   deploy     — ALB + app + autoscaler
+#                Providers kubectl/helm. Roda após o docker build.
+#                Lê os outputs do bootstrap via terraform_remote_state.
 #
-# O bucket S3 de estado é criado automaticamente se não existir.
+# ──────────────────────────────────────────────────────────────────────
+# Flags disponíveis:
+#
+#   (sem flags)          Roda bootstrap + deploy com confirmação interativa
+#   --auto               Roda bootstrap + deploy sem confirmação
+#   --bootstrap          Somente a etapa bootstrap (VPC + EKS + RDS + ECR)
+#   --deploy             Somente a etapa deploy    (ALB + app + autoscaler)
+#   --bootstrap --auto   Bootstrap sem confirmação
+#   --deploy    --auto   Deploy sem confirmação
+#
+#   --pipeline           Fluxo completo igual ao GitHub CI/CD:
+#                          testes → bootstrap → docker build/push → deploy → verificar
+#   --pipeline --auto    Mesmo acima, sem confirmação
+#   --pipeline --skip-test  Pula os testes Maven
+#
+#   --destroy            Destroi tudo em ordem reversa (deploy → bootstrap)
+#   --destroy --auto     Destroy sem confirmação
+#
+#   --bucket <nome>      Usa um bucket S3 específico para o estado remoto
+#                        (padrão: lata-velha-tfstate-<account-id>)
+#
+# ──────────────────────────────────────────────────────────────────────
+# Pré-requisitos:
+#   cp bootstrap/terraform.tfvars.example bootstrap/terraform.tfvars
+#   cp deploy/terraform.tfvars.example    deploy/terraform.tfvars
+#   # Edite os dois arquivos com suas credenciais
+#
+# ──────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
 
+# --- Parse de flags -------------------------------------------------------
 AUTO=""
 DESTROY=false
 PIPELINE=false
 SKIP_TESTS=false
-PHASE=0   # 0 = ambas, 1 = somente Fase 1, 2 = somente Fase 2
+RUN_BOOTSTRAP=false
+RUN_DEPLOY=false
 BUCKET="${TF_STATE_BUCKET:-}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --auto)        AUTO="-auto-approve" ;;
-    --destroy)     DESTROY=true ;;
-    --pipeline)    PIPELINE=true ;;
-    --skip-tests|--skip-test)  SKIP_TESTS=true ;;
-    --phase)       shift; PHASE="$1" ;;
-    --bucket)      shift; BUCKET="$1" ;;
+    --auto)                   AUTO="-auto-approve" ;;
+    --destroy)                DESTROY=true ;;
+    --pipeline)               PIPELINE=true ;;
+    --skip-tests|--skip-test) SKIP_TESTS=true ;;
+    --bootstrap)              RUN_BOOTSTRAP=true ;;
+    --deploy)                 RUN_DEPLOY=true ;;
+    --bucket)                 shift; BUCKET="$1" ;;
+    *)
+      echo "Flag desconhecida: $1"
+      echo "Use: --bootstrap, --deploy, --pipeline, --destroy, --auto, --skip-test, --bucket"
+      exit 1
+      ;;
   esac
   shift
 done
 
+# Se nenhuma etapa foi escolhida explicitamente, roda as duas
+if ! $RUN_BOOTSTRAP && ! $RUN_DEPLOY && ! $PIPELINE && ! $DESTROY; then
+  RUN_BOOTSTRAP=true
+  RUN_DEPLOY=true
+fi
+
+# --- Caminhos -------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+BOOTSTRAP_DIR="$SCRIPT_DIR/bootstrap"
+DEPLOY_DIR="$SCRIPT_DIR/deploy"
 REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 
-# Credenciais AWS para o kubernetes_secret gerenciado pelo Terraform.
-# Lidas do ambiente (AWS Academy exporta automaticamente) ou do aws configure.
-export TF_VAR_aws_access_key_id="${AWS_ACCESS_KEY_ID:-$(aws configure get aws_access_key_id 2>/dev/null || echo '')}"
-export TF_VAR_aws_secret_access_key="${AWS_SECRET_ACCESS_KEY:-$(aws configure get aws_secret_access_key 2>/dev/null || echo '')}"
-export TF_VAR_aws_session_token="${AWS_SESSION_TOKEN:-$(aws configure get aws_session_token 2>/dev/null || echo '')}"
-
-# ---------------------------------------------------------------------------
-# Bucket S3 de estado — criado automaticamente pelo account ID da AWS
-# ---------------------------------------------------------------------------
+# --- Bucket S3 de estado --------------------------------------------------
+# Criado automaticamente pelo account ID para garantir nome único global.
 if [[ -z "$BUCKET" ]]; then
   ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
   BUCKET="lata-velha-tfstate-${ACCOUNT_ID}"
@@ -63,7 +89,7 @@ fi
 
 echo "==> Bucket de estado: $BUCKET"
 if ! aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
-  echo "    Bucket não encontrado — criando..."
+  echo "    Criando bucket..."
   aws s3 mb "s3://$BUCKET" --region "$REGION"
   aws s3api put-bucket-versioning \
     --bucket "$BUCKET" \
@@ -71,41 +97,69 @@ if ! aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
   echo "    Bucket criado com versionamento ativado."
 fi
 
-terraform init -reconfigure \
-  -backend-config="bucket=${BUCKET}" \
-  -backend-config="region=${REGION}"
+# --- Funções auxiliares ---------------------------------------------------
 
-# ---------------------------------------------------------------------------
+tf_init() {
+  local dir="$1"
+  terraform -chdir="$dir" init -reconfigure \
+    -backend-config="bucket=${BUCKET}" \
+    -backend-config="region=${REGION}"
+}
+
+# Os providers kubectl/helm precisam dos dados de conexão do EKS como
+# variáveis (data sources não funcionam em blocos provider).
+# Lê os outputs do bootstrap e exporta como TF_VAR_ para o deploy.
+load_bootstrap_outputs() {
+  export TF_VAR_state_bucket="$BUCKET"
+  export TF_VAR_cluster_endpoint=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw cluster_endpoint)
+  export TF_VAR_cluster_ca_data=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw cluster_certificate_authority_data)
+  export TF_VAR_cluster_name=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw cluster_name)
+}
+
+# Credenciais AWS para o Cluster Autoscaler (AWS Academy não permite IRSA).
+export TF_VAR_aws_access_key_id="${AWS_ACCESS_KEY_ID:-$(aws configure get aws_access_key_id 2>/dev/null || echo '')}"
+export TF_VAR_aws_secret_access_key="${AWS_SECRET_ACCESS_KEY:-$(aws configure get aws_secret_access_key 2>/dev/null || echo '')}"
+export TF_VAR_aws_session_token="${AWS_SESSION_TOKEN:-$(aws configure get aws_session_token 2>/dev/null || echo '')}"
+
+# ==========================================================================
 # --destroy
-# ---------------------------------------------------------------------------
+# Ordem reversa: deploy primeiro (remove ALB/app), depois bootstrap (remove VPC/EKS/RDS).
+# ==========================================================================
 if $DESTROY; then
-  echo "==> Destruindo infraestrutura..."
-  terraform destroy $AUTO
+  echo ""
+  echo "==> [1/3] Destruindo deploy (ALB + app + autoscaler)..."
+  tf_init "$DEPLOY_DIR"
+  load_bootstrap_outputs
+  terraform -chdir="$DEPLOY_DIR" destroy $AUTO
 
-  echo "==> Removendo bucket de estado S3: $BUCKET"
+  echo ""
+  echo "==> [2/3] Destruindo bootstrap (VPC + EKS + RDS + ECR)..."
+  tf_init "$BOOTSTRAP_DIR"
+  terraform -chdir="$BOOTSTRAP_DIR" destroy $AUTO
+
+  echo ""
+  echo "==> [3/3] Removendo bucket de estado S3: $BUCKET"
   aws s3 rm "s3://$BUCKET" --recursive --region "$REGION" 2>/dev/null || true
   aws s3api delete-bucket --bucket "$BUCKET" --region "$REGION" 2>/dev/null && \
-    echo "    Bucket deletado." || echo "    Bucket não encontrado ou já deletado."
+    echo "    Bucket removido." || echo "    Bucket não encontrado ou já removido."
 
   exit 0
 fi
 
-# ---------------------------------------------------------------------------
-# --pipeline  →  testes → Fase 1 → docker build/push → Fase 2 → verificar
-# ---------------------------------------------------------------------------
+# ==========================================================================
+# --pipeline
+# Fluxo completo: testes → bootstrap → docker build/push → deploy → verificar
+# ==========================================================================
 if $PIPELINE; then
   echo ""
   echo "========================================"
   echo "  PIPELINE LOCAL — igual ao GitHub CI/CD"
   echo "========================================"
-  echo ""
 
-  # ------------------------------------------------------------------
-  # [Testes] — PostgreSQL efêmero via Docker, igual ao service container
-  #            do GitHub Actions. Parado automaticamente ao final.
-  # ------------------------------------------------------------------
+  # --- Testes ---------------------------------------------------------------
   if ! $SKIP_TESTS; then
-    echo "==> [Testes] Subindo PostgreSQL efêmero..."
+    echo ""
+    echo "==> [1/5] Testes — subindo PostgreSQL efêmero..."
     docker run --rm -d \
       --name lata-velha-test-db \
       -e POSTGRES_DB=lata_velha \
@@ -114,7 +168,6 @@ if $PIPELINE; then
       -p 5432:5432 \
       postgres:15
 
-    echo "    Aguardando PostgreSQL ficar pronto..."
     until docker exec lata-velha-test-db pg_isready -U admin 2>/dev/null; do
       sleep 1
     done
@@ -136,27 +189,20 @@ if $PIPELINE; then
     fi
     echo "    Testes concluídos com sucesso."
   else
-    echo "==> [Testes] Pulando (--skip-tests)"
+    echo ""
+    echo "==> [1/5] Testes — pulando (--skip-test)"
   fi
 
-  # ------------------------------------------------------------------
-  # [Fase 1] VPC + EKS + RDS + ECR
-  # ------------------------------------------------------------------
+  # --- Bootstrap ------------------------------------------------------------
   echo ""
-  echo "==> [Fase 1] VPC + EKS + RDS + ECR"
-  terraform apply \
-    -target=module.vpc \
-    -target=module.eks \
-    -target=module.rds \
-    -target=aws_ecr_repository.app \
-    $AUTO
+  echo "==> [2/5] Bootstrap — VPC + EKS + RDS + ECR"
+  tf_init "$BOOTSTRAP_DIR"
+  terraform -chdir="$BOOTSTRAP_DIR" apply $AUTO
 
-  # ------------------------------------------------------------------
-  # [Docker] Build e push para ECR
-  # ------------------------------------------------------------------
+  # --- Docker ---------------------------------------------------------------
   echo ""
-  echo "==> [Docker] Build e push da imagem"
-  ECR_URL=$(terraform output -raw ecr_repository_url)
+  echo "==> [3/5] Docker — build e push da imagem"
+  ECR_URL=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw ecr_repository_url)
   GIT_SHA=$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo "local")
   IMAGE="${ECR_URL}:${GIT_SHA}"
 
@@ -166,23 +212,19 @@ if $PIPELINE; then
   docker build --platform linux/amd64 -t "$IMAGE" "$PROJECT_ROOT"
   docker push "$IMAGE"
   echo "    Imagem: $IMAGE"
-
-  # docker_image é passado via env var — sobrescreve o valor do terraform.tfvars
   export TF_VAR_docker_image="$IMAGE"
 
-  # ------------------------------------------------------------------
-  # [Fase 2] ALB + app
-  # ------------------------------------------------------------------
+  # --- Deploy ---------------------------------------------------------------
   echo ""
-  echo "==> [Fase 2] ALB + aplicacao"
-  terraform apply $AUTO
+  echo "==> [4/5] Deploy — ALB + aplicação + autoscaler"
+  tf_init "$DEPLOY_DIR"
+  load_bootstrap_outputs
+  terraform -chdir="$DEPLOY_DIR" apply $AUTO
 
-  # ------------------------------------------------------------------
-  # [Verificar] Aguarda rollout igual ao job verify do GitHub Actions
-  # ------------------------------------------------------------------
+  # --- Verificar ------------------------------------------------------------
   echo ""
-  echo "==> [Verificar] Aguardando rollout dos pods..."
-  CLUSTER_NAME=$(terraform output -raw cluster_name)
+  echo "==> [5/5] Verificar — aguardando rollout dos pods..."
+  CLUSTER_NAME=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw cluster_name)
   aws eks update-kubeconfig --region "$REGION" --name "$CLUSTER_NAME" 2>/dev/null
 
   if command -v kubectl &>/dev/null; then
@@ -198,31 +240,30 @@ if $PIPELINE; then
   echo ""
   echo "==> Pipeline concluído."
   echo ""
-  terraform output app_url
+  terraform -chdir="$DEPLOY_DIR" output app_url
   exit 0
 fi
 
-# ---------------------------------------------------------------------------
-# --phase 1 / --phase 2 / sem flag (ambas)
-# ---------------------------------------------------------------------------
-if [[ $PHASE -eq 0 || $PHASE -eq 1 ]]; then
-  echo "==> Fase 1: VPC + EKS + RDS + ECR"
-  terraform apply \
-    -target=module.vpc \
-    -target=module.eks \
-    -target=module.rds \
-    -target=aws_ecr_repository.app \
-    $AUTO
+# ==========================================================================
+# --bootstrap / --deploy / ambos (sem flags)
+# ==========================================================================
+if $RUN_BOOTSTRAP; then
+  echo ""
+  echo "==> Bootstrap — VPC + EKS + RDS + ECR"
+  tf_init "$BOOTSTRAP_DIR"
+  terraform -chdir="$BOOTSTRAP_DIR" apply $AUTO
+
+  if ! $RUN_DEPLOY; then
+    echo ""
+    echo "    Próximo passo: faça push da imagem no ECR e rode --deploy"
+    echo "    ECR: $(terraform -chdir="$BOOTSTRAP_DIR" output -raw ecr_repository_url)"
+  fi
 fi
 
-if [[ $PHASE -eq 0 ]]; then
+if $RUN_DEPLOY; then
   echo ""
-  echo "    Lembre-se de fazer push da imagem no ECR antes de continuar."
-  echo "    Use: terraform output ecr_push_commands"
-  echo ""
-fi
-
-if [[ $PHASE -eq 0 || $PHASE -eq 2 ]]; then
-  echo "==> Fase 2: ALB + aplicacao"
-  terraform apply $AUTO
+  echo "==> Deploy — ALB + aplicação + autoscaler"
+  tf_init "$DEPLOY_DIR"
+  load_bootstrap_outputs
+  terraform -chdir="$DEPLOY_DIR" apply $AUTO
 fi
