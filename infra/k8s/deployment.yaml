@@ -6,7 +6,6 @@ metadata:
   labels:
     app: lata-velha-api
 spec:
-  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:

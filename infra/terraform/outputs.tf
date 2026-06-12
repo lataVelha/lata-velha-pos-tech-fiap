@@ -34,11 +34,8 @@ output "configure_kubectl" {
 
 
 output "app_url" {
-  description = "URL publica da aplicacao"
-  value = try(
-    "http://${data.kubernetes_ingress_v1.app.status[0].load_balancer[0].ingress[0].hostname}",
-    "(ALB ainda provisionando — aguarde 2 min e rode: terraform output app_url)"
-  )
+  description = "URL publica da aplicacao (ALB leva ~2 min para ficar ativo apos o apply)"
+  value       = "http://${module.alb.dns_name}"
 }
 
 output "rds_endpoint" {

@@ -29,7 +29,7 @@ resource "helm_release" "cluster_autoscaler" {
     value = "v${var.kubernetes_version}.0"
   }
 
-  # Mesma abordagem do ALB Controller: credenciais via secret (AWS Academy sem IRSA)
+  # Credenciais injetadas via secret porque AWS Academy não permite IRSA
   values = [
     yamlencode({
       extraEnvs = [

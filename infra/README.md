@@ -12,7 +12,7 @@ Compatível com **AWS Academy (Learner Lab)** — usa a `LabRole` pré-existente
 Internet
    │
    ▼
-AWS ALB (Application Load Balancer)       ← provisionado pelo aws-load-balancer-controller
+AWS ALB (Application Load Balancer)       ← provisionado pelo Terraform (modules/alb)
    │
    ▼
 EKS Node Group (EC2 t3.small × 2)        ← nodes em subnet privada
@@ -36,7 +36,7 @@ RDS PostgreSQL 15 (db.t3.micro)           ← subnet privada, sem acesso públic
 | ECR            | Repositório Docker privado (`lata-velha`)                            |
 | EKS Cluster    | Control plane gerenciado, Kubernetes 1.33                            |
 | EKS Node Group | EC2 `t3.small`, autoscaling min 2 / max 3                            |
-| ALB Controller | Helm chart `aws-load-balancer-controller` no `kube-system`           |
+| ALB             | Application Load Balancer internet-facing, HTTP 80 (Terraform)       |
 | RDS PostgreSQL | `db.t3.micro`, 20 GB, sem multi-AZ                                   |
 
 ### Recursos Kubernetes (módulo `app`)
@@ -44,13 +44,12 @@ RDS PostgreSQL 15 (db.t3.micro)           ← subnet privada, sem acesso públic
 | Recurso                  | Descrição                                            |
 | ------------------------ | ---------------------------------------------------- |
 | Namespace                | `lata-velha`                                         |
-| Secret `aws-credentials` | Credenciais AWS para o ALB Controller (kube-system)  |
-| ConfigMap                | Variáveis não-sensíveis da aplicação                 |
-| Secret                   | Credenciais do banco e e-mail (base64 via Terraform) |
-| Deployment               | 2 réplicas com probes de liveness/readiness/startup  |
-| Service                  | ClusterIP na porta 80 → 8080                         |
-| HPA                      | Autoscaling por CPU (70%) entre 2 e 10 réplicas      |
-| Ingress                  | ALB internet-facing, HTTP 80, target-type IP         |
+| Secret `aws-credentials` | Credenciais AWS para o Cluster Autoscaler (kube-system) |
+| ConfigMap                | Variáveis não-sensíveis da aplicação                    |
+| Secret                   | Credenciais do banco e e-mail (base64 via Terraform)    |
+| Deployment               | 2 réplicas com probes de liveness/readiness/startup     |
+| Service                  | NodePort 30080 → 8080 (ALB roteia para este NodePort)   |
+| HPA                      | Autoscaling por CPU (70%) entre 2 e 10 réplicas         |
 
 ---
 
@@ -64,8 +63,7 @@ infra/
 │   ├── secret.yaml             # template — valores base64 injetados pelo Terraform
 │   ├── deployment.yaml         # template — docker_image injetado pelo Terraform
 │   ├── service.yaml
-│   ├── hpa.yaml
-│   └── ingress.yaml
+│   └── hpa.yaml
 └── terraform/
     ├── apply.sh                # Script de deploy (local e CI/CD)
     ├── main.tf                 # recursos principais e módulos
@@ -79,7 +77,7 @@ infra/
         ├── vpc/                # VPC, subnets, IGW, NAT, route tables
         ├── eks/                # Cluster, node group, launch template
         ├── rds/                # RDS PostgreSQL, subnet group, security group
-        ├── alb-controller/     # Helm release do aws-load-balancer-controller
+        ├── alb/                # ALB, TG, Listener, SG gerenciados pelo Terraform
         └── app/                # kubectl_manifest para todos os objetos k8s
 ```
 
@@ -95,7 +93,7 @@ O AWS Academy (Learner Lab) tem restrições de IAM. A tabela abaixo mostra como
 | `iam:CreateOpenIDConnectProvider` negado  | IRSA removido — credenciais injetadas via `kubernetes_secret`               |
 | IMDS hop limit = 1 nos nodes              | Pods não alcançam instance profile — resolvido pelo secret acima            |
 | ARN de assumed-role no Access Entry       | Convertido automaticamente para ARN de IAM role via `sts:GetCallerIdentity` |
-| Recursos k8s-\* bloqueando VPC no destroy | `null_resource` apaga ALBs e SGs automaticamente antes da VPC               |
+| Recursos k8s-\* bloqueando VPC no destroy | ALB gerenciado pelo Terraform — destruído em ordem correta sem scripts       |
 
 ---
 
@@ -156,7 +154,7 @@ O pipeline executa automaticamente:
 [Testes]    →  PostgreSQL Docker efêmero + mvn test
 [Fase 1]    →  terraform apply  (VPC + EKS + RDS + ECR)
 [Docker]    →  docker build --platform linux/amd64 + push para ECR
-[Fase 2]    →  terraform apply  (ALB Controller + app + secret de credenciais)
+[Fase 2]    →  terraform apply  (ALB + app + secret de credenciais)
 [Verificar] →  kubectl rollout status  (timeout 5 min)
 ```
 
@@ -172,10 +170,10 @@ aws eks update-kubeconfig --region us-east-1 --name lata-velha-eks
 kubectl get pods -n lata-velha
 
 # URL pública do ALB (aguarde ~2 min após o deploy)
-kubectl get ingress lata-velha-api -n lata-velha
+terraform -chdir=infra/terraform output app_url
 
 # Testar a API
-curl http://<ADDRESS>/actuator/health
+curl http://<DNS_DO_ALB>/actuator/health
 ```
 
 ---
@@ -188,10 +186,9 @@ curl http://<ADDRESS>/actuator/health
 
 O destroy é totalmente automatizado:
 
-1. Terraform apaga os manifests Kubernetes (Ingress, Deployment, etc.)
-2. Um `null_resource` usa o AWS CLI para deletar ALBs, Target Groups e Security Groups `k8s-*` criados pelo ALB Controller
-3. Aguarda os ENIs serem liberados pela AWS
-4. VPC é deletada sem erros
+1. Terraform apaga os manifests Kubernetes (Deployment, Service, etc.)
+2. Terraform apaga o ALB, Target Group, Listener e Security Group (`module.alb`)
+3. VPC é deletada sem erros — sem scripts externos necessários
 
 > **Destrua o ambiente quando não precisar** — o EKS control plane custa ~US$ 73/mês mesmo sem tráfego.
 
@@ -203,7 +200,7 @@ O destroy é totalmente automatizado:
 ./apply.sh                          # ambas as fases com confirmação interativa
 ./apply.sh --auto                   # ambas as fases sem confirmação
 ./apply.sh --phase 1 --auto         # somente Fase 1 (VPC + EKS + RDS + ECR)
-./apply.sh --phase 2 --auto         # somente Fase 2 (ALB Controller + app)
+./apply.sh --phase 2 --auto         # somente Fase 2 (ALB + app)
 ./apply.sh --pipeline --skip-tests  # pipeline sem rodar os testes Maven
 ./apply.sh --destroy --auto         # destroi tudo sem confirmação
 ./apply.sh --bucket meu-bucket      # usar bucket S3 específico para o estado
@@ -246,7 +243,7 @@ O pipeline CI/CD (`.github/workflows/main.yml`) roda automaticamente em todo pus
 CI · 1 · Testes          →  compila e roda mvn test com PostgreSQL efêmero
 CD · 2 · Infraestrutura  →  apply.sh --phase 1  (VPC + EKS + RDS + ECR)
 CD · 3 · Build Docker    →  docker build --platform linux/amd64 + push ECR
-CD · 4 · Deploy          →  apply.sh --phase 2  (ALB Controller + app)
+CD · 4 · Deploy          →  apply.sh --phase 2  (ALB + app)
 CD · 5 · Verificar       →  kubectl rollout status
 ```
 

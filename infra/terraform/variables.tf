@@ -96,25 +96,25 @@ variable "mail_password" {
   sensitive   = true
 }
 
-# Credenciais AWS para o ALB Controller no AWS Academy.
-# O AWS Academy não permite IRSA (sem OIDC) e o IMDS tem hop limit=1 nos nodes.
+# Credenciais AWS para o Cluster Autoscaler no AWS Academy.
+# O AWS Academy não permite IRSA (sem OIDC) — injetadas via kubernetes_secret.
 # Passadas via TF_VAR_ no apply.sh e no GitHub Actions — nunca no tfvars.
 variable "aws_access_key_id" {
-  description = "AWS Access Key ID (ALB Controller — AWS Academy)"
+  description = "AWS Access Key ID (Cluster Autoscaler — AWS Academy)"
   type        = string
   sensitive   = true
   default     = ""
 }
 
 variable "aws_secret_access_key" {
-  description = "AWS Secret Access Key (ALB Controller — AWS Academy)"
+  description = "AWS Secret Access Key (Cluster Autoscaler — AWS Academy)"
   type        = string
   sensitive   = true
   default     = ""
 }
 
 variable "aws_session_token" {
-  description = "AWS Session Token (ALB Controller — AWS Academy)"
+  description = "AWS Session Token (Cluster Autoscaler — AWS Academy)"
   type        = string
   sensitive   = true
   default     = ""

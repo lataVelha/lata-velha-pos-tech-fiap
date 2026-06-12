@@ -42,8 +42,3 @@ resource "kubectl_manifest" "hpa" {
   yaml_body  = file("${local.k8s_dir}/hpa.yaml")
   depends_on = [kubectl_manifest.deployment]
 }
-
-resource "kubectl_manifest" "ingress" {
-  yaml_body  = file("${local.k8s_dir}/ingress.yaml")
-  depends_on = [kubectl_manifest.service]
-}

@@ -3,13 +3,13 @@
 #
 # Fase 1: VPC + EKS + RDS + ECR — necessário porque os providers helm/kubectl
 #         precisam do endpoint do cluster para ser configurados.
-# Fase 2: Apply completo — ALB Controller + manifests Kubernetes.
+# Fase 2: Apply completo — ALB (Terraform) + manifests Kubernetes.
 #
 # Uso:
 #   ./apply.sh                         — ambas as fases com confirmação interativa
 #   ./apply.sh --auto                  — ambas as fases sem confirmação
 #   ./apply.sh --phase 1               — somente Fase 1 (infra base + ECR)
-#   ./apply.sh --phase 2               — somente Fase 2 (ALB Controller + app)
+#   ./apply.sh --phase 2               — somente Fase 2 (ALB + app)
 #   ./apply.sh --pipeline              — fluxo completo igual ao CI/CD:
 #                                        testes → Fase 1 → docker build/push → Fase 2 → verificar
 #   ./apply.sh --pipeline --auto       — mesmo acima, sem confirmação
@@ -36,7 +36,7 @@ while [[ $# -gt 0 ]]; do
     --auto)        AUTO="-auto-approve" ;;
     --destroy)     DESTROY=true ;;
     --pipeline)    PIPELINE=true ;;
-    --skip-tests)  SKIP_TESTS=true ;;
+    --skip-tests|--skip-test)  SKIP_TESTS=true ;;
     --phase)       shift; PHASE="$1" ;;
     --bucket)      shift; BUCKET="$1" ;;
   esac
@@ -171,10 +171,10 @@ if $PIPELINE; then
   export TF_VAR_docker_image="$IMAGE"
 
   # ------------------------------------------------------------------
-  # [Fase 2] ALB Controller + app
+  # [Fase 2] ALB + app
   # ------------------------------------------------------------------
   echo ""
-  echo "==> [Fase 2] ALB Controller + aplicacao"
+  echo "==> [Fase 2] ALB + aplicacao"
   terraform apply $AUTO
 
   # ------------------------------------------------------------------
@@ -223,6 +223,6 @@ if [[ $PHASE -eq 0 ]]; then
 fi
 
 if [[ $PHASE -eq 0 || $PHASE -eq 2 ]]; then
-  echo "==> Fase 2: ALB Controller + aplicacao"
+  echo "==> Fase 2: ALB + aplicacao"
   terraform apply $AUTO
 fi

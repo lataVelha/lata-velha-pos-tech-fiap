@@ -133,8 +133,8 @@ jobs:
 
   # ============================================================
   # ETAPA 4 — DEPLOY / FASE 2  (CD)
-  # Aplica o restante da infra: ALB Controller e todos os
-  # manifests Kubernetes com a nova imagem.
+  # Aplica os manifests Kubernetes com a nova imagem.
+  # O ALB já foi criado na Fase 1 via module.alb (Terraform).
   # Usa apply.sh --phase 2 que reaproveita o estado da Fase 1.
   # ============================================================
   tf-deploy:
@@ -166,7 +166,7 @@ jobs:
       - name: Instalar kubectl
         uses: azure/setup-kubectl@v4
 
-      - name: Aplicar Fase 2 (ALB Controller + aplicacao)
+      - name: Aplicar Fase 2 (aplicacao)
         run: ./apply.sh --auto --phase 2
         env:
           AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
