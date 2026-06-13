@@ -28,7 +28,7 @@ resource "helm_release" "cluster_autoscaler" {
 
   set {
     name  = "image.tag"
-    value = "v${var.kubernetes_version}.0"
+    value = var.autoscaler_image_tag
   }
 
   # Credenciais injetadas via secret porque AWS Academy não permite IRSA
