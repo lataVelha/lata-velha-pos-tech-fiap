@@ -3,6 +3,8 @@ resource "helm_release" "cluster_autoscaler" {
   repository = "https://kubernetes.github.io/autoscaler"
   chart      = "cluster-autoscaler"
   namespace  = "kube-system"
+  timeout    = 600
+  wait       = true
 
   set {
     name  = "autoDiscovery.clusterName"
