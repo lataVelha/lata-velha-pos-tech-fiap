@@ -109,11 +109,21 @@ tf_init() {
 # Os providers kubectl/helm precisam dos dados de conexão do EKS como
 # variáveis (data sources não funcionam em blocos provider).
 # Lê os outputs do bootstrap e exporta como TF_VAR_ para o deploy.
+# Se as variáveis já estiverem definidas no ambiente (ex: CI via workflow),
+# não as sobrescreve — evita exportar string vazia quando o bootstrap dir
+# não está inicializado no runner.
 load_bootstrap_outputs() {
-  export TF_VAR_state_bucket="$BUCKET"
-  export TF_VAR_cluster_endpoint=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw cluster_endpoint)
-  export TF_VAR_cluster_ca_data=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw cluster_certificate_authority_data)
-  export TF_VAR_cluster_name=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw cluster_name)
+  export TF_VAR_state_bucket="${TF_VAR_state_bucket:-$BUCKET}"
+
+  if [[ -z "${TF_VAR_cluster_endpoint:-}" ]] || \
+     [[ -z "${TF_VAR_cluster_ca_data:-}" ]] || \
+     [[ -z "${TF_VAR_cluster_name:-}" ]]; then
+    # Inicializa bootstrap silenciosamente para poder ler os outputs
+    tf_init "$BOOTSTRAP_DIR" > /dev/null 2>&1
+    export TF_VAR_cluster_endpoint=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw cluster_endpoint)
+    export TF_VAR_cluster_ca_data=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw cluster_certificate_authority_data)
+    export TF_VAR_cluster_name=$(terraform -chdir="$BOOTSTRAP_DIR" output -raw cluster_name)
+  fi
 }
 
 # Credenciais AWS para o Cluster Autoscaler (AWS Academy não permite IRSA).
