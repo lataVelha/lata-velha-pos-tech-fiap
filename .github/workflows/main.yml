@@ -15,7 +15,7 @@ jobs:
   # ============================================================
   test:
     name: "CI · 1 · Testes"
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:
@@ -40,7 +40,7 @@ jobs:
     name: "CD · 2 · Bootstrap (VPC + EKS + RDS + ECR)"
     needs: test
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     outputs:
@@ -95,7 +95,7 @@ jobs:
   build:
     name: "CD · 3 · Build Docker → ECR"
     needs: tf-bootstrap
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     outputs:
@@ -131,7 +131,7 @@ jobs:
   tf-deploy:
     name: "CD · 4 · Deploy (ALB + app + autoscaler)"
     needs: [build, tf-bootstrap]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     concurrency:
@@ -182,7 +182,7 @@ jobs:
   verify:
     name: "CD · 5 · Verificar Deploy"
     needs: [tf-deploy, tf-bootstrap]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
