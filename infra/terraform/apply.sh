@@ -91,15 +91,16 @@ if $DESTROY; then
   echo ""
   echo "==> [3/3] Removendo bucket de estado S3: $BUCKET"
   aws s3api list-object-versions --bucket "$BUCKET" --output text \
-    --query 'Versions[*].[Key,VersionId]' 2>/dev/null | \
+    --query 'Versions[?VersionId!=`null`].[Key,VersionId]' 2>/dev/null | \
     while read -r key version; do
       aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" > /dev/null
     done
   aws s3api list-object-versions --bucket "$BUCKET" --output text \
-    --query 'DeleteMarkers[*].[Key,VersionId]' 2>/dev/null | \
+    --query 'DeleteMarkers[?VersionId!=`null`].[Key,VersionId]' 2>/dev/null | \
     while read -r key version; do
       aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" > /dev/null
     done
+  aws s3 rm "s3://$BUCKET" --recursive > /dev/null 2>&1 || true
   aws s3api delete-bucket --bucket "$BUCKET" --region "$REGION" 2>/dev/null && \
     echo "    Bucket removido." || echo "    Bucket não encontrado ou já removido."
 
