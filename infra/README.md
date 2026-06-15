@@ -48,7 +48,7 @@ e desregistra nodes automaticamente conforme o cluster escala.
 | -------------- | --------------------------------------------------------------------- |
 | VPC            | CIDR `10.0.0.0/16`, 2 AZs, subnets públicas + privadas + NAT Gateway |
 | ECR            | Repositório Docker privado (`lata-velha`)                             |
-| EKS Cluster    | Control plane gerenciado, Kubernetes 1.33                             |
+| EKS Cluster    | Control plane gerenciado, Kubernetes 1.36                             |
 | EKS Node Group | EC2 `t3.small`, autoscaling min 2 / max 3                             |
 | RDS PostgreSQL | `db.t3.micro`, 20 GB, sem multi-AZ, subnet privada                    |
 
@@ -226,7 +226,7 @@ mail_password = "xxxx xxxx xxxx xxxx"   # Senha de App do Gmail
 ### 3. Rodar o pipeline completo
 
 ```bash
-./apply.sh --pipeline --auto
+./apply.sh --auto
 ```
 
 O pipeline executa automaticamente em 5 etapas:
@@ -244,17 +244,7 @@ Tempo total: **~20–30 minutos** na primeira execução.
 **Quer pular os testes Maven?**
 
 ```bash
-./apply.sh --pipeline --auto --skip-test
-```
-
-**Quer rodar por etapa** (ex: EKS já existe, só quer redeployar o app)?
-
-```bash
-# Somente a infraestrutura base
-./apply.sh --bootstrap --auto
-
-# Somente o deploy da aplicação
-./apply.sh --deploy --auto
+./apply.sh --auto --skip-test
 ```
 
 ### 4. Verificar o deploy
@@ -292,23 +282,12 @@ O destroy acontece em ordem reversa:
 ## Flags do apply.sh
 
 ```bash
-# Execução normal
-./apply.sh                      # bootstrap + deploy com confirmação interativa
-./apply.sh --auto               # bootstrap + deploy sem confirmação
-
-# Por etapa
-./apply.sh --bootstrap          # somente VPC + EKS + RDS + ECR
-./apply.sh --bootstrap --auto   # idem, sem confirmação
-./apply.sh --deploy             # somente ALB + app + autoscaler
-./apply.sh --deploy --auto      # idem, sem confirmação
-
-# Pipeline completo (igual ao CI/CD)
-./apply.sh --pipeline --auto        # testes + bootstrap + docker + deploy + verificar
-./apply.sh --pipeline --skip-test   # mesmo acima, pulando os testes Maven
-
-# Outros
-./apply.sh --destroy --auto     # destroi tudo sem confirmação
-./apply.sh --bucket meu-bucket  # usar bucket S3 específico para o estado
+./apply.sh                    # pipeline completo com confirmação interativa
+./apply.sh --auto             # pipeline completo sem confirmação
+./apply.sh --skip-test        # pula os testes Maven
+./apply.sh --auto --skip-test # sem confirmação e sem testes
+./apply.sh --destroy          # destroi tudo com confirmação
+./apply.sh --destroy --auto   # destroi tudo sem confirmação
 ```
 
 ---
@@ -344,13 +323,134 @@ O pipeline CI/CD (`.github/workflows/main.yml`) roda automaticamente em todo pus
 
 ```
 CI · 1 · Testes      →  mvn test com PostgreSQL efêmero
-CD · 2 · Bootstrap   →  apply.sh --bootstrap  (VPC + EKS + RDS + ECR)
+CD · 2 · Bootstrap   →  terraform apply  (VPC + EKS + RDS + ECR)
 CD · 3 · Build       →  docker build + push para ECR
-CD · 4 · Deploy      →  apply.sh --deploy     (ALB + app + autoscaler)
+CD · 4 · Deploy      →  terraform apply  (ALB + app + autoscaler)
 CD · 5 · Verificar   →  kubectl rollout status (timeout 5 min)
 ```
 
 As etapas CD só rodam em push direto para `master` (não em Pull Requests).
+
+---
+
+## Comandos Terraform diretos (sem apply.sh)
+
+Equivalente ao `apply.sh`, executando cada passo manualmente. Útil para depurar ou aprender o que o script faz internamente.
+
+> **Pré-requisito:** configure os arquivos `.tfvars` conforme o passo 2 da seção anterior antes de rodar os comandos abaixo.
+
+### 1. Criar o bucket de estado S3
+
+```bash
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+BUCKET="lata-velha-tfstate-${ACCOUNT_ID}"
+REGION="us-east-1"
+
+aws s3 mb "s3://$BUCKET" --region $REGION
+aws s3api put-bucket-versioning \
+  --bucket $BUCKET \
+  --versioning-configuration Status=Enabled
+```
+
+### 2. Bootstrap — VPC + EKS + RDS + ECR
+
+O `db_password` é lido automaticamente do `bootstrap/terraform.tfvars`.
+
+```bash
+cd infra/terraform
+
+terraform -chdir=bootstrap init \
+  -backend-config="bucket=$BUCKET" \
+  -backend-config="region=$REGION"
+
+terraform -chdir=bootstrap plan
+terraform -chdir=bootstrap apply
+```
+
+### 3. Capturar outputs do bootstrap
+
+O módulo `deploy` precisa do endpoint do cluster EKS para configurar os providers `kubectl` e `helm`. Exporte como `TF_VAR_` para que o Terraform os leia automaticamente:
+
+```bash
+export TF_VAR_state_bucket="$BUCKET"
+export TF_VAR_cluster_name=$(terraform -chdir=bootstrap output -raw cluster_name)
+export TF_VAR_cluster_endpoint=$(terraform -chdir=bootstrap output -raw cluster_endpoint)
+export TF_VAR_cluster_ca_data=$(terraform -chdir=bootstrap output -raw cluster_certificate_authority_data)
+
+# Credenciais para o Cluster Autoscaler (AWS Academy não suporta IRSA)
+export TF_VAR_aws_access_key_id="$AWS_ACCESS_KEY_ID"
+export TF_VAR_aws_secret_access_key="$AWS_SECRET_ACCESS_KEY"
+export TF_VAR_aws_session_token="$AWS_SESSION_TOKEN"
+```
+
+### 4. Build e push da imagem Docker
+
+```bash
+ECR_URL=$(terraform -chdir=bootstrap output -raw ecr_repository_url)
+IMAGE="${ECR_URL}:$(git rev-parse --short HEAD)"
+
+aws ecr get-login-password --region $REGION \
+  | docker login --username AWS --password-stdin "$ECR_URL"
+
+docker build --platform linux/amd64 -t "$IMAGE" ../../
+docker push "$IMAGE"
+```
+
+### 5. Deploy — ALB + app + autoscaler
+
+`mail_username` e `mail_password` são lidos do `deploy/terraform.tfvars`. Somente `docker_image` é passado via variável de ambiente por ser calculado em tempo de execução.
+
+```bash
+export TF_VAR_docker_image="$IMAGE"
+
+terraform -chdir=deploy init \
+  -backend-config="bucket=$BUCKET" \
+  -backend-config="region=$REGION"
+
+terraform -chdir=deploy plan
+terraform -chdir=deploy apply
+```
+
+### 6. Verificar o deploy
+
+```bash
+CLUSTER=$(terraform -chdir=bootstrap output -raw cluster_name)
+aws eks update-kubeconfig --region $REGION --name $CLUSTER
+
+kubectl get pods -n lata-velha
+kubectl rollout status deployment/lata-velha-api -n lata-velha --timeout=5m
+
+terraform -chdir=deploy output app_url
+```
+
+### 7. Destroy — ordem reversa
+
+```bash
+# 1. Destroi o módulo deploy (ALB + app + autoscaler)
+terraform -chdir=deploy init \
+  -backend-config="bucket=$BUCKET" \
+  -backend-config="region=$REGION"
+terraform -chdir=deploy destroy
+
+# 2. Destroi o módulo bootstrap (VPC + EKS + RDS + ECR)
+terraform -chdir=bootstrap init \
+  -backend-config="bucket=$BUCKET" \
+  -backend-config="region=$REGION"
+terraform -chdir=bootstrap destroy
+
+# 3. Remove o bucket de estado (deleta versões e delete markers antes)
+aws s3api list-object-versions --bucket "$BUCKET" --output text \
+  --query 'Versions[*].[Key,VersionId]' | \
+  while read -r key version; do
+    aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" > /dev/null
+  done
+aws s3api list-object-versions --bucket "$BUCKET" --output text \
+  --query 'DeleteMarkers[*].[Key,VersionId]' | \
+  while read -r key version; do
+    aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" > /dev/null
+  done
+aws s3api delete-bucket --bucket "$BUCKET" --region $REGION
+```
 
 ---
 
@@ -364,7 +464,7 @@ As etapas CD só rodam em push direto para `master` (não em Pull Requests).
 | `project_name`       | `lata-velha`      | Prefixo de todos os recursos        |
 | `environment`        | `dev`             | Tag de ambiente                     |
 | `vpc_cidr`           | `10.0.0.0/16`     | CIDR da VPC                         |
-| `kubernetes_version` | `1.33`            | Versão do Kubernetes                |
+| `kubernetes_version` | `1.36`            | Versão do Kubernetes                |
 | `node_instance_type` | `t3.small`        | Tipo de EC2 dos nodes               |
 | `node_desired_size`  | `2`               | Quantidade inicial de nodes         |
 | `node_min_size`      | `1`               | Mínimo de nodes                     |

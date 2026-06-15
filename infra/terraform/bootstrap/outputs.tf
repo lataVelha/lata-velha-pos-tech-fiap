@@ -15,8 +15,7 @@ output "cluster_security_group_id" {
 }
 
 output "node_asg_name" {
-  value      = module.eks.node_asg_name
-  depends_on = [time_sleep.wait_for_eks]
+  value = module.eks.node_asg_name
 }
 
 output "vpc_id" {

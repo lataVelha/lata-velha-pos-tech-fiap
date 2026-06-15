@@ -64,9 +64,3 @@ resource "aws_ecr_repository" "app" {
   }
 }
 
-# Aguarda o API server estabilizar antes de expor os outputs de conexao.
-# O posbuild usa esses outputs para configurar os providers kubectl/helm.
-resource "time_sleep" "wait_for_eks" {
-  depends_on      = [module.eks]
-  create_duration = "60s"
-}
