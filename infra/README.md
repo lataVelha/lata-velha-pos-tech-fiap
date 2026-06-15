@@ -439,17 +439,23 @@ terraform -chdir=bootstrap init \
 terraform -chdir=bootstrap destroy
 
 # 3. Remove o bucket de estado (deleta versões e delete markers antes)
+REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+
 aws s3api list-object-versions --bucket "$BUCKET" --output text \
-  --query 'Versions[*].[Key,VersionId]' | \
+  --query 'Versions[?VersionId!=`null`].[Key,VersionId]' 2>/dev/null | \
   while read -r key version; do
     aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" > /dev/null
   done
+
 aws s3api list-object-versions --bucket "$BUCKET" --output text \
-  --query 'DeleteMarkers[*].[Key,VersionId]' | \
+  --query 'DeleteMarkers[?VersionId!=`null`].[Key,VersionId]' 2>/dev/null | \
   while read -r key version; do
     aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" > /dev/null
   done
-aws s3api delete-bucket --bucket "$BUCKET" --region $REGION
+
+# Remove objetos sem VersionId (enviados antes do versionamento ser ativado)
+aws s3 rm "s3://$BUCKET" --recursive > /dev/null 2>&1 || true
+aws s3api delete-bucket --bucket "$BUCKET" --region "$REGION"
 ```
 
 ---

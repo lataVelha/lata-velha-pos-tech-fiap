@@ -46,9 +46,8 @@ resource "kubectl_manifest" "aws_credentials" {
 module "cluster_autoscaler" {
   source = "../modules/cluster-autoscaler"
 
-  cluster_name       = var.cluster_name
-  region             = var.region
-  kubernetes_version = local.bootstrap.kubernetes_version
+  cluster_name = var.cluster_name
+  region       = var.region
 
   depends_on = [kubectl_manifest.aws_credentials]
 }

@@ -26,11 +26,6 @@ resource "helm_release" "cluster_autoscaler" {
     value = "cluster-autoscaler"
   }
 
-  set {
-    name  = "image.tag"
-    value = var.autoscaler_image_tag
-  }
-
   # Credenciais injetadas via secret porque AWS Academy não permite IRSA
   values = [
     yamlencode({

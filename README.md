@@ -241,7 +241,7 @@ VPC, EKS, RDS, ECR, ALB e autoscaling provisionados na AWS com Terraform.
 | SonarQube            | Community | Análise estática de código     |
 | Docker Compose       | 3.8     | Orquestração de containers     |
 | Terraform            | >= 1.6  | Infraestrutura como código (AWS) |
-| AWS EKS              | 1.33    | Cluster Kubernetes gerenciado  |
+| AWS EKS              | 1.36    | Cluster Kubernetes gerenciado  |
 | Lombok               | 1.18.32 | Redução de boilerplate         |
 | Spring Mail          | via 3.2 | Envio de emails (Gmail SMTP)   |
 | Thymeleaf            | via 3.2 | Templates de email             |
