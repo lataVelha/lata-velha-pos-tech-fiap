@@ -32,5 +32,5 @@ variable "node_port" {
 variable "health_check_path" {
   description = "Path do health check"
   type        = string
-  default     = "/actuator/health"
+  default     = "/actuator/health/readiness"
 }

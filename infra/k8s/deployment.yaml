@@ -23,6 +23,7 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         fsGroup: 1000
+      # Espalha as réplicas entre nodes diferentes (melhor esforço)
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -38,7 +39,7 @@ spec:
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
           ports:
             - name: http
               containerPort: 8080
@@ -48,6 +49,10 @@ spec:
                 name: lata-velha-config
             - secretRef:
                 name: lata-velha-db-secret
+          # /tmp gravável para o work dir do Tomcat (FS raiz é read-only)
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 250m
@@ -55,6 +60,7 @@ spec:
             limits:
               cpu: 1000m
               memory: 1Gi
+          # Aguarda o Spring Boot subir (até ~150s) antes das demais probes
           startupProbe:
             httpGet:
               path: /actuator/health
@@ -79,3 +85,6 @@ spec:
             timeoutSeconds: 3
             failureThreshold: 3
       terminationGracePeriodSeconds: 60
+      volumes:
+        - name: tmp
+          emptyDir: {}

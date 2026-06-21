@@ -38,11 +38,11 @@ resource "aws_lb" "this" {
 }
 
 resource "aws_lb_target_group" "this" {
-  name                 = "${var.name}-tg"
-  port                 = var.node_port
-  protocol             = "HTTP"
-  vpc_id               = var.vpc_id
-  target_type          = "instance"
+  name        = "${var.name}-tg"
+  port        = var.node_port
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "instance"
   # Deve ser <= terminationGracePeriodSeconds (60s) para evitar TCP resets
   # após o pod encerrar mas o ALB ainda rotear para o node.
   deregistration_delay = 60

@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 860" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#37474f"/>
+    </marker>
+    <style>
+      .title   { font-size: 26px; font-weight: 700; fill: #232f3e; }
+      .sub     { font-size: 13px; fill: #5f6b7a; }
+      .lbl     { font-size: 13px; font-weight: 600; fill: #232f3e; }
+      .small   { font-size: 11px; fill: #5f6b7a; }
+      .white   { fill: #ffffff; font-weight: 600; }
+      .edge    { stroke: #37474f; stroke-width: 1.6; fill: none; }
+      .edge-d  { stroke: #8e99a8; stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+      .zone    { fill: none; stroke-width: 1.6; }
+    </style>
+  </defs>
+
+  <rect width="1180" height="860" fill="#f4f6f9"/>
+  <text x="40" y="48" class="title">Lata Velha — Arquitetura AWS</text>
+  <text x="40" y="70" class="sub">Provisionada via Terraform (AWS Academy / LabRole) · Região us-east-1</text>
+
+  <!-- Internet / usuário -->
+  <g>
+    <rect x="40" y="110" width="150" height="64" rx="10" fill="#ffffff" stroke="#cfd8dc"/>
+    <text x="115" y="140" text-anchor="middle" class="lbl">🌐 Internet</text>
+    <text x="115" y="159" text-anchor="middle" class="small">usuários / clientes HTTP</text>
+  </g>
+
+  <!-- GitHub Actions CI/CD -->
+  <g>
+    <rect x="880" y="110" width="260" height="84" rx="10" fill="#ffffff" stroke="#cfd8dc"/>
+    <text x="1010" y="138" text-anchor="middle" class="lbl">⚙️ GitHub Actions (CI/CD)</text>
+    <text x="1010" y="158" text-anchor="middle" class="small">test → bootstrap → build → deploy → verify</text>
+    <text x="1010" y="176" text-anchor="middle" class="small">terraform apply · docker build/push</text>
+  </g>
+
+  <!-- Serviços regionais (fora da VPC) -->
+  <g>
+    <rect x="880" y="220" width="260" height="70" rx="10" fill="#fff3e0" stroke="#fb8c00"/>
+    <text x="1010" y="248" text-anchor="middle" class="lbl">📦 Amazon ECR</text>
+    <text x="1010" y="268" text-anchor="middle" class="small">imagem Docker (tag = SHA)</text>
+  </g>
+  <g>
+    <rect x="880" y="306" width="260" height="70" rx="10" fill="#e8f5e9" stroke="#43a047"/>
+    <text x="1010" y="334" text-anchor="middle" class="lbl">🪣 Amazon S3</text>
+    <text x="1010" y="354" text-anchor="middle" class="small">tfstate + lock (use_lockfile)</text>
+  </g>
+
+  <!-- VPC -->
+  <rect x="40" y="220" width="800" height="600" rx="14" class="zone" stroke="#0277bd"/>
+  <text x="60" y="248" class="lbl" fill="#0277bd">VPC  10.0.0.0/16</text>
+  <!-- Internet Gateway -->
+  <rect x="360" y="232" width="160" height="34" rx="8" fill="#e1f5fe" stroke="#0277bd"/>
+  <text x="440" y="254" text-anchor="middle" class="lbl">🚪 Internet Gateway</text>
+
+  <!-- Subnets públicas -->
+  <rect x="60" y="286" width="760" height="150" rx="10" class="zone" stroke="#7e57c2" fill="#f3e9fc"/>
+  <text x="76" y="308" class="lbl" fill="#7e57c2">Subnets públicas  (AZ-a · AZ-b)</text>
+
+  <!-- ALB -->
+  <rect x="300" y="324" width="260" height="64" rx="10" fill="#ede7f6" stroke="#7e57c2"/>
+  <text x="430" y="350" text-anchor="middle" class="lbl">⚖️ Application Load Balancer</text>
+  <text x="430" y="370" text-anchor="middle" class="small">HTTP :80 → NodePort :30080</text>
+
+  <!-- NAT Gateways -->
+  <rect x="90" y="324" width="170" height="64" rx="10" fill="#ede7f6" stroke="#7e57c2"/>
+  <text x="175" y="350" text-anchor="middle" class="lbl">NAT GW (AZ-a)</text>
+  <text x="175" y="370" text-anchor="middle" class="small">egress dos nodes</text>
+  <rect x="600" y="324" width="170" height="64" rx="10" fill="#ede7f6" stroke="#7e57c2"/>
+  <text x="685" y="350" text-anchor="middle" class="lbl">NAT GW (AZ-b)</text>
+  <text x="685" y="370" text-anchor="middle" class="small">egress dos nodes</text>
+
+  <!-- Subnets privadas -->
+  <rect x="60" y="456" width="760" height="344" rx="10" class="zone" stroke="#00897b" fill="#e0f2f1"/>
+  <text x="76" y="478" class="lbl" fill="#00897b">Subnets privadas  (AZ-a · AZ-b)</text>
+
+  <!-- EKS Cluster -->
+  <rect x="80" y="494" width="500" height="288" rx="10" fill="#fff8e1" stroke="#fb8c00"/>
+  <text x="100" y="518" class="lbl" fill="#e65100">☸️ Amazon EKS — Kubernetes 1.36</text>
+  <text x="100" y="536" class="small">namespace: lata-velha</text>
+
+  <!-- Node A -->
+  <rect x="100" y="552" width="210" height="150" rx="8" fill="#ffffff" stroke="#fb8c00"/>
+  <text x="205" y="574" text-anchor="middle" class="lbl">EC2 node (t3.small) AZ-a</text>
+  <rect x="116" y="586" width="80" height="44" rx="6" fill="#fb8c00"/>
+  <text x="156" y="613" text-anchor="middle" class="white" font-size="11">api pod</text>
+  <rect x="208" y="586" width="86" height="44" rx="6" fill="#fb8c00"/>
+  <text x="251" y="613" text-anchor="middle" class="white" font-size="11">api pod</text>
+  <text x="205" y="654" text-anchor="middle" class="small">readOnlyRootFs · /tmp emptyDir</text>
+  <text x="205" y="672" text-anchor="middle" class="small">probes liveness/readiness</text>
+
+  <!-- Node B -->
+  <rect x="350" y="552" width="210" height="150" rx="8" fill="#ffffff" stroke="#fb8c00"/>
+  <text x="455" y="574" text-anchor="middle" class="lbl">EC2 node (t3.small) AZ-b</text>
+  <rect x="366" y="586" width="80" height="44" rx="6" fill="#fb8c00"/>
+  <text x="406" y="613" text-anchor="middle" class="white" font-size="11">api pod</text>
+  <rect x="458" y="586" width="86" height="44" rx="6" fill="#fb8c00"/>
+  <text x="501" y="613" text-anchor="middle" class="white" font-size="11">api pod</text>
+  <text x="455" y="654" text-anchor="middle" class="small">anti-affinity entre nodes</text>
+  <text x="455" y="672" text-anchor="middle" class="small">PDB: maxUnavailable 1</text>
+
+  <!-- Add-ons -->
+  <rect x="100" y="716" width="460" height="50" rx="8" fill="#fff3e0" stroke="#fb8c00"/>
+  <text x="330" y="736" text-anchor="middle" class="lbl">HPA (2–6) · metrics-server · cluster-autoscaler (nodes 1–4)</text>
+  <text x="330" y="754" text-anchor="middle" class="small">Node Group autoscaling · scale por CPU</text>
+
+  <!-- RDS -->
+  <rect x="610" y="552" width="190" height="214" rx="10" fill="#e3f2fd" stroke="#1565c0"/>
+  <text x="705" y="588" text-anchor="middle" class="lbl" fill="#1565c0">🗄️ Amazon RDS</text>
+  <text x="705" y="608" text-anchor="middle" class="small">PostgreSQL 15</text>
+  <text x="705" y="626" text-anchor="middle" class="small">db.t3.micro · 20 GB</text>
+  <text x="705" y="652" text-anchor="middle" class="small">storage_encrypted</text>
+  <text x="705" y="670" text-anchor="middle" class="small">SG: 5432 só da VPC</text>
+  <text x="705" y="688" text-anchor="middle" class="small">sem acesso público</text>
+
+  <!-- Conexões -->
+  <!-- Internet -> IGW -->
+  <path class="edge" d="M115 174 L115 249 L358 249" marker-end="url(#arrow)"/>
+  <!-- IGW -> ALB -->
+  <path class="edge" d="M440 266 L440 322" marker-end="url(#arrow)"/>
+  <!-- ALB -> nodes -->
+  <path class="edge" d="M430 388 L430 460 L300 460 L300 551" marker-end="url(#arrow)"/>
+  <path class="edge" d="M430 388 L430 460 L205 460 L205 551" marker-end="url(#arrow)"/>
+  <!-- pods -> RDS (5432) -->
+  <path class="edge" d="M560 626 L608 626" marker-end="url(#arrow)"/>
+  <text x="584" y="618" text-anchor="middle" class="small">5432</text>
+  <!-- nodes -> NAT (egress) -->
+  <path class="edge-d" d="M205 552 L205 470 L175 470 L175 390" marker-end="url(#arrow)"/>
+  <!-- GitHub Actions -> ECR -->
+  <path class="edge-d" d="M1010 194 L1010 218" marker-end="url(#arrow)"/>
+  <!-- ECR -> EKS (pull image) -->
+  <path class="edge-d" d="M880 255 L600 255 L460 255 L460 494" marker-end="url(#arrow)"/>
+  <text x="700" y="248" text-anchor="middle" class="small">pull image</text>
+  <!-- GitHub Actions -> S3 (state) -->
+  <path class="edge-d" d="M1040 194 L1040 210 L1130 210 L1130 341 L1142 341" />
+  <path class="edge-d" d="M1010 290 L1010 305" marker-end="url(#arrow)"/>
+
+  <!-- Legenda -->
+  <g>
+    <rect x="880" y="700" width="260" height="120" rx="10" fill="#ffffff" stroke="#cfd8dc"/>
+    <text x="900" y="724" class="lbl">Legenda</text>
+    <line x1="900" y1="742" x2="936" y2="742" class="edge" marker-end="url(#arrow)"/>
+    <text x="946" y="746" class="small">tráfego / requisição</text>
+    <line x1="900" y1="766" x2="936" y2="766" class="edge-d" marker-end="url(#arrow)"/>
+    <text x="946" y="770" class="small">deploy / egress / imagem</text>
+    <text x="900" y="796" class="small">🟧 EKS/compute  🟦 RDS  🟪 rede pública</text>
+    <text x="900" y="812" class="small">🟩 S3  🟧 ECR  ⬜ externo à VPC</text>
+  </g>
+</svg>
