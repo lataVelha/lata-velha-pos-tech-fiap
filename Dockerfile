@@ -12,7 +12,7 @@ FROM amazoncorretto:21-alpine3.20
 
 WORKDIR /app
 
-COPY --from=build /app/target/Lata-Velha-0.0.1.jar ./app.jar
+COPY --from=build /app/target/*.jar ./app.jar
 
 EXPOSE 8080
 
