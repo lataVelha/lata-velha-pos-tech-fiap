@@ -49,7 +49,7 @@ variable "node_min_size" {
 variable "node_max_size" {
   description = "Maximo de nodes (deve suportar o maxReplicas do HPA)"
   type        = number
-  default     = 2
+  default     = 4
 }
 
 variable "db_name" {

@@ -8,12 +8,31 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: lata-velha-api
-  minReplicas: 1
-  maxReplicas: 3
+  minReplicas: 2
+  maxReplicas: 6
   metrics:
+    # Só CPU: por memória a JVM (heap reservado) deixaria a HPA travada no máximo
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 50
+          averageUtilization: 60
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+      selectPolicy: Max
+    # Desce devagar (evita flapping): 1 min de espera, máx. 1 pod a cada 2 min
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120

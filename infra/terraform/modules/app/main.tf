@@ -42,3 +42,8 @@ resource "kubectl_manifest" "hpa" {
   yaml_body  = file("${local.k8s_dir}/hpa.yaml")
   depends_on = [kubectl_manifest.deployment]
 }
+
+resource "kubectl_manifest" "pdb" {
+  yaml_body  = file("${local.k8s_dir}/pdb.yaml")
+  depends_on = [kubectl_manifest.deployment]
+}
