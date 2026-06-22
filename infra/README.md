@@ -1,12 +1,27 @@
 # Infraestrutura — Lata Velha (AWS + EKS)
 
-Infraestrutura como código para o projeto **Lata Velha** na AWS usando **Terraform >= 1.6**.
+Infraestrutura como código para o projeto **Lata Velha** na AWS usando **Terraform >= 1.10** (lock de estado nativo do S3).
 
 Compatível com **AWS Academy (Learner Lab)** — usa a `LabRole` pré-existente sem precisar criar IAM roles ou OIDC providers.
 
 ---
 
+## Visão geral
+
+O GitHub Actions provisiona a infra e implanta a aplicação em **5 jobs encadeados** — cada um só roda se o anterior passar; o CD executa apenas em push para `master`.
+
+![Pipeline CI/CD](../documentation/pipeline-cicd.svg)
+
+**Atalhos:** [Arquitetura](#arquitetura) · [O que é provisionado](#o-que-é-provisionado) · [Segurança](#segurança--disponibilidade) · [Rodar localmente](#rodando-localmente--passo-a-passo) · [Rodar com Terraform](#comandos-terraform-diretos-sem-applysh) · [GitHub Actions](#github-actions--configuração-de-secrets-e-variáveis) · [Custo](#custo-aproximado-us-east-1)
+
+---
+
 ## Arquitetura
+
+![Diagrama da arquitetura AWS](../documentation/arquitetura-aws.svg)
+
+<details>
+<summary>Versão em texto (ASCII)</summary>
 
 ```
 Internet
@@ -23,6 +38,8 @@ Pods lata-velha-api (2 réplicas, HPA até 10)
    ▼
 RDS PostgreSQL 15 (db.t3.micro)             ← subnet privada, sem acesso público
 ```
+
+</details>
 
 ### Por que ALB gerenciado pelo Terraform e não pelo AWS Load Balancer Controller?
 
@@ -49,15 +66,15 @@ e desregistra nodes automaticamente conforme o cluster escala.
 | VPC            | CIDR `10.0.0.0/16`, 2 AZs, subnets públicas + privadas + NAT Gateway |
 | ECR            | Repositório Docker privado (`lata-velha`)                             |
 | EKS Cluster    | Control plane gerenciado, Kubernetes 1.36                             |
-| EKS Node Group | EC2 `t3.small`, autoscaling min 2 / max 3                             |
-| RDS PostgreSQL | `db.t3.micro`, 20 GB, sem multi-AZ, subnet privada                    |
+| EKS Node Group | EC2 `t3.small`, autoscaling: desejado 2 / min 1 / max 4              |
+| RDS PostgreSQL | `db.t3.micro`, 20 GB, **criptografado**, subnet privada, sem multi-AZ |
 
 ### Módulo `deploy` — aplicação e roteamento
 
 | Recurso AWS              | Descrição                                                         |
 | ------------------------ | ----------------------------------------------------------------- |
 | ALB                      | Application Load Balancer internet-facing, HTTP 80                |
-| Target Group             | `target_type=instance`, NodePort 30080, health check `/actuator/health` |
+| Target Group             | `target_type=instance`, NodePort 30080, health check `/actuator/health/readiness` |
 | Listener                 | HTTP 80 → forward para o Target Group                             |
 | Security Group (ALB)     | Permite entrada HTTP 80 da internet                               |
 | Security Group Rule      | Permite tráfego ALB → nodes EKS na porta 30080                    |
@@ -69,11 +86,25 @@ e desregistra nodes automaticamente conforme o cluster escala.
 | Secret `aws-credentials` | Credenciais AWS para o Cluster Autoscaler (kube-system)           |
 | ConfigMap                | Variáveis não-sensíveis da aplicação                              |
 | Secret                   | Credenciais do banco e e-mail (base64 via Terraform)              |
-| Deployment               | 2 réplicas com probes de liveness/readiness/startup               |
+| Deployment               | 2 réplicas, probes liveness/readiness/startup, `readOnlyRootFilesystem`, anti-affinity |
 | Service                  | NodePort 30080 → 8080                                             |
-| HPA                      | Autoscaling por CPU (70%) entre 2 e 10 réplicas                   |
+| HPA                      | Autoscaling por CPU (60%) entre 2 e 6 réplicas                    |
+| PDB                      | PodDisruptionBudget — no máx. 1 pod indisponível em manutenção    |
 | Cluster Autoscaler       | Adiciona/remove nodes EC2 conforme demanda do HPA                 |
 | Metrics Server           | Coleta CPU/memória dos pods — obrigatório para o HPA              |
+
+---
+
+## Segurança & disponibilidade
+
+Boas práticas aplicadas além do provisionamento básico:
+
+- **Estado do Terraform com lock nativo do S3** (`use_lockfile`) — impede dois `apply` simultâneos de corromperem o state, sem precisar de DynamoDB.
+- **RDS criptografado em repouso** (`storage_encrypted`, chave gerenciada `aws/rds`).
+- **Banco isolado** — Security Group libera a porta 5432 apenas de dentro da VPC; sem acesso público.
+- **Container endurecido** — `runAsNonRoot`, `readOnlyRootFilesystem` (com `/tmp` em `emptyDir`) e `allowPrivilegeEscalation: false`.
+- **Alta disponibilidade** — réplicas espalhadas entre nodes (`podAntiAffinity`) e um **PodDisruptionBudget** que mantém ao menos 1 pod servindo durante manutenções.
+- **Autoscaling em duas camadas** — HPA por CPU (2→6 pods) e Cluster Autoscaler (1→4 nodes).
 
 ---
 
@@ -87,7 +118,8 @@ infra/
 │   ├── secret.yaml               # template — valores base64 injetados pelo Terraform
 │   ├── deployment.yaml           # template — docker_image injetado pelo Terraform
 │   ├── service.yaml              # NodePort 30080
-│   └── hpa.yaml
+│   ├── hpa.yaml                  # Autoscaling por CPU (2–6 réplicas)
+│   └── pdb.yaml                  # PodDisruptionBudget
 └── terraform/
     ├── apply.sh                  # Orquestrador de deploy (local e CI/CD)
     ├── bootstrap/                # Etapa 1: VPC + EKS + RDS + ECR
@@ -145,13 +177,28 @@ O AWS Academy (Learner Lab) tem restrições de IAM. A tabela abaixo mostra como
 | ARN de assumed-role no Access Entry       | Convertido automaticamente para ARN de IAM role via `sts:GetCallerIdentity` |
 | Recursos externos bloqueando VPC no destroy | ALB gerenciado pelo Terraform — destruído em ordem correta sem scripts    |
 
+### O que não foi possível por causa do Academy
+
+Algumas boas práticas foram **deliberadamente deixadas de fora** porque o Learner Lab as bloqueia:
+
+| Não implementado                          | Por quê (restrição do Academy)                                              | O que foi feito no lugar                          |
+| ----------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------- |
+| **OIDC para credenciais no CI/CD**        | `iam:CreateOpenIDConnectProvider` negado                                    | Secrets estáticos `AWS_*` + `SESSION_TOKEN` (expiram em ~4h, renovados a cada sessão) |
+| **HTTPS/TLS no ALB**                      | ACM exige domínio validado e o Route 53 (`CreateHostedZone`) é bloqueado    | ALB serve apenas **HTTP :80**                     |
+| **Endpoint do EKS restrito (privado/CIDR)** | O IP do runner do GitHub é dinâmico e as credenciais trocam por sessão     | Endpoint **público** (com acesso via Access Entry) |
+| **Chave KMS própria (CMK) no RDS**        | Criação de CMK bloqueada                                                     | Criptografia com a chave gerenciada `aws/rds`     |
+| **IRSA (IAM Roles for Service Accounts)** | Depende de OIDC provider, negado                                            | Credenciais injetadas via Secret do Kubernetes    |
+| **`deletion_protection` no RDS / backups** | —                                                                          | Mantido desligado de propósito: o lab é descartável |
+
+> Em um ambiente AWS real (fora do Academy), o recomendado seria: OIDC no pipeline, ALB com HTTPS via ACM, endpoint do EKS privado e CMK dedicada — todos viáveis quando há permissões completas de IAM/Route 53/KMS.
+
 ---
 
 ## Pré-requisitos locais
 
 | Ferramenta   | Versão mínima | Para que serve                                    |
 | ------------ | ------------- | ------------------------------------------------- |
-| Terraform    | >= 1.6        | provisionar a infra                               |
+| Terraform    | >= 1.10       | provisionar a infra (lock de estado nativo do S3) |
 | AWS CLI      | v2            | autenticar providers e rodar `aws eks get-token`  |
 | Docker       | qualquer      | build e push da imagem para o ECR                 |
 | kubectl      | qualquer      | inspecionar o cluster (opcional, mas recomendado) |
@@ -321,21 +368,25 @@ O pipeline CI/CD (`.github/workflows/main.yml`) roda automaticamente em todo pus
 
 ### Pipeline do GitHub Actions
 
-```
-CI · 1 · Testes      →  mvn test com PostgreSQL efêmero
-CD · 2 · Bootstrap   →  terraform apply  (VPC + EKS + RDS + ECR)
-CD · 3 · Build       →  docker build + push para ECR
-CD · 4 · Deploy      →  terraform apply  (ALB + app + autoscaler)
-CD · 5 · Verificar   →  kubectl rollout status (timeout 5 min)
-```
+(diagrama na [Visão geral](#visão-geral))
 
-As etapas CD só rodam em push direto para `master` (não em Pull Requests).
+| Job            | Fase | O que faz                                                  |
+| -------------- | ---- | ---------------------------------------------------------- |
+| `test`         | CI   | compila e roda toda a suíte de testes (mvn)                |
+| `tf-bootstrap` | CD   | provisiona VPC + EKS + RDS + ECR (Terraform)               |
+| `build`        | CD   | builda a imagem e envia ao ECR com tag = SHA do commit     |
+| `tf-deploy`    | CD   | aplica ALB + app + cluster-autoscaler no cluster           |
+| `verify`       | CD   | aguarda o rollout e faz smoke test em `/actuator/health`   |
+
+Cada job só roda se o anterior passar (`needs`). As etapas CD só rodam em **push direto para `master`** — em Pull Requests roda apenas o `test`.
 
 ---
 
 ## Comandos Terraform diretos (sem apply.sh)
 
-Equivalente ao `apply.sh`, executando cada passo manualmente. Útil para depurar ou aprender o que o script faz internamente.
+<details>
+<summary>Equivalente ao <code>apply.sh</code>, executando cada passo manualmente — referência e depuração (clique para expandir).</summary>
+
 
 > **Pré-requisito:** configure os arquivos `.tfvars` conforme o passo 2 da seção anterior antes de rodar os comandos abaixo.
 
@@ -458,9 +509,14 @@ aws s3 rm "s3://$BUCKET" --recursive > /dev/null 2>&1 || true
 aws s3api delete-bucket --bucket "$BUCKET" --region "$REGION"
 ```
 
+</details>
+
 ---
 
 ## Variáveis do Terraform
+
+<details>
+<summary>Tabelas completas de variáveis dos módulos <code>bootstrap</code> e <code>deploy</code> (clique para expandir).</summary>
 
 ### Módulo `bootstrap`
 
@@ -474,7 +530,7 @@ aws s3api delete-bucket --bucket "$BUCKET" --region "$REGION"
 | `node_instance_type` | `t3.small`        | Tipo de EC2 dos nodes               |
 | `node_desired_size`  | `2`               | Quantidade inicial de nodes         |
 | `node_min_size`      | `1`               | Mínimo de nodes                     |
-| `node_max_size`      | `2`               | Máximo de nodes                     |
+| `node_max_size`      | `4`               | Máximo de nodes                     |
 | `db_name`            | `lata_velha`      | Nome do banco                       |
 | `db_username`        | `lata_velha_user` | Usuário do banco                    |
 | `db_password`        | —                 | Senha do banco (**obrigatória**)    |
@@ -498,6 +554,8 @@ aws s3api delete-bucket --bucket "$BUCKET" --region "$REGION"
 | `aws_access_key_id`     | —             | Injetado pelo apply.sh — não colocar no tfvars                   |
 | `aws_secret_access_key` | —             | Injetado pelo apply.sh — não colocar no tfvars                   |
 | `aws_session_token`     | —             | Injetado pelo apply.sh — não colocar no tfvars                   |
+
+</details>
 
 ---
 
