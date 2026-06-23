@@ -90,7 +90,7 @@ e desregistra nodes automaticamente conforme o cluster escala.
 | Service                  | NodePort 30080 → 8080                                             |
 | HPA                      | Autoscaling por CPU (60%) entre 2 e 6 réplicas                    |
 | PDB                      | PodDisruptionBudget — no máx. 1 pod indisponível em manutenção    |
-| Cluster Autoscaler       | Adiciona/remove nodes EC2 conforme demanda do HPA                 |
+| Cluster Autoscaler       | Adiciona/remove nodes EC2 conforme demanda                        |
 | Metrics Server           | Coleta CPU/memória dos pods — obrigatório para o HPA              |
 
 ---
