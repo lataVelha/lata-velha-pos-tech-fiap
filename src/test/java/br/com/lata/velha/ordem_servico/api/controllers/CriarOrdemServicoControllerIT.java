@@ -7,6 +7,8 @@ import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioRes
 import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResumoResponse;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -89,7 +91,7 @@ class CriarOrdemServicoControllerIT {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico deve retornar 201 com a OrdemServico criada")
     void shouldReturn201WhenCreatingOrdemServico() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear");
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear", 3L , 4, 3l, new BigDecimal(3));
         var osResponse = new OrdemServicoResponse(
                 1L, "RECEBIDA", "Barulho ao frear",
                 new FuncionarioResumoResponse(2L, "Maria Atendente"),
@@ -113,7 +115,7 @@ class CriarOrdemServicoControllerIT {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico com campos obrigatórios nulos deve retornar 400")
     void shouldReturn400WhenRequiredFieldsAreNull() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(null, null, "Motivo");
+        var invalid = new CriarOrdemServicoRequest(null, null, "Motivo",3L , 4, 3l, new BigDecimal(3));
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -125,7 +127,7 @@ class CriarOrdemServicoControllerIT {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico com reclamação acima de 500 caracteres deve retornar 400")
     void shouldReturn400WhenReclamacaoExceedsMaxLength() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(3L, 4L, "x".repeat(501));
+        var invalid = new CriarOrdemServicoRequest(3L, 4L, "x".repeat(501), 3L , 4, 3l, new BigDecimal(3));
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -136,7 +138,7 @@ class CriarOrdemServicoControllerIT {
     @Test
     @DisplayName("POST /ordens-servico sem autenticação deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear");
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear", 3L , 4, 3l, new BigDecimal(3));
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)

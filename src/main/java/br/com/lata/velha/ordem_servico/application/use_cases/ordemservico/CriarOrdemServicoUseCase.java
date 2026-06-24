@@ -2,14 +2,14 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
+import br.com.lata.velha.ordem_servico.domain.repositories.*;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -19,6 +19,8 @@ public class CriarOrdemServicoUseCase {
     private final ProprietarioRepository proprietarioRepository;
     private final VeiculoRepository veiculoRepository;
     private final NotificarOrdemServicoUseCase notificarUseCase;
+    private final AdicionarServicoUseCase adicionarServicoUseCase;
+
 
     @Transactional
     public OrdemServicoResponse execute(Input input) {
@@ -32,8 +34,18 @@ public class CriarOrdemServicoUseCase {
                 input.reclamacaoProprietario(),
                 funcionario.getId()
         );
-
         var saved = repository.save(ordemServico);
+
+        if (input.sevicoId != null && input.pecaId != null && input.valorMaoDeObra != null) {
+
+            adicionarServicoUseCase.execute(new AdicionarServicoUseCase.Input(
+                    saved.getId(), List.of(new AdicionarServicoUseCase.Input.ServicoAdicionar(
+                    input.sevicoId(), List.of(new AdicionarServicoUseCase.Input.PecaNecessaria(input.pecaId(), input.quantidade())), input.valorMaoDeObra))));
+
+            ordemServico.aprovar(funcionario.getId());
+            repository.save(ordemServico);
+        }
+
         notificarUseCase.execute(saved);
 
         return OrdemServicoResponse.from(saved,
@@ -43,5 +55,7 @@ public class CriarOrdemServicoUseCase {
                 veiculo.getMarca() + " " + veiculo.getModelo());
     }
 
-    public record Input(Long veiculoId, Long proprietarioId, UserId userId, String reclamacaoProprietario) {}
+    public record Input(Long veiculoId, Long proprietarioId, UserId userId, String reclamacaoProprietario, Long pecaId,
+                        Integer quantidade, Long sevicoId, BigDecimal valorMaoDeObra) {
+    }
 }

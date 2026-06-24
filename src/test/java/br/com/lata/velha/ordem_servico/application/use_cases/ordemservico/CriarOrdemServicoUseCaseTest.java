@@ -20,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
@@ -50,7 +51,7 @@ class CriarOrdemServicoUseCaseTest {
     @BeforeEach
     void setUp() {
         userId = UserId.random();
-        input = new CriarOrdemServicoUseCase.Input(3L, 4L, userId, "Barulho ao frear");
+        input = new CriarOrdemServicoUseCase.Input(3L, 4L, userId, "Barulho ao frear", 3L , 4, 3l, new BigDecimal(3));
 
         veiculo = mock(Veiculo.class);
         proprietario = mock(Proprietario.class);
