@@ -46,3 +46,11 @@ infra/terraform/**/*_override.tf
 infra/terraform/**/*_override.tf.json
 infra/terraform/**/crash.log
 infra/terraform/**/crash.*.log
+
+#python
+.venvs
+__pycache__/
+*.pyc
+*$py.class
+*.so
+.Python

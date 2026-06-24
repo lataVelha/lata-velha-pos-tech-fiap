@@ -35,6 +35,20 @@ br.com.lata.velha
 
 **Regra principal:** o `domain` não importa nenhuma outra camada. A `infrastructure` implementa as interfaces definidas pelo `domain` e `application`, conectadas via injeção de dependência do Spring.
 
+## Sumário
+
+- [Arquitetura](#arquitetura)
+- [Pré-requisitos](#pré-requisitos)
+- [Como rodar](#como-rodar)
+- [Configurações por Contexto](#configurações-por-contexto)
+- [Autenticação](#autenticação)
+- [Testes](#testes)
+- [SonarQube](#sonarqube)
+- [Infraestrutura (Terraform + EKS)](./infra/README.md)
+- [Tecnologias](#tecnologias)
+
+---
+
 ### Estrutura de Contextos
 
 O código é dividido em 3 contextos bem separados:
@@ -56,6 +70,27 @@ O código é dividido em 3 contextos bem separados:
 
 **Shared**
 - Código que qualquer contexto precisa: exceções, validadores, tipos básicos que se repetem
+
+### Notificações por E-mail
+
+O sistema dispara e-mails em 3 momentos do fluxo:
+
+| Evento | Destinatário | Template |
+|--------|-------------|----------|
+| Mudança de status da OS (7 transições) | Proprietário do veículo | `os-notificacao.html` |
+| Cadastro de novo proprietário | Proprietário | `proprietario-cadastro.html` |
+| Aprovação de OS com peça em falta no estoque | Todos os admins | `peca-encomenda.html` |
+
+A implementação segue **Ports & Adapters**: a camada `domain` não conhece SMTP, e a `application` depende apenas das interfaces `EmailProvider` e `EmailTemplateProvider`. O adapter `GmailEmailProvider` (SMTP via `JavaMailSender`) é `@Async` — falha no envio **nunca quebra a request HTTP**.
+
+Configuração via env vars:
+
+```bash
+SPRING_MAIL_USERNAME=seu@gmail.com
+SPRING_MAIL_PASSWORD=xxxx xxxx xxxx xxxx   # Senha de App do Google
+```
+
+> Detalhes completos (arquitetura, regras de implementação, checklist de PR) em [`guias-desenvolvimento.md`](./guias-desenvolvimento.md#envio-de-e-mail).
 
 ## Pré-requisitos
 

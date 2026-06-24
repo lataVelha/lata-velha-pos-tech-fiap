@@ -6,13 +6,32 @@ Compatível com **AWS Academy (Learner Lab)** — usa a `LabRole` pré-existente
 
 ---
 
+## Sumário
+
+- [Visão geral](#visão-geral)
+- [Arquitetura](#arquitetura)
+- [O que é provisionado](#o-que-é-provisionado)
+- [Segurança & disponibilidade](#segurança--disponibilidade)
+- [Estrutura de arquivos](#estrutura-de-arquivos)
+- [Compatibilidade com AWS Academy](#compatibilidade-com-aws-academy)
+- [Pré-requisitos locais](#pré-requisitos-locais)
+- [Rodando localmente — passo a passo](#rodando-localmente--passo-a-passo)
+- [Verificando o deploy](#verificando-o-deploy)
+- [Flags do apply.sh](#flags-do-applysh)
+- [GitHub Actions — configuração de secrets e variáveis](#github-actions--configuração-de-secrets-e-variáveis)
+- [Comandos Terraform diretos (sem apply.sh)](#comandos-terraform-diretos-sem-applysh)
+- [Variáveis do Terraform](#variáveis-do-terraform)
+- [Custo aproximado (us-east-1)](#custo-aproximado-us-east-1)
+
+---
+
 ## Visão geral
 
 O GitHub Actions provisiona a infra e implanta a aplicação em **5 jobs encadeados** — cada um só roda se o anterior passar; o CD executa apenas em push para `master`.
 
 ![Pipeline CI/CD](../documentation/pipeline-cicd.svg)
 
-**Atalhos:** [Arquitetura](#arquitetura) · [O que é provisionado](#o-que-é-provisionado) · [Segurança](#segurança--disponibilidade) · [Rodar localmente](#rodando-localmente--passo-a-passo) · [Rodar com Terraform](#comandos-terraform-diretos-sem-applysh) · [GitHub Actions](#github-actions--configuração-de-secrets-e-variáveis) · [Custo](#custo-aproximado-us-east-1)
+**Atalhos:** [Arquitetura](#arquitetura) · [O que é provisionado](#o-que-é-provisionado) · [Segurança](#segurança--disponibilidade) · [Rodar localmente](#rodando-localmente--passo-a-passo) · [Teste de carga](#4-teste-de-carga--hpa--cluster-autoscaler) · [Rodar com Terraform](#comandos-terraform-diretos-sem-applysh) · [GitHub Actions](#github-actions--configuração-de-secrets-e-variáveis) · [Custo](#custo-aproximado-us-east-1)
 
 ---
 
@@ -210,6 +229,20 @@ Algumas boas práticas foram **deliberadamente deixadas de fora** porque o Learn
 
 ### 1. Configurar o AWS CLI
 
+**Instalar o AWS CLI v2** (caso ainda não tenha):
+
+```bash
+# Ubuntu / WSL — via instalador oficial
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+sudo apt install -y unzip
+unzip awscliv2.zip
+sudo ./aws/install
+rm -rf awscliv2.zip aws
+
+# Verificar
+aws --version   # deve ser aws-cli/2.x
+```
+
 Antes de qualquer coisa, o AWS CLI precisa estar autenticado. No **AWS Academy**, abra
 o Learner Lab, clique em **AWS Details** e escolha uma das opções abaixo:
 
@@ -294,7 +327,15 @@ Tempo total: **~20–30 minutos** na primeira execução.
 ./apply.sh --auto --skip-test
 ```
 
-### 4. Verificar o deploy
+---
+
+## Verificando o deploy
+
+Os comandos abaixo valem tanto após uma execução **local** (`./apply.sh --auto`) quanto após o **pipeline do GitHub Actions** terminar — o `apply.sh` já executa o smoke test (`[5/5] Verificar`), mas em ambos os casos vale conferir manualmente com `kubectl` e capturar a URL do ALB.
+
+### 1. Conferir pods e URL do ALB
+
+**Local** (a partir de `infra/terraform/`):
 
 ```bash
 # Aponta o kubectl para o cluster
@@ -310,7 +351,103 @@ terraform -chdir=deploy output app_url
 curl http://<DNS_DO_ALB>/actuator/health
 ```
 
-### 5. Destruir o ambiente
+**GitHub Actions** — sem acesso à máquina rodando o pipeline:
+
+> A URL do ALB não é consultável a partir da sua máquina local — o `terraform state` está no S3 e o backend não é portátil. Pegue a URL direto dos **logs do workflow**:
+
+1. Abra o run em **Actions** → selecione o push que disparou o deploy
+2. Job **`CD - Verificação do deploy`** → step **"Smoke test -- health check HTTP"** — a URL fica em `run URL=<DNS_DO_ALB>`
+
+> O `kubectl` também exige credenciais AWS válidas no seu terminal — copie a URL do ALB e use `curl http://<DNS_DO_ALB>/actuator/health` direto do seu navegador ou terminal, sem autenticar no cluster.
+
+### 2. Teste de carga — HPA & Cluster Autoscaler
+
+Para validar o autoscaling, gere carga suficiente para ultrapassar o limite de CPU (60%) nos pods. O projeto inclui um `locustfile` pronto em `load-test/`.
+
+#### Setup do Locust
+
+**Instalar Python** (caso ainda não tenha):
+
+```bash
+# Ubuntu / WSL
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip
+
+# Verificar versão
+python3 --version   # precisa ser >= 3.9
+```
+
+**Criar venv e instalar Locust** (venv evita conflito com PEP 668 do Ubuntu):
+
+```bash
+# Cria venv dedicado na raiz do projeto
+python3 -m venv .venvs/locust
+source .venvs/locust/bin/activate
+pip install locust
+```
+
+#### Ramp configurada (100 usuários)
+
+Os parâmetros de carga (número de usuários, spawn rate, host) são definidos **na UI do Locust** em `http://localhost:8089` — não há ramp automático no `locustfile.py`. A configuração recomendada para validar o HPA é:
+
+| Parâmetro          | Valor    | Significado                              |
+| ------------------ | -------- | ---------------------------------------- |
+| **Number of users** | `100`   | pico de usuários simultâneos             |
+| **Spawn rate**      | `10`    | usuários novos por segundo (chega a 100 em ~10s) |
+| **Host**            | URL do ALB | destino da carga                      |
+| **Run time**        | `5m`    | tempo total (ajustar se quiser prolongar) |
+
+> Toda a parametrização é feita pela UI — o `locustfile.py` só define **o que** cada usuário faz (health, login, listar OS).
+
+#### Executar contra a aplicação no EKS
+
+O teste de carga **não roda no GitHub Actions** — o runner não tem rede para o ALB. Rode localmente, com o `kubectl` apontando para o cluster.
+
+Suba a UI do Locust:
+
+```bash
+cd load-test
+source ../.venvs/locust/bin/activate
+locust -f locustfile.py
+# Abre http://localhost:8089
+```
+
+Na UI do Locust (http://localhost:8089), preencha:
+
+| Campo            | Valor                                                |
+| ---------------- | ---------------------------------------------------- |
+| **Number of users** | `100`                                              |
+| **Spawn rate**     | `100` (usuários por segundo)                       |
+| **Host**           | `http://<DNS_DO_ALB>` (pegue com `terraform -chdir=../infra/terraform/deploy output -raw app_url`) |
+
+> **Por que na UI e não via flag?** O `--host` no CLI exige que a URL esteja disponível no momento do comando. Em pipelines, a URL do ALB só existe depois do `terraform apply` e o runner do GitHub Actions não tem rota para a VPC. Pela UI, a URL pode ser colada a qualquer momento — inclusive trocada no meio do teste.
+
+#### Observar o HPA em ação
+
+Em um terceiro terminal, com `kubectl` apontando para o cluster:
+
+```bash
+# Watch do HPA — veja réplicas subirem de 2 para até 6
+kubectl get hpa -n lata-velha -w
+
+# CPU por pod em tempo real
+kubectl top pods -n lata-velha
+
+# Eventos de scaling
+kubectl describe hpa lata-velha-api -n lata-velha | tail -20
+```
+
+**Comportamento esperado:**
+
+| Carga                     | Réplicas de pods       | Nodes EC2              |
+| ------------------------- | ---------------------- | ---------------------- |
+| Repouso (0–10 usuários)   | 2 (mínimo)             | 2 (desejado)           |
+| **Pico (100 usuários)**   | **até 6 (máx. HPA)**   | **até 4 (máx. ASG)**   |
+| Esfriando                 | volta para 2           | volta para 2           |
+
+> O HPA escala os **pods** dentro dos nodes existentes. O Cluster Autoscaler só adiciona um **novo node EC2** quando pods pendentes não cabem nos nodes atuais — isso acontece quando o HPA atinge o limite de 6 réplicas e a carga continua alta.
+
+### 3. Destruir o ambiente
 
 ```bash
 ./apply.sh --destroy --auto
