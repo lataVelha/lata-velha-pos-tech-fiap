@@ -18,4 +18,6 @@ public interface OrdemServicoRepository {
                                                                  Long mecanicoId,
                                                                  int page,
                                                                  int size);
+
+    PaginatedResult<OrdemServicoProjection> findOrderedByStatusPriority(int page, int size);
 }

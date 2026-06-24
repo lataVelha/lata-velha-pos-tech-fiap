@@ -42,6 +42,7 @@ public class OrdemServicoController {
     private final FinalizarServicoUseCase finalizarServicoUseCase;
     private final RetirarVeiculoUseCase retirarVeiculoUseCase;
     private final BuscarTempoMedioExecucaoServicosFinalizadosUseCase buscarTempoMedioExecucaoServicosFinalizadosUseCase;
+    private final BuscarOrdensPorStatusOrdenadoUseCase buscarOrdensPorStatusOrdenadoUseCase;
 
     @PostMapping
     @Operation(
@@ -229,5 +230,17 @@ public class OrdemServicoController {
             @AuthenticationPrincipal Jwt jwt) {
         retirarVeiculoUseCase.execute(idOs, UserId.fromString(jwt.getSubject()));
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/status-service")
+    @Operation(
+            summary = "Listar ordens por prioridade de status",
+            description = "Lista paginada de OS ordenadas por prioridade de status (Em Execução > Aguardando Aprovação > Diagnóstico > Recebida) e data mais antigua primeiro."
+    )
+    @ApiResponse(responseCode = "200", description = "Lista paginada retornada com sucesso")
+    public ResponseEntity<PaginatedResult<OrdemServicoResponse>> getStatusService(
+            @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(buscarOrdensPorStatusOrdenadoUseCase.execute(page, size));
     }
 }

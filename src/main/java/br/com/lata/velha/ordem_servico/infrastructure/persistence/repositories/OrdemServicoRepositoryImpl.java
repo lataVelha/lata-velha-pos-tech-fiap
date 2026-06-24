@@ -55,4 +55,14 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
         List<OrdemServicoProjection> content = result.getContent();
         return new PaginatedResult<>(content, result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages());
     }
+
+    @Override
+    public PaginatedResult<OrdemServicoProjection> findOrderedByStatusPriority(int page, int size) {
+        Page<OrdemServicoProjection> result = jpaRepository.findOrderedByStatusPriority(
+                PageRequest.of(page, size)
+        );
+
+        List<OrdemServicoProjection> content = result.getContent();
+        return new PaginatedResult<>(content, result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages());
+    }
 }
