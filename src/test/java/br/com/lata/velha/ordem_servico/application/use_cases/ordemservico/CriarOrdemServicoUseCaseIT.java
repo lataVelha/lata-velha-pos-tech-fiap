@@ -17,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import java.math.BigDecimal;
 import java.util.Set;
 import java.util.UUID;
 
@@ -93,7 +94,7 @@ class CriarOrdemServicoUseCaseIT {
     @DisplayName("deve criar OrdemServico com sucesso e persistir no banco")
     void deveCriarOrdemServicoComSucesso() {
         var funcionarioUserId = UserId.create(funcionario.getUserId());
-        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Barulho ao frear");
+        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Barulho ao frear", 3L , 4, 3l, new BigDecimal(3));
 
         var output = useCase.execute(input);
 
@@ -116,7 +117,7 @@ class CriarOrdemServicoUseCaseIT {
     @DisplayName("deve persistir reclamação do proprietário corretamente")
     void devePersistirReclamacaoProprietario() {
         var funcionarioUserId = UserId.create(funcionario.getUserId());
-        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Motor superaquecendo");
+        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Motor superaquecendo", 3L , 4, 3l, new BigDecimal(3));
 
         var output = useCase.execute(input);
 
@@ -131,7 +132,7 @@ class CriarOrdemServicoUseCaseIT {
     @DisplayName("deve persistir atendente e status RECEBIDA corretamente")
     void devePersistirAtendenteEStatus() {
         var funcionarioUserId = UserId.create(funcionario.getUserId());
-        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Freio falhando");
+        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Freio falhando", 3L , 4, 3l, new BigDecimal(3));
 
         var output = useCase.execute(input);
 

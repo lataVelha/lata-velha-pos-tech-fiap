@@ -104,7 +104,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico deve retornar 201 com a ordem criada")
     void shouldReturn201OnCreate() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear");
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear", 3L , 4, 3l, new BigDecimal(3));
 
         when(criarOrdemServicoUseCase.execute(any())).thenReturn(buildOrdemResponse());
 
@@ -120,7 +120,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico com body inválido deve retornar 400")
     void shouldReturn400OnInvalidCreateRequest() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(null, null, "x".repeat(501));
+        var invalid = new CriarOrdemServicoRequest(null, null, "x".repeat(501), 3L , 4, 3l, new BigDecimal(3));
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -294,7 +294,7 @@ class OrdemServicoControllerTest {
     @Test
     @DisplayName("POST /ordens-servico/create sem autenticação deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Test");
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Test", 3L , 4, 3l, new BigDecimal(3));
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
