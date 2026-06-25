@@ -88,6 +88,9 @@ class OrdemServicoControllerTest {
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
 
+    @MockBean
+    private BuscarOrdensPorStatusOrdenadoUseCase buscarOrdensPorStatusOrdenadoUseCase;
+
     private OrdemServicoResponse buildOrdemResponse() {
         return new OrdemServicoResponse(
                 1L, "RECEBIDA", "Barulho ao frear",
@@ -300,5 +303,29 @@ class OrdemServicoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    @DisplayName("GET /ordens-servico/status-service deve retornar 200")
+    void shouldReturn200OnGetStatusService() throws Exception {
+
+        var paginated = new PaginatedResult<>(
+                List.of(buildOrdemResponse()),
+                0,
+                10,
+                1L,
+                1
+        );
+
+        when(buscarOrdensPorStatusOrdenadoUseCase.execute(0, 10))
+                .thenReturn(paginated);
+
+        mockMvc.perform(get("/ordens-servico/status-service")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 }
