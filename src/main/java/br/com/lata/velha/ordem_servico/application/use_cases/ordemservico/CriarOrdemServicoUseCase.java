@@ -42,7 +42,6 @@ public class CriarOrdemServicoUseCase {
                     saved.getId(), List.of(new AdicionarServicoUseCase.Input.ServicoAdicionar(
                     input.sevicoId(), List.of(new AdicionarServicoUseCase.Input.PecaNecessaria(input.pecaId(), input.quantidade())), input.valorMaoDeObra))));
 
-            ordemServico.aprovar(funcionario.getId());
             repository.save(ordemServico);
         }
 

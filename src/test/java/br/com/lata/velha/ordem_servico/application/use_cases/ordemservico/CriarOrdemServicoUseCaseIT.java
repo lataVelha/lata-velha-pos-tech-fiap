@@ -4,7 +4,11 @@ import br.com.lata.velha.authentication.infrastructure.persistence.entities.Role
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.*;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.FuncionarioEntity;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.OrdemServicoEntity;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ProprietarioEntity;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.VeiculoEntity;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -51,6 +55,7 @@ class CriarOrdemServicoUseCaseIT {
 
     @BeforeEach
     void setUp() {
+
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);
 
@@ -79,7 +84,7 @@ class CriarOrdemServicoUseCaseIT {
         em.persist(veiculo);
         veiculoId = veiculo.getId();
 
-        this.funcionario = new FuncionarioEntity();
+        funcionario = new FuncionarioEntity();
         funcionario.setNome("Maria Atendente");
         funcionario.setCargo(cargo);
         funcionario.setUserId(UUID.randomUUID());
@@ -92,8 +97,19 @@ class CriarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve criar OrdemServico com sucesso e persistir no banco")
     void deveCriarOrdemServicoComSucesso() {
+
         var funcionarioUserId = UserId.create(funcionario.getUserId());
-        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Barulho ao frear");
+
+        var input = new CriarOrdemServicoUseCase.Input(
+                veiculoId,
+                proprietarioId,
+                funcionarioUserId,
+                "Barulho ao frear",
+                null,
+                null,
+                null,
+                null
+        );
 
         var output = useCase.execute(input);
 
@@ -103,7 +119,9 @@ class CriarOrdemServicoUseCaseIT {
         em.flush();
         em.clear();
 
-        OrdemServicoEntity entity = em.find(OrdemServicoEntity.class, output.id());
+        OrdemServicoEntity entity =
+                em.find(OrdemServicoEntity.class, output.id());
+
         assertThat(entity).isNotNull();
         assertThat(entity.getStatus()).isEqualTo(StatusOrdemServico.RECEBIDA);
         assertThat(entity.getVeiculoId()).isEqualTo(veiculoId);
@@ -115,30 +133,59 @@ class CriarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve persistir reclamação do proprietário corretamente")
     void devePersistirReclamacaoProprietario() {
+
         var funcionarioUserId = UserId.create(funcionario.getUserId());
-        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Motor superaquecendo");
+
+        var input = new CriarOrdemServicoUseCase.Input(
+                veiculoId,
+                proprietarioId,
+                funcionarioUserId,
+                "Motor superaquecendo",
+                null,
+                null,
+                null,
+                null
+        );
 
         var output = useCase.execute(input);
 
         em.flush();
         em.clear();
 
-        OrdemServicoEntity entity = em.find(OrdemServicoEntity.class, output.id());
-        assertThat(entity.getReclamacaoProprietario()).isEqualTo("Motor superaquecendo");
+        OrdemServicoEntity entity =
+                em.find(OrdemServicoEntity.class, output.id());
+
+        assertThat(entity).isNotNull();
+        assertThat(entity.getReclamacaoProprietario())
+                .isEqualTo("Motor superaquecendo");
     }
 
     @Test
     @DisplayName("deve persistir atendente e status RECEBIDA corretamente")
     void devePersistirAtendenteEStatus() {
+
         var funcionarioUserId = UserId.create(funcionario.getUserId());
-        var input = new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, funcionarioUserId, "Freio falhando");
+
+        var input = new CriarOrdemServicoUseCase.Input(
+                veiculoId,
+                proprietarioId,
+                funcionarioUserId,
+                "Freio falhando",
+                null,
+                null,
+                null,
+                null
+        );
 
         var output = useCase.execute(input);
 
         em.flush();
         em.clear();
 
-        OrdemServicoEntity entity = em.find(OrdemServicoEntity.class, output.id());
+        OrdemServicoEntity entity =
+                em.find(OrdemServicoEntity.class, output.id());
+
+        assertThat(entity).isNotNull();
         assertThat(entity.getAtendenteInicioId()).isEqualTo(funcionarioId);
         assertThat(entity.getStatus()).isEqualTo(StatusOrdemServico.RECEBIDA);
     }
