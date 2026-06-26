@@ -131,7 +131,7 @@ infra/
         ├── rds/
         ├── alb/
         ├── cluster-autoscaler/
-        └── app/                  # kubectl_manifest para todos os objetos k8s
+        └── app/ 
 ```
 
 ### Por que dois módulos Terraform separados (`bootstrap` e `deploy`)?
