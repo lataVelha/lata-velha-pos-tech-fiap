@@ -88,6 +88,9 @@ class OrdemServicoControllerTest {
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
 
+    @MockBean
+    private BuscarOrdensPorStatusOrdenadoUseCase buscarOrdensPorStatusOrdenadoUseCase;
+
     private OrdemServicoResponse buildOrdemResponse() {
         return new OrdemServicoResponse(
                 1L, "RECEBIDA", "Barulho ao frear",
@@ -104,7 +107,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico deve retornar 201 com a ordem criada")
     void shouldReturn201OnCreate() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear");
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear", 3L , 4, 3l, new BigDecimal(3));
 
         when(criarOrdemServicoUseCase.execute(any())).thenReturn(buildOrdemResponse());
 
@@ -120,7 +123,7 @@ class OrdemServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico com body inválido deve retornar 400")
     void shouldReturn400OnInvalidCreateRequest() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(null, null, "x".repeat(501));
+        var invalid = new CriarOrdemServicoRequest(null, null, "x".repeat(501), 3L , 4, 3l, new BigDecimal(3));
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -294,11 +297,35 @@ class OrdemServicoControllerTest {
     @Test
     @DisplayName("POST /ordens-servico/create sem autenticação deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Test");
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Test", 3L , 4, 3l, new BigDecimal(3));
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    @DisplayName("GET /ordens-servico/status-service deve retornar 200")
+    void shouldReturn200OnGetStatusService() throws Exception {
+
+        var paginated = new PaginatedResult<>(
+                List.of(buildOrdemResponse()),
+                0,
+                10,
+                1L,
+                1
+        );
+
+        when(buscarOrdensPorStatusOrdenadoUseCase.execute(0, 10))
+                .thenReturn(paginated);
+
+        mockMvc.perform(get("/ordens-servico/status-service")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 }

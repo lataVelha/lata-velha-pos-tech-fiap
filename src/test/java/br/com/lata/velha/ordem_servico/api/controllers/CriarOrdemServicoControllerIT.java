@@ -1,146 +1,195 @@
 package br.com.lata.velha.ordem_servico.api.controllers;
 
-import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResumoResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResumoResponse;
-import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResumoResponse;
-import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
+import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
+import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
+import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.CriarOrdemServicoUseCase;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.FuncionarioEntity;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.OrdemServicoEntity;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ProprietarioEntity;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.VeiculoEntity;
+import br.com.lata.velha.shared.domain.value_objects.UserId;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
 
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.Set;
+import java.util.UUID;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@AutoConfigureMockMvc
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
         "spring.flyway.enabled=false",
         "spring.jpa.hibernate.ddl-auto=create-drop",
-        "spring.datasource.url=jdbc:h2:mem:criar-os-ctrl-it;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"
+        "spring.datasource.url=jdbc:h2:mem:criar-os-uc-it;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"
 })
-class CriarOrdemServicoControllerIT {
+@Transactional
+class CriarOrdemServicoUseCaseIT {
 
     @Autowired
-    private MockMvc mockMvc;
+    private CriarOrdemServicoUseCase useCase;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private EntityManager em;
 
     @MockBean
-    private CriarOrdemServicoUseCase criarOrdemServicoUseCase;
+    private EmailProvider emailProvider;
 
     @MockBean
-    private IniciarDiagnosticoUseCase iniciarDiagnosticoUseCase;
+    private EmailTemplateProvider emailTemplateProvider;
 
-    @MockBean
-    private BuscarOrdemServicoUseCase buscarOrdemServicoUseCase;
+    private Long veiculoId;
+    private Long proprietarioId;
+    private Long funcionarioId;
+    private FuncionarioEntity funcionario;
 
-    @MockBean
-    private AprovarOrdemServicoUseCase aprovarOrdemServicoUseCase;
+    @BeforeEach
+    void setUp() {
 
-    @MockBean
-    private ReprovarOrdemServicoUseCase reprovarOrdemServicoUseCase;
+        RoleEntity role = new RoleEntity(null, "ATENDENTE");
+        em.persist(role);
 
-    @MockBean
-    private AdicionarServicoUseCase adicionarServicoUseCase;
+        CargoEntity cargo = new CargoEntity();
+        cargo.setNome("ATENDENTE");
+        cargo.setRoles(Set.of(role));
+        em.persist(cargo);
 
-    @MockBean
-    private FinalizarDiagnosticoUseCase finalizarDiagnosticoUseCase;
+        ProprietarioEntity proprietario = new ProprietarioEntity();
+        proprietario.setNome("João Proprietário");
+        proprietario.setEmail("joao@example.com");
+        proprietario.setDocumento("35949343069");
+        proprietario.setNumeroCelular("11999999999");
+        proprietario.setAtivo(true);
+        em.persist(proprietario);
+        proprietarioId = proprietario.getId();
 
-    @MockBean
-    private IniciarServicoUseCase iniciarServicoUseCase;
+        VeiculoEntity veiculo = new VeiculoEntity();
+        veiculo.setProprietario(proprietario);
+        veiculo.setPlaca("ABC1D23");
+        veiculo.setMarca("Fiat");
+        veiculo.setModelo("Uno");
+        veiculo.setAno(2020);
+        veiculo.setCor("Branco");
+        veiculo.setAtivo(true);
+        em.persist(veiculo);
+        veiculoId = veiculo.getId();
 
-    @MockBean
-    private FinalizarServicoUseCase finalizarServicoUseCase;
+        funcionario = new FuncionarioEntity();
+        funcionario.setNome("Maria Atendente");
+        funcionario.setCargo(cargo);
+        funcionario.setUserId(UUID.randomUUID());
+        em.persist(funcionario);
+        funcionarioId = funcionario.getId();
 
-    @MockBean
-    private RetirarVeiculoUseCase retirarVeiculoUseCase;
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
-
-    @MockBean
-    private JwtAuthenticationConverter jwtAuthenticationConverter;
+        em.flush();
+    }
 
     @Test
-    @WithMockUser(roles = "USER")
-    @DisplayName("POST /ordens-servico deve retornar 201 com a OrdemServico criada")
-    void shouldReturn201WhenCreatingOrdemServico() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear");
-        var osResponse = new OrdemServicoResponse(
-                1L, "RECEBIDA", "Barulho ao frear",
-                new FuncionarioResumoResponse(2L, "Maria Atendente"),
+    @DisplayName("deve criar OrdemServico com sucesso e persistir no banco")
+    void deveCriarOrdemServicoComSucesso() {
+
+        var funcionarioUserId = UserId.create(funcionario.getUserId());
+
+        var input = new CriarOrdemServicoUseCase.Input(
+                veiculoId,
+                proprietarioId,
+                funcionarioUserId,
+                "Barulho ao frear",
                 null,
-                new ProprietarioResumoResponse(4L, "João Proprietário"),
-                new VeiculoResumoResponse(3L, "Fiat Uno 2020"),
-                LocalDateTime.now(), null, null, LocalDateTime.now(),
-                List.of(), null
+                null,
+                null,
+                null
         );
-        when(criarOrdemServicoUseCase.execute(any())).thenReturn(osResponse);
 
-        mockMvc.perform(post("/ordens-servico")
-                        .with(jwt().jwt(b -> b.subject(UUID.randomUUID().toString())).authorities(new SimpleGrantedAuthority("ROLE_USER")))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1L));
+        var output = useCase.execute(input);
+
+        assertThat(output).isNotNull();
+        assertThat(output.id()).isNotNull();
+
+        em.flush();
+        em.clear();
+
+        OrdemServicoEntity entity =
+                em.find(OrdemServicoEntity.class, output.id());
+
+        assertThat(entity).isNotNull();
+        assertThat(entity.getStatus()).isEqualTo(StatusOrdemServico.RECEBIDA);
+        assertThat(entity.getVeiculoId()).isEqualTo(veiculoId);
+        assertThat(entity.getProprietarioId()).isEqualTo(proprietarioId);
+        assertThat(entity.getAtendenteInicioId()).isEqualTo(funcionarioId);
+        assertThat(entity.getReclamacaoProprietario())
+                .isEqualTo("Barulho ao frear");
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    @DisplayName("POST /ordens-servico com campos obrigatórios nulos deve retornar 400")
-    void shouldReturn400WhenRequiredFieldsAreNull() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(null, null, "Motivo");
+    @DisplayName("deve persistir reclamação do proprietário corretamente")
+    void devePersistirReclamacaoProprietario() {
 
-        mockMvc.perform(post("/ordens-servico")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalid)))
-                .andExpect(status().isBadRequest());
+        var funcionarioUserId = UserId.create(funcionario.getUserId());
+
+        var input = new CriarOrdemServicoUseCase.Input(
+                veiculoId,
+                proprietarioId,
+                funcionarioUserId,
+                "Motor superaquecendo",
+                null,
+                null,
+                null,
+                null
+        );
+
+        var output = useCase.execute(input);
+
+        em.flush();
+        em.clear();
+
+        OrdemServicoEntity entity =
+                em.find(OrdemServicoEntity.class, output.id());
+
+        assertThat(entity.getReclamacaoProprietario())
+                .isEqualTo("Motor superaquecendo");
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    @DisplayName("POST /ordens-servico com reclamação acima de 500 caracteres deve retornar 400")
-    void shouldReturn400WhenReclamacaoExceedsMaxLength() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(3L, 4L, "x".repeat(501));
+    @DisplayName("deve persistir atendente e status RECEBIDA corretamente")
+    void devePersistirAtendenteEStatus() {
 
-        mockMvc.perform(post("/ordens-servico")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalid)))
-                .andExpect(status().isBadRequest());
-    }
+        var funcionarioUserId = UserId.create(funcionario.getUserId());
 
-    @Test
-    @DisplayName("POST /ordens-servico sem autenticação deve retornar 401")
-    void shouldReturn401WhenUnauthenticated() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear");
+        var input = new CriarOrdemServicoUseCase.Input(
+                veiculoId,
+                proprietarioId,
+                funcionarioUserId,
+                "Freio falhando",
+                null,
+                null,
+                null,
+                null
+        );
 
-        mockMvc.perform(post("/ordens-servico")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized());
+        var output = useCase.execute(input);
+
+        em.flush();
+        em.clear();
+
+        OrdemServicoEntity entity =
+                em.find(OrdemServicoEntity.class, output.id());
+
+        assertThat(entity.getAtendenteInicioId())
+                .isEqualTo(funcionarioId);
+
+        assertThat(entity.getStatus())
+                .isEqualTo(StatusOrdemServico.RECEBIDA);
     }
 }
