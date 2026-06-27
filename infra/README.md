@@ -8,40 +8,41 @@ Compatível com **AWS Academy (Learner Lab)** — usa a `LabRole` pré-existente
 
 ## Sumário
 
-- [Visão geral](#visão-geral)
-- [Arquitetura](#arquitetura)
-- [O que é provisionado](#o-que-é-provisionado)
-- [Segurança & disponibilidade](#segurança--disponibilidade)
-- [Estrutura de arquivos](#estrutura-de-arquivos)
-- [Compatibilidade com AWS Academy](#compatibilidade-com-aws-academy)
-- [Pré-requisitos locais](#pré-requisitos-locais)
-- [Rodando localmente — passo a passo](#rodando-localmente--passo-a-passo)
-- [Verificando o deploy](#verificando-o-deploy)
-- [Flags do apply.sh](#flags-do-applysh)
-- [GitHub Actions — configuração de secrets e variáveis](#github-actions--configuração-de-secrets-e-variáveis)
-- [Comandos Terraform diretos (sem apply.sh)](#comandos-terraform-diretos-sem-applysh)
-- [Variáveis do Terraform](#variáveis-do-terraform)
-- [Custo aproximado (us-east-1)](#custo-aproximado-us-east-1)
+- [Como executar](#como-executar)
+- **Arquitetura**
+  - [Visão geral](#visão-geral)
+  - [O que é provisionado](#o-que-é-provisionado)
+  - [Segurança & disponibilidade](#segurança--disponibilidade)
+  - [Estrutura de arquivos](#estrutura-de-arquivos)
+- **Explicações**
+  - [Compatibilidade com AWS Academy](#compatibilidade-com-aws-academy)
+  - [Variáveis do Terraform](#variáveis-do-terraform)
+  - [Custo aproximado (us-east-1)](#custo-aproximado-us-east-1)
+- **CI/CD (GitHub Actions)** — caminho principal
+  - [Pipeline e configuração de secrets](#pipeline-e-configuração-de-secrets)
+  - [Jobs do pipeline](#jobs-do-pipeline)
+- **Execução local** — opcional
+  - [Pré-requisitos locais](#pré-requisitos-locais)
+  - [Comandos Terraform diretos (sem apply.sh)](#comandos-terraform-diretos-sem-applysh)
+  - [Verificando o deploy](#verificando-o-deploy)
+  - [Flags do apply.sh](#flags-do-applysh)
+  - [Executar com apply.sh (alternativa local)](#executar-com-applysh-alternativa-local)
 
 ---
 
-## Sumário
+## Como executar
 
-1. [Arquitetura](#arquitetura)
-2. [O que é provisionado](#o-que-é-provisionado)
-3. [Segurança & disponibilidade](#segurança--disponibilidade)
-4. [Estrutura de arquivos](#estrutura-de-arquivos)
-5. [Compatibilidade com AWS Academy](#compatibilidade-com-aws-academy)
-6. [Pré-requisitos locais](#pré-requisitos-locais)
-7. [**Comandos Terraform diretos**](#comandos-terraform-diretos-sem-applysh) ← **método principal (usado pelo CI/CD)**
-8. [Executar com apply.sh (alternativa local)](#executar-com-applysh-alternativa-local)
-9. [GitHub Actions — secrets e variáveis](#github-actions--configuração-de-secrets-e-variáveis)
-10. [Variáveis do Terraform](#variáveis-do-terraform)
-11. [Custo aproximado](#custo-aproximado-us-east-1)
+- **Recomendado (CI):** push para `master` → pipeline roda automaticamente
+- **Local (caminho feliz):** `./apply.sh --auto` — executa a mesma sequência do CI
+- **Manual / depuração:** seção "Comandos Terraform diretos" abaixo
 
 ---
 
 ## Arquitetura
+
+> O que o stack é, como é organizado e quais são as garantias de segurança e disponibilidade.
+
+### Visão geral
 
 ![Diagrama da arquitetura AWS](../documentation/arquitetura-aws.svg)
 
@@ -63,9 +64,9 @@ e desregistra nodes automaticamente conforme o cluster escala.
 
 ---
 
-## O que é provisionado
+### O que é provisionado
 
-### Módulo `bootstrap` — infraestrutura base
+#### Módulo `bootstrap` — infraestrutura base
 
 | Recurso        | Descrição                                                             |
 | -------------- | --------------------------------------------------------------------- |
@@ -75,7 +76,7 @@ e desregistra nodes automaticamente conforme o cluster escala.
 | EKS Node Group | EC2 `t3.small`, autoscaling: desejado 2 / min 1 / max 4              |
 | RDS PostgreSQL | `db.t3.micro`, 20 GB, **criptografado**, subnet privada, sem multi-AZ |
 
-### Módulo `deploy` — aplicação e roteamento
+#### Módulo `deploy` — aplicação e roteamento
 
 | Recurso AWS              | Descrição                                                         |
 | ------------------------ | ----------------------------------------------------------------- |
@@ -101,7 +102,7 @@ e desregistra nodes automaticamente conforme o cluster escala.
 
 ---
 
-## Segurança & disponibilidade
+### Segurança & disponibilidade
 
 Boas práticas aplicadas além do provisionamento básico:
 
@@ -114,7 +115,7 @@ Boas práticas aplicadas além do provisionamento básico:
 
 ---
 
-## Estrutura de arquivos
+### Estrutura de arquivos
 
 ```
 infra/
@@ -153,7 +154,7 @@ infra/
         └── app/ 
 ```
 
-### Por que dois módulos Terraform separados (`bootstrap` e `deploy`)?
+#### Por que dois módulos Terraform separados (`bootstrap` e `deploy`)?
 
 Os providers `kubectl` e `helm` precisam do endpoint do cluster EKS para serem
 inicializados — e esse endpoint só existe após o EKS ser criado.
@@ -171,7 +172,11 @@ para o `deploy`, já que blocos `provider` não aceitam `data sources`.
 
 ---
 
-## Compatibilidade com AWS Academy
+## Explicações
+
+> Decisões de design, workarounds, variáveis de configuração e custos do stack.
+
+### Compatibilidade com AWS Academy
 
 O AWS Academy (Learner Lab) tem restrições de IAM. A tabela abaixo mostra como cada uma é resolvida:
 
@@ -183,7 +188,7 @@ O AWS Academy (Learner Lab) tem restrições de IAM. A tabela abaixo mostra como
 | ARN de assumed-role no Access Entry       | Convertido automaticamente para ARN de IAM role via `sts:GetCallerIdentity` |
 | Recursos externos bloqueando VPC no destroy | ALB gerenciado pelo Terraform — destruído em ordem correta sem scripts    |
 
-### O que não foi possível por causa do Academy
+#### O que não foi possível por causa do Academy
 
 Algumas boas práticas foram **deliberadamente deixadas de fora** porque o Learner Lab as bloqueia:
 
@@ -198,9 +203,120 @@ Algumas boas práticas foram **deliberadamente deixadas de fora** porque o Learn
 
 > Em um ambiente AWS real (fora do Academy), o recomendado seria: OIDC no pipeline, ALB com HTTPS via ACM, endpoint do EKS privado e CMK dedicada — todos viáveis quando há permissões completas de IAM/Route 53/KMS.
 
+### Variáveis do Terraform
+
+<details>
+<summary>Tabelas completas de variáveis dos módulos <code>bootstrap</code> e <code>deploy</code> (clique para expandir).</summary>
+
+#### Módulo `bootstrap`
+
+| Variável             | Padrão            | Descrição                           |
+| -------------------- | ----------------- | ----------------------------------- |
+| `region`             | `us-east-1`       | Região AWS                          |
+| `project_name`       | `lata-velha`      | Prefixo de todos os recursos        |
+| `environment`        | `dev`             | Tag de ambiente                     |
+| `vpc_cidr`           | `10.0.0.0/16`     | CIDR da VPC                         |
+| `kubernetes_version` | `1.36`            | Versão do Kubernetes                |
+| `node_instance_type` | `t3.small`        | Tipo de EC2 dos nodes               |
+| `node_desired_size`  | `2`               | Quantidade inicial de nodes         |
+| `node_min_size`      | `1`               | Mínimo de nodes                     |
+| `node_max_size`      | `4`               | Máximo de nodes                     |
+| `db_name`            | `lata_velha`      | Nome do banco                       |
+| `db_username`        | `lata_velha_user` | Usuário do banco                    |
+| `db_password`        | —                 | Senha do banco (**obrigatória**)    |
+| `rds_instance_class` | `db.t3.micro`     | Classe da instância RDS             |
+
+#### Módulo `deploy`
+
+> `db_username` e `db_password` **não são variáveis do deploy** — são lidos automaticamente do remote state do bootstrap e não precisam ser declarados aqui.
+
+| Variável                | Padrão        | Descrição                                                        |
+| ----------------------- | ------------- | ---------------------------------------------------------------- |
+| `region`                | `us-east-1`   | Região AWS                                                       |
+| `project_name`          | `lata-velha`  | Prefixo dos recursos                                             |
+| `environment`           | `dev`         | Tag de ambiente                                                  |
+| `docker_image`          | `placeholder` | Imagem ECR (definida automaticamente pelo pipeline)              |
+| `mail_username`         | —             | Email remetente Gmail (**obrigatório**)                          |
+| `mail_password`         | —             | App password do Gmail (**obrigatório**)                          |
+| `state_bucket`          | —             | Injetado pelo pipeline — não colocar no tfvars                   |
+| `cluster_endpoint`      | —             | Injetado pelo pipeline — não colocar no tfvars                   |
+| `cluster_ca_data`       | —             | Injetado pelo pipeline — não colocar no tfvars                   |
+| `cluster_name`          | —             | Injetado pelo pipeline — não colocar no tfvars                   |
+| `aws_access_key_id`     | —             | Injetado pelo pipeline — não colocar no tfvars                   |
+| `aws_secret_access_key` | —             | Injetado pelo pipeline — não colocar no tfvars                   |
+| `aws_session_token`     | —             | Injetado pelo pipeline — não colocar no tfvars                   |
+
+</details>
+
+### Custo aproximado (us-east-1)
+
+Preços On-Demand verificados em junho/2026 — base de 730 h/mês, sem tráfego de dados.
+
+| Recurso                  | Configuração         | Preço unitário     | Custo/mês       |
+| ------------------------ | -------------------- | ------------------ | --------------- |
+| EKS control plane        | 1 cluster            | $0,10/h            | ~US$ 73         |
+| EC2 nodes (t3.small × 2) | On-Demand, Linux     | $0,0209/h × 2      | ~US$ 31         |
+| NAT Gateway              | 1 AZ                 | $0,045/h           | ~US$ 33         |
+| ALB                      | 1 ALB (base)         | $0,0225/h + LCU    | ~US$ 16         |
+| RDS db.t3.micro          | PostgreSQL, Single-AZ | $0,018/h + 20 GB  | ~US$ 15         |
+| **Total estimado**       |                      |                    | **~US$ 168/mês** |
+
+> No **AWS Academy** o crédito é limitado (~US$ 50). Destrua o ambiente com `terraform destroy` (ou `./apply.sh --destroy --auto`) após cada uso.
+>
+> **Atenção:** versões de Kubernetes em **extended support** elevam o control plane para $0,60/h (~US$ 438/mês). O Kubernetes 1.36 está em suporte padrão no momento desta revisão.
+
 ---
 
-## Pré-requisitos locais
+## CI/CD (GitHub Actions)
+
+> Configuração do pipeline automatizado que roda em push para `master`.
+
+### Pipeline e configuração de secrets
+
+O pipeline CI/CD (`.github/workflows/main.yml`) roda automaticamente em todo push para `master`. Para funcionar, configure os seguintes valores no repositório GitHub:
+
+`Settings → Secrets and variables → Actions`
+
+#### Secrets
+
+| Nome                    | Valor                 | Onde obter                                                          |
+| ----------------------- | --------------------- | ------------------------------------------------------------------- |
+| `AWS_ACCESS_KEY_ID`     | `ASIA...`             | AWS Academy → AWS Details                                           |
+| `AWS_SECRET_ACCESS_KEY` | `...`                 | AWS Academy → AWS Details                                           |
+| `AWS_SESSION_TOKEN`     | `...`                 | AWS Academy → AWS Details                                           |
+| `TF_DB_PASSWORD`        | senha do banco        | você define (mínimo 8 chars)                                        |
+| `TF_DB_USERNAME`        | `lata_velha_user`     | padrão ou personalize                                               |
+| `TF_MAIL_USERNAME`      | `seu@gmail.com`       | sua conta Gmail                                                     |
+| `TF_MAIL_PASSWORD`      | `xxxx xxxx xxxx xxxx` | [Senha de App do Google](https://myaccount.google.com/apppasswords) |
+
+#### Variables
+
+| Nome               | Valor            |
+| ------------------ | ---------------- |
+| `AWS_REGION`       | `us-east-1`      |
+| `EKS_CLUSTER_NAME` | `lata-velha-eks` |
+
+> **Importante:** As credenciais AWS expiram com cada sessão do Academy. Atualize-as antes de cada push para `master`.
+
+#### Jobs do pipeline
+
+| Job            | Fase | O que faz                                                  |
+| -------------- | ---- | ---------------------------------------------------------- |
+| `test`         | CI   | compila e roda toda a suíte de testes (mvn)                |
+| `tf-bootstrap` | CD   | provisiona VPC + EKS + RDS + ECR (Terraform)               |
+| `build`        | CD   | builda a imagem e envia ao ECR com tag = SHA do commit     |
+| `tf-deploy`    | CD   | aplica ALB + app + cluster-autoscaler no cluster           |
+| `verify`       | CD   | aguarda o rollout e faz smoke test em `/actuator/health`   |
+
+Cada job só roda se o anterior passar (`needs`). As etapas CD só rodam em **push direto para `master`** — em Pull Requests roda apenas o `test`.
+
+---
+
+## Execução local
+
+> O que instalar, como aplicar a infraestrutura manualmente na sua máquina e como validar o resultado.
+
+### Pré-requisitos locais
 
 | Ferramenta   | Versão mínima | Para que serve                                    |
 | ------------ | ------------- | ------------------------------------------------- |
@@ -212,7 +328,7 @@ Algumas boas práticas foram **deliberadamente deixadas de fora** porque o Learn
 
 ---
 
-## Comandos Terraform diretos (sem apply.sh)
+### Comandos Terraform diretos (sem apply.sh)
 
 > Este é o método usado pelo **GitHub Actions** e o recomendado para execução local.
 > Configure os arquivos `.tfvars` antes de continuar (veja o [passo de configuração](#configurar-as-variáveis-do-terraform)).
@@ -299,11 +415,11 @@ Tempo total: **~20–30 minutos** na primeira execução.
 
 ---
 
-## Verificando o deploy
+### Verificando o deploy
 
 Os comandos abaixo valem tanto após uma execução **local** (`./apply.sh --auto`) quanto após o **pipeline do GitHub Actions** terminar — o `apply.sh` já executa o smoke test (`[5/5] Verificar`), mas em ambos os casos vale conferir manualmente com `kubectl` e capturar a URL do ALB.
 
-### 1. Conferir pods e URL do ALB
+#### 1. Conferir pods e URL do ALB
 
 **Local** (a partir de `infra/terraform/`):
 
@@ -330,11 +446,11 @@ curl http://<DNS_DO_ALB>/actuator/health
 
 > O `kubectl` também exige credenciais AWS válidas no seu terminal — copie a URL do ALB e use `curl http://<DNS_DO_ALB>/actuator/health` direto do seu navegador ou terminal, sem autenticar no cluster.
 
-### 2. Teste de carga — HPA & Cluster Autoscaler
+#### 2. Teste de carga — HPA & Cluster Autoscaler
 
 Para validar o autoscaling, gere carga suficiente para ultrapassar o limite de CPU (60%) nos pods. O projeto inclui um `locustfile` pronto em `load-test/`.
 
-#### Setup do Locust
+##### Setup do Locust
 
 **Instalar Python** (caso ainda não tenha):
 
@@ -356,7 +472,7 @@ source .venvs/locust/bin/activate
 pip install locust
 ```
 
-#### Ramp configurada (100 usuários)
+##### Ramp configurada (100 usuários)
 
 Os parâmetros de carga (número de usuários, spawn rate, host) são definidos **na UI do Locust** em `http://localhost:8089` — não há ramp automático no `locustfile.py`. A configuração recomendada para validar o HPA é:
 
@@ -369,7 +485,7 @@ Os parâmetros de carga (número de usuários, spawn rate, host) são definidos 
 
 > Toda a parametrização é feita pela UI — o `locustfile.py` só define **o que** cada usuário faz (health, login, listar OS).
 
-#### Executar contra a aplicação no EKS
+##### Executar contra a aplicação no EKS
 
 O teste de carga **não roda no GitHub Actions** — o runner não tem rede para o ALB. Rode localmente, com o `kubectl` apontando para o cluster.
 
@@ -392,7 +508,7 @@ Na UI do Locust (http://localhost:8089), preencha:
 
 > **Por que na UI e não via flag?** O `--host` no CLI exige que a URL esteja disponível no momento do comando. Em pipelines, a URL do ALB só existe depois do `terraform apply` e o runner do GitHub Actions não tem rota para a VPC. Pela UI, a URL pode ser colada a qualquer momento — inclusive trocada no meio do teste.
 
-#### Observar o HPA em ação
+##### Observar o HPA em ação
 
 Em um terceiro terminal, com `kubectl` apontando para o cluster:
 
@@ -417,7 +533,7 @@ kubectl describe hpa lata-velha-api -n lata-velha | tail -20
 
 > O HPA escala os **pods** dentro dos nodes existentes. O Cluster Autoscaler só adiciona um **novo node EC2** quando pods pendentes não cabem nos nodes atuais — isso acontece quando o HPA atinge o limite de 6 réplicas e a carga continua alta.
 
-### 3. Destruir o ambiente
+#### 3. Destruir o ambiente
 
 ```bash
 ./apply.sh --destroy --auto
@@ -433,7 +549,7 @@ O destroy acontece em ordem reversa:
 
 ---
 
-## Flags do apply.sh
+### Flags do apply.sh
 
 ```bash
 ./apply.sh                    # pipeline completo com confirmação interativa
@@ -443,322 +559,3 @@ O destroy acontece em ordem reversa:
 ./apply.sh --destroy          # destroi tudo com confirmação
 ./apply.sh --destroy --auto   # destroi tudo sem confirmação
 ```
-
----
-
-## GitHub Actions — configuração de secrets e variáveis
-
-O pipeline CI/CD (`.github/workflows/main.yml`) roda automaticamente em todo push para `master`. Para funcionar, configure os seguintes valores no repositório GitHub:
-
-`Settings → Secrets and variables → Actions`
-
-### Secrets
-
-| Nome                    | Valor                 | Onde obter                                                          |
-| ----------------------- | --------------------- | ------------------------------------------------------------------- |
-| `AWS_ACCESS_KEY_ID`     | `ASIA...`             | AWS Academy → AWS Details                                           |
-| `AWS_SECRET_ACCESS_KEY` | `...`                 | AWS Academy → AWS Details                                           |
-| `AWS_SESSION_TOKEN`     | `...`                 | AWS Academy → AWS Details                                           |
-| `TF_DB_PASSWORD`        | senha do banco        | você define (mínimo 8 chars)                                        |
-| `TF_DB_USERNAME`        | `lata_velha_user`     | padrão ou personalize                                               |
-| `TF_MAIL_USERNAME`      | `seu@gmail.com`       | sua conta Gmail                                                     |
-| `TF_MAIL_PASSWORD`      | `xxxx xxxx xxxx xxxx` | [Senha de App do Google](https://myaccount.google.com/apppasswords) |
-
-### Variables
-
-| Nome               | Valor            |
-| ------------------ | ---------------- |
-| `AWS_REGION`       | `us-east-1`      |
-| `EKS_CLUSTER_NAME` | `lata-velha-eks` |
-
-> **Importante:** As credenciais AWS expiram com cada sessão do Academy. Atualize-as antes de cada push para `master`.
-
-### Pipeline do GitHub Actions
-
-(diagrama na [Visão geral](#visão-geral))
-
-| Job            | Fase | O que faz                                                  |
-| -------------- | ---- | ---------------------------------------------------------- |
-| `test`         | CI   | compila e roda toda a suíte de testes (mvn)                |
-| `tf-bootstrap` | CD   | provisiona VPC + EKS + RDS + ECR (Terraform)               |
-| `build`        | CD   | builda a imagem e envia ao ECR com tag = SHA do commit     |
-| `tf-deploy`    | CD   | aplica ALB + app + cluster-autoscaler no cluster           |
-| `verify`       | CD   | aguarda o rollout e faz smoke test em `/actuator/health`   |
-
-Cada job só roda se o anterior passar (`needs`). As etapas CD só rodam em **push direto para `master`** — em Pull Requests roda apenas o `test`.
-
----
-
-## Comandos Terraform diretos (sem apply.sh)
-
-<details>
-<summary>Equivalente ao <code>apply.sh</code>, executando cada passo manualmente — referência e depuração (clique para expandir).</summary>
-
-
-> **Pré-requisito:** configure os arquivos `.tfvars` conforme o passo 2 da seção anterior antes de rodar os comandos abaixo.
-
-### 1. Criar o bucket de estado S3
-
-```bash
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-BUCKET="lata-velha-tfstate-${ACCOUNT_ID}"
-REGION="us-east-1"
-
-aws s3 mb "s3://$BUCKET" --region $REGION
-aws s3api put-bucket-versioning \
-  --bucket $BUCKET \
-  --versioning-configuration Status=Enabled
-```
-
-### 2. Bootstrap — VPC + EKS + RDS + ECR
-
-O `db_password` é lido automaticamente do `bootstrap/terraform.tfvars`.
-
-```bash
-cd infra/terraform
-
-terraform -chdir=bootstrap init \
-  -backend-config="bucket=$BUCKET" \
-  -backend-config="region=$REGION"
-
-terraform -chdir=bootstrap plan
-terraform -chdir=bootstrap apply
-```
-
-Tempo estimado: **~15 minutos**.
-
-### 3. Capturar outputs do bootstrap
-
-O módulo `deploy` precisa do endpoint do cluster EKS para configurar os providers `kubectl` e `helm`. Exporte como `TF_VAR_` para que o Terraform os leia automaticamente:
-
-```bash
-export TF_VAR_state_bucket="$BUCKET"
-export TF_VAR_cluster_name=$(terraform -chdir=bootstrap output -raw cluster_name)
-export TF_VAR_cluster_endpoint=$(terraform -chdir=bootstrap output -raw cluster_endpoint)
-export TF_VAR_cluster_ca_data=$(terraform -chdir=bootstrap output -raw cluster_certificate_authority_data)
-
-# Credenciais para o Cluster Autoscaler (AWS Academy não suporta IRSA)
-export TF_VAR_aws_access_key_id="$AWS_ACCESS_KEY_ID"
-export TF_VAR_aws_secret_access_key="$AWS_SECRET_ACCESS_KEY"
-export TF_VAR_aws_session_token="$AWS_SESSION_TOKEN"
-```
-
-### 4. Build e push da imagem Docker
-
-```bash
-ECR_URL=$(terraform -chdir=bootstrap output -raw ecr_repository_url)
-IMAGE="${ECR_URL}:$(git rev-parse --short HEAD)"
-
-aws ecr get-login-password --region $REGION \
-  | docker login --username AWS --password-stdin "$ECR_URL"
-
-docker build --platform linux/amd64 -t "$IMAGE" ../../
-docker push "$IMAGE"
-```
-
-### 5. Deploy — ALB + app + autoscaler
-
-`mail_username` e `mail_password` são lidos do `deploy/terraform.tfvars`. Somente `docker_image` é passado via variável de ambiente por ser calculado em tempo de execução.
-
-```bash
-export TF_VAR_docker_image="$IMAGE"
-
-terraform -chdir=deploy init \
-  -backend-config="bucket=$BUCKET" \
-  -backend-config="region=$REGION"
-
-terraform -chdir=deploy plan
-terraform -chdir=deploy apply
-```
-
-### 6. Verificar o deploy
-
-```bash
-CLUSTER=$(terraform -chdir=bootstrap output -raw cluster_name)
-aws eks update-kubeconfig --region $REGION --name $CLUSTER
-
-kubectl get pods -n lata-velha
-kubectl rollout status deployment/lata-velha-api -n lata-velha --timeout=5m
-
-# URL do ALB (aguarde ~2 min para ficar ativo)
-terraform -chdir=deploy output app_url
-
-# Smoke test
-curl http://<DNS_DO_ALB>/actuator/health
-```
-
-### 7. Destroy — ordem reversa
-
-```bash
-# 1. Destroi o módulo deploy (ALB + app + autoscaler)
-terraform -chdir=deploy init \
-  -backend-config="bucket=$BUCKET" \
-  -backend-config="region=$REGION"
-terraform -chdir=deploy destroy
-
-# 2. Destroi o módulo bootstrap (VPC + EKS + RDS + ECR)
-terraform -chdir=bootstrap init \
-  -backend-config="bucket=$BUCKET" \
-  -backend-config="region=$REGION"
-terraform -chdir=bootstrap destroy
-
-# 3. Remove o bucket de estado (deleta versões e delete markers antes)
-REGION="${AWS_DEFAULT_REGION:-us-east-1}"
-
-aws s3api list-object-versions --bucket "$BUCKET" --output text \
-  --query 'Versions[?VersionId!=`null`].[Key,VersionId]' 2>/dev/null | \
-  while read -r key version; do
-    aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" > /dev/null
-  done
-
-aws s3api list-object-versions --bucket "$BUCKET" --output text \
-  --query 'DeleteMarkers[?VersionId!=`null`].[Key,VersionId]' 2>/dev/null | \
-  while read -r key version; do
-    aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$version" > /dev/null
-  done
-
-aws s3 rm "s3://$BUCKET" --recursive > /dev/null 2>&1 || true
-aws s3api delete-bucket --bucket "$BUCKET" --region "$REGION"
-```
-
-> **Destrua o ambiente quando não precisar** — o EKS control plane custa ~US$ 73/mês mesmo sem tráfego.
-
----
-
-## Executar com apply.sh (alternativa local)
-
-O `apply.sh` é um orquestrador local que executa os mesmos passos acima automaticamente. Útil para quem prefere um único comando em vez de executar etapa por etapa.
-
-### Configuração prévia
-
-Siga os mesmos passos de configuração do AWS CLI e dos arquivos `.tfvars` descritos na seção anterior.
-
-### Comandos
-
-```bash
-./apply.sh                    # pipeline completo com confirmação interativa
-./apply.sh --auto             # pipeline completo sem confirmação
-./apply.sh --skip-test        # pula os testes Maven
-./apply.sh --auto --skip-test # sem confirmação e sem testes
-./apply.sh --destroy          # destroi tudo com confirmação
-./apply.sh --destroy --auto   # destroi tudo sem confirmação
-```
-
-O pipeline executa em 5 etapas:
-
-```
-[1/5] Testes     →  PostgreSQL Docker efêmero + mvn test
-[2/5] Bootstrap  →  terraform apply  (VPC + EKS + RDS + ECR)   ~15 min
-[3/5] Docker     →  docker build --platform linux/amd64 + push para ECR
-[4/5] Deploy     →  terraform apply  (ALB + app + autoscaler)
-[5/5] Verificar  →  kubectl rollout status  (timeout 5 min)
-```
-
-Tempo total: **~20–30 minutos** na primeira execução.
-
----
-
-## GitHub Actions — configuração de secrets e variáveis
-
-O pipeline CI/CD (`.github/workflows/main.yml`) usa os **comandos Terraform diretos** e roda automaticamente em todo push para `master`. Configure os seguintes valores no repositório:
-
-`Settings → Secrets and variables → Actions`
-
-### Secrets
-
-| Nome                    | Valor                 | Onde obter                                                          |
-| ----------------------- | --------------------- | ------------------------------------------------------------------- |
-| `AWS_ACCESS_KEY_ID`     | `ASIA...`             | AWS Academy → AWS Details                                           |
-| `AWS_SECRET_ACCESS_KEY` | `...`                 | AWS Academy → AWS Details                                           |
-| `AWS_SESSION_TOKEN`     | `...`                 | AWS Academy → AWS Details                                           |
-| `TF_DB_PASSWORD`        | senha do banco        | você define (mínimo 8 chars)                                        |
-| `TF_DB_USERNAME`        | `lata_velha_user`     | padrão ou personalize                                               |
-| `TF_MAIL_USERNAME`      | `seu@gmail.com`       | sua conta Gmail                                                     |
-| `TF_MAIL_PASSWORD`      | `xxxx xxxx xxxx xxxx` | [Senha de App do Google](https://myaccount.google.com/apppasswords) |
-
-### Variables
-
-| Nome               | Valor            |
-| ------------------ | ---------------- |
-| `AWS_REGION`       | `us-east-1`      |
-| `EKS_CLUSTER_NAME` | `lata-velha-eks` |
-
-> **Importante:** As credenciais AWS expiram com cada sessão do Academy. Atualize-as antes de cada push para `master`.
-
-### Jobs do pipeline
-
-| Job            | Fase | O que faz                                                  |
-| -------------- | ---- | ---------------------------------------------------------- |
-| `test`         | CI   | compila e roda toda a suíte de testes (mvn)                |
-| `tf-bootstrap` | CD   | provisiona VPC + EKS + RDS + ECR (Terraform)               |
-| `build`        | CD   | builda a imagem e envia ao ECR com tag = SHA do commit     |
-| `tf-deploy`    | CD   | aplica ALB + app + cluster-autoscaler no cluster           |
-| `verify`       | CD   | aguarda o rollout e faz smoke test em `/actuator/health`   |
-
-Cada job só roda se o anterior passar (`needs`). As etapas CD só rodam em **push direto para `master`** — em Pull Requests roda apenas o `test`.
-
----
-
-## Variáveis do Terraform
-
-<details>
-<summary>Tabelas completas de variáveis dos módulos <code>bootstrap</code> e <code>deploy</code> (clique para expandir).</summary>
-
-### Módulo `bootstrap`
-
-| Variável             | Padrão            | Descrição                           |
-| -------------------- | ----------------- | ----------------------------------- |
-| `region`             | `us-east-1`       | Região AWS                          |
-| `project_name`       | `lata-velha`      | Prefixo de todos os recursos        |
-| `environment`        | `dev`             | Tag de ambiente                     |
-| `vpc_cidr`           | `10.0.0.0/16`     | CIDR da VPC                         |
-| `kubernetes_version` | `1.36`            | Versão do Kubernetes                |
-| `node_instance_type` | `t3.small`        | Tipo de EC2 dos nodes               |
-| `node_desired_size`  | `2`               | Quantidade inicial de nodes         |
-| `node_min_size`      | `1`               | Mínimo de nodes                     |
-| `node_max_size`      | `4`               | Máximo de nodes                     |
-| `db_name`            | `lata_velha`      | Nome do banco                       |
-| `db_username`        | `lata_velha_user` | Usuário do banco                    |
-| `db_password`        | —                 | Senha do banco (**obrigatória**)    |
-| `rds_instance_class` | `db.t3.micro`     | Classe da instância RDS             |
-
-### Módulo `deploy`
-
-> `db_username` e `db_password` **não são variáveis do deploy** — são lidos automaticamente do remote state do bootstrap e não precisam ser declarados aqui.
-
-| Variável                | Padrão        | Descrição                                                        |
-| ----------------------- | ------------- | ---------------------------------------------------------------- |
-| `region`                | `us-east-1`   | Região AWS                                                       |
-| `project_name`          | `lata-velha`  | Prefixo dos recursos                                             |
-| `environment`           | `dev`         | Tag de ambiente                                                  |
-| `docker_image`          | `placeholder` | Imagem ECR (definida automaticamente pelo pipeline)              |
-| `mail_username`         | —             | Email remetente Gmail (**obrigatório**)                          |
-| `mail_password`         | —             | App password do Gmail (**obrigatório**)                          |
-| `state_bucket`          | —             | Injetado pelo pipeline — não colocar no tfvars                   |
-| `cluster_endpoint`      | —             | Injetado pelo pipeline — não colocar no tfvars                   |
-| `cluster_ca_data`       | —             | Injetado pelo pipeline — não colocar no tfvars                   |
-| `cluster_name`          | —             | Injetado pelo pipeline — não colocar no tfvars                   |
-| `aws_access_key_id`     | —             | Injetado pelo pipeline — não colocar no tfvars                   |
-| `aws_secret_access_key` | —             | Injetado pelo pipeline — não colocar no tfvars                   |
-| `aws_session_token`     | —             | Injetado pelo pipeline — não colocar no tfvars                   |
-
-</details>
-
----
-
-## Custo aproximado (us-east-1)
-
-Preços On-Demand verificados em junho/2026 — base de 730 h/mês, sem tráfego de dados.
-
-| Recurso                  | Configuração         | Preço unitário     | Custo/mês       |
-| ------------------------ | -------------------- | ------------------ | --------------- |
-| EKS control plane        | 1 cluster            | $0,10/h            | ~US$ 73         |
-| EC2 nodes (t3.small × 2) | On-Demand, Linux     | $0,0209/h × 2      | ~US$ 31         |
-| NAT Gateway              | 1 AZ                 | $0,045/h           | ~US$ 33         |
-| ALB                      | 1 ALB (base)         | $0,0225/h + LCU    | ~US$ 16         |
-| RDS db.t3.micro          | PostgreSQL, Single-AZ | $0,018/h + 20 GB  | ~US$ 15         |
-| **Total estimado**       |                      |                    | **~US$ 168/mês** |
-
-> No **AWS Academy** o crédito é limitado (~US$ 50). Destrua o ambiente com `terraform destroy` (ou `./apply.sh --destroy --auto`) após cada uso.
->
-> **Atenção:** versões de Kubernetes em **extended support** elevam o control plane para $0,60/h (~US$ 438/mês). O Kubernetes 1.36 está em suporte padrão no momento desta revisão.
