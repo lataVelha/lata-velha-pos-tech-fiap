@@ -2,16 +2,11 @@ package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.AjustarPecaEstoqueRequest;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
-import br.com.lata.velha.shared.domain.exceptions.NotFoundException;
+import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.PecaNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,50 +17,47 @@ import static org.mockito.Mockito.when;
 class AjustarPecaEstoqueUseCaseTest {
 
     @Mock
-    private PecaRepository pecaRepository;
-
-    @Mock
-    private PecaEstoqueRepository pecaEstoqueRepository;
-
-    @InjectMocks
-    private AjustarPecaEstoqueUseCase useCase;
+    private AjustarPecaEstoqueGateway gateway;
 
     @Test
     void deveAjustarSaldoComSucesso() {
         PecaEstoque estoque = new PecaEstoque(1L, 10, 10);
         AjustarPecaEstoqueRequest request = new AjustarPecaEstoqueRequest(4, 4);
 
-        when(pecaRepository.existsActiveById(1L)).thenReturn(true);
-        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.of(estoque));
-        when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
+        when(gateway.getEstoquePorPecaId(1L)).thenReturn(estoque);
+        when(gateway.salvarEstoque(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
 
-        var response = useCase.execute(1L, request);
+        AjustarPecaEstoqueUseCase useCase = new AjustarPecaEstoqueUseCase(gateway);
+        PecaEstoque response = useCase.execute(1L, request);
 
-        assertThat(response.quantidadeArmazenada()).isEqualTo(4);
-        assertThat(response.quantidadeDisponivel()).isEqualTo(4);
+        assertThat(response.getQuantidadeArmazenada()).isEqualTo(4);
+        assertThat(response.getQuantidadeDisponivel()).isEqualTo(4);
     }
 
     @Test
-    void deveCriarEstoqueQuandoNaoExiste() {
+    void deveAjustarEstoqueInicialQuandoGatewayRetornaVazio() {
+        PecaEstoque estoqueVazio = new PecaEstoque(1L, 0, 0);
         AjustarPecaEstoqueRequest request = new AjustarPecaEstoqueRequest(10, 5);
 
-        when(pecaRepository.existsActiveById(1L)).thenReturn(true);
-        when(pecaEstoqueRepository.findByPecaId(1L)).thenReturn(Optional.empty());
-        when(pecaEstoqueRepository.save(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
+        when(gateway.getEstoquePorPecaId(1L)).thenReturn(estoqueVazio);
+        when(gateway.salvarEstoque(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
 
-        var response = useCase.execute(1L, request);
+        AjustarPecaEstoqueUseCase useCase = new AjustarPecaEstoqueUseCase(gateway);
+        PecaEstoque response = useCase.execute(1L, request);
 
-        assertThat(response.quantidadeArmazenada()).isEqualTo(10);
-        assertThat(response.quantidadeDisponivel()).isEqualTo(5);
+        assertThat(response.getQuantidadeArmazenada()).isEqualTo(10);
+        assertThat(response.getQuantidadeDisponivel()).isEqualTo(5);
     }
 
     @Test
     void deveLancarExcecaoQuandoPecaNaoExiste() {
         AjustarPecaEstoqueRequest request = new AjustarPecaEstoqueRequest(10, 5);
 
-        when(pecaRepository.existsActiveById(99L)).thenReturn(false);
+        when(gateway.getPecaAtivaPorId(99L)).thenThrow(PecaNotFoundException.fromId(99L));
+
+        AjustarPecaEstoqueUseCase useCase = new AjustarPecaEstoqueUseCase(gateway);
 
         assertThatThrownBy(() -> useCase.execute(99L, request))
-                .isInstanceOf(NotFoundException.class);
+                .isInstanceOf(PecaNotFoundException.class);
     }
 }

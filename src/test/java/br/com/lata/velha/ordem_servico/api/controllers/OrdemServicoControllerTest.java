@@ -2,11 +2,13 @@ package br.com.lata.velha.ordem_servico.api.controllers;
 
 import br.com.lata.velha.authentication.infrastructure.security.config.SecurityConfig;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoRequest;
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.request.ServicoRequest;
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.ReceberAprovacaoOrcamentoRequest;
+import br.com.lata.velha.ordem_servico.application.controllers.ordemservico.OrdemServicoCleanController;
 import br.com.lata.velha.ordem_servico.application.dtos.response.*;
-import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
+import br.com.lata.velha.ordem_servico.application.presenters.ordemservico.ReceberAprovacaoOrcamentoClientePresenter;
+import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,7 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -30,7 +31,6 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -50,46 +50,13 @@ class OrdemServicoControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private CriarOrdemServicoUseCase criarOrdemServicoUseCase;
-
-    @MockBean
-    private IniciarDiagnosticoUseCase iniciarDiagnosticoUseCase;
-
-    @MockBean
-    private BuscarOrdemServicoUseCase buscarOrdemServicoUseCase;
-
-    @MockBean
-    private AprovarOrdemServicoUseCase aprovarOrdemServicoUseCase;
-
-    @MockBean
-    private ReprovarOrdemServicoUseCase reprovarOrdemServicoUseCase;
-
-    @MockBean
-    private AdicionarServicoUseCase adicionarServicoUseCase;
-
-    @MockBean
-    private FinalizarDiagnosticoUseCase finalizarDiagnosticoUseCase;
-
-    @MockBean
-    private IniciarServicoUseCase iniciarServicoUseCase;
-
-    @MockBean
-    private FinalizarServicoUseCase finalizarServicoUseCase;
-
-    @MockBean
-    private RetirarVeiculoUseCase retirarVeiculoUseCase;
-
-        @MockBean
-        private BuscarTempoMedioExecucaoServicosFinalizadosUseCase buscarTempoMedioExecucaoServicosFinalizadosUseCase;
+    private OrdemServicoCleanController cleanController;
 
     @MockBean
     private JwtDecoder jwtDecoder;
 
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
-
-    @MockBean
-    private BuscarOrdensPorStatusOrdenadoUseCase buscarOrdensPorStatusOrdenadoUseCase;
 
     private OrdemServicoResponse buildOrdemResponse() {
         return new OrdemServicoResponse(
@@ -104,12 +71,11 @@ class OrdemServicoControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico deve retornar 201 com a ordem criada")
     void shouldReturn201OnCreate() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear", 3L , 4, 3l, new BigDecimal(3));
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear", 3L, 4, 3L, new BigDecimal(3));
 
-        when(criarOrdemServicoUseCase.execute(any())).thenReturn(buildOrdemResponse());
+        when(cleanController.criar(any())).thenReturn(buildOrdemResponse());
 
         mockMvc.perform(post("/ordens-servico")
                         .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
@@ -120,26 +86,26 @@ class OrdemServicoControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
     @DisplayName("POST /ordens-servico com body inválido deve retornar 400")
     void shouldReturn400OnInvalidCreateRequest() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(null, null, "x".repeat(501), 3L , 4, 3l, new BigDecimal(3));
+        var invalid = new CriarOrdemServicoRequest(null, null, "x".repeat(501), 3L, 4, 3L, new BigDecimal(3));
 
         mockMvc.perform(post("/ordens-servico")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(roles = "USER")
     @DisplayName("GET /ordens-servico deve retornar 200 com lista paginada")
     void shouldReturn200OnList() throws Exception {
         var paginated = new PaginatedResult<>(List.of(buildOrdemResponse()), 0, 10, 1L, 1);
 
-        when(buscarOrdemServicoUseCase.execute(null, null, null, null, 0, 10)).thenReturn(paginated);
+        when(cleanController.buscar(null, null, null, null, 0, 10)).thenReturn(paginated);
 
         mockMvc.perform(get("/ordens-servico")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
@@ -148,7 +114,6 @@ class OrdemServicoControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     @DisplayName("GET /ordens-servico/metricas/tempo-medio-execucao deve retornar 200 para ADMIN")
     void shouldReturn200OnGetAverageExecutionTimeForAdmin() throws Exception {
         var response = new TempoMedioExecucaoResponse(
@@ -158,9 +123,10 @@ class OrdemServicoControllerTest {
                 "America/Sao_Paulo"
         );
 
-        when(buscarTempoMedioExecucaoServicosFinalizadosUseCase.execute(any(), any())).thenReturn(response);
+        when(cleanController.buscarTempoMedioExecucao(any(), any())).thenReturn(response);
 
         mockMvc.perform(get("/ordens-servico/metricas/tempo-medio-execucao")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
                         .param("dataInicio", "01/01/2026")
                         .param("dataFim", "31/01/2026"))
                 .andExpect(status().isOk())
@@ -170,23 +136,23 @@ class OrdemServicoControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
     @DisplayName("GET /ordens-servico/metricas/tempo-medio-execucao deve retornar 403 para USER")
     void shouldReturn403OnGetAverageExecutionTimeForUser() throws Exception {
-        mockMvc.perform(get("/ordens-servico/metricas/tempo-medio-execucao"))
+        mockMvc.perform(get("/ordens-servico/metricas/tempo-medio-execucao")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER"))))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @WithMockUser(roles = "USER")
     @DisplayName("GET /ordens-servico com filtros deve retornar 200")
     void shouldReturn200OnListWithFilters() throws Exception {
         var paginated = new PaginatedResult<>(List.of(buildOrdemResponse()), 0, 10, 1L, 1);
 
-        when(buscarOrdemServicoUseCase.execute(eq(1L), eq(StatusOrdemServico.RECEBIDA), eq(4L), eq(null), eq(0), eq(10)))
+        when(cleanController.buscar(eq(1L), eq(StatusOrdemServico.RECEBIDA), eq(4L), eq(null), eq(0), eq(10)))
                 .thenReturn(paginated);
 
         mockMvc.perform(get("/ordens-servico")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
                         .param("id", "1")
                         .param("status", "RECEBIDA")
                         .param("proprietarioId", "4")
@@ -196,63 +162,46 @@ class OrdemServicoControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "MECANICO")
-    @DisplayName("PATCH /ordens-servico/{idOs}/{idMecanico}/iniciar deve retornar 200")
+    @DisplayName("PATCH /ordens-servico/{idOs}/iniciar-diagnostico deve retornar 200")
     void shouldReturn200OnIniciarDiagnostico() throws Exception {
-
         mockMvc.perform(patch("/ordens-servico/1/iniciar-diagnostico")
                         .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_MECANICO"))))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @WithMockUser(roles = "MECANICO")
     @DisplayName("PATCH /ordens-servico/{idOs}/adicionar-servico deve retornar 200")
     void shouldReturn200OnAdicionarServico() throws Exception {
-        var servicoRequest = new ServicoRequest(10L, List.of(), new BigDecimal("150.00"));
-        var request = new AddServicoRequest(List.of(servicoRequest));
-
-        doNothing().when(adicionarServicoUseCase).execute(any());
+        var request = objectMapper.createObjectNode();
+        request.putArray("servicoRequests").addObject()
+                .put("servicoId", 10)
+                .put("valorMaoDeObra", 150.00)
+                .putArray("pecas");
 
         mockMvc.perform(patch("/ordens-servico/1/adicionar-servico")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_MECANICO")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @WithMockUser(roles = "MECANICO")
-    @DisplayName("PATCH /ordens-servico/{idOs}/adicionar-servico com lista vazia deve retornar 400")
-    void shouldReturn400OnAdicionarServicoWithInvalidRequest() throws Exception {
-        var invalid = new AddServicoRequest(List.of());
-
-        mockMvc.perform(patch("/ordens-servico/1/adicionar-servico")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalid)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = "MECANICO")
-    @DisplayName("PATCH /ordens-servico/{idOs}/{idFunc}/finalizar-diagnostico deve retornar 200")
+    @DisplayName("PATCH /ordens-servico/{idOs}/finalizar-diagnostico deve retornar 200")
     void shouldReturn200OnFinalizarDiagnostico() throws Exception {
-        doNothing().when(finalizarDiagnosticoUseCase).execute(any());
-
         mockMvc.perform(patch("/ordens-servico/1/finalizar-diagnostico")
                         .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_MECANICO"))))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @WithMockUser(roles = "USER")
     @DisplayName("PATCH /ordens-servico/{idOs}/aprovar deve retornar 200")
     void shouldReturn200OnAprovar() throws Exception {
         var servico = new AprovarOrdemServicoRequest.Servico(10L, "APROVADO");
         var request = new AprovarOrdemServicoRequest(List.of(servico));
-        var output = new AprovarOrdemServicoUseCase.Output(1L, "EM_EXECUCAO",
-                List.of(new AprovarOrdemServicoUseCase.Output.Servico(10L, "APROVADO")), null);
+        var aprovarResponse = new AprovarOrdemServicoResponse(1L, "APROVADA",
+                List.of(new AprovarOrdemServicoResponse.Servico(10L, "APROVADO")), null);
 
-        when(aprovarOrdemServicoUseCase.execute(any())).thenReturn(output);
+        when(cleanController.aprovar(any())).thenReturn(aprovarResponse);
 
         mockMvc.perform(patch("/ordens-servico/1/aprovar")
                         .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
@@ -260,44 +209,41 @@ class OrdemServicoControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.idOs").value(1L))
-                .andExpect(jsonPath("$.status").value("EM_EXECUCAO"));
+                .andExpect(jsonPath("$.status").value("APROVADA"));
     }
 
     @Test
-    @WithMockUser(roles = "USER")
     @DisplayName("PATCH /ordens-servico/{idOs}/aprovar com lista vazia deve retornar 400")
     void shouldReturn400OnAprovarWithInvalidRequest() throws Exception {
         var invalid = new AprovarOrdemServicoRequest(List.of());
 
         mockMvc.perform(patch("/ordens-servico/1/aprovar")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    @DisplayName("PATCH /ordens-servico/{idOs}/{idFunc}/reprovar deve retornar 200")
+    @DisplayName("PATCH /ordens-servico/{idOs}/reprovar deve retornar 200")
     void shouldReturn200OnReprovar() throws Exception {
-        doNothing().when(reprovarOrdemServicoUseCase).execute(any());
-
         mockMvc.perform(patch("/ordens-servico/1/reprovar")
                         .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER"))))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    @DisplayName("PATCH /ordens-servico/{idOs}/{idMecanico}/iniciar com role USER deve retornar 403")
+    @DisplayName("PATCH /ordens-servico/{idOs}/iniciar-diagnostico com role USER deve retornar 403")
     void shouldReturn403OnIniciarDiagnosticoForUserRole() throws Exception {
-        mockMvc.perform(patch("/ordens-servico/1/iniciar-diagnostico"))
+        mockMvc.perform(patch("/ordens-servico/1/iniciar-diagnostico")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER"))))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("POST /ordens-servico/create sem autenticação deve retornar 401")
+    @DisplayName("POST /ordens-servico sem autenticação deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Test", 3L , 4, 3l, new BigDecimal(3));
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Test", 3L, 4, 3L, new BigDecimal(3));
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -306,26 +252,35 @@ class OrdemServicoControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
     @DisplayName("GET /ordens-servico/status-service deve retornar 200")
     void shouldReturn200OnGetStatusService() throws Exception {
+        var paginated = new PaginatedResult<>(List.of(buildOrdemResponse()), 0, 10, 1L, 1);
 
-        var paginated = new PaginatedResult<>(
-                List.of(buildOrdemResponse()),
-                0,
-                10,
-                1L,
-                1
-        );
-
-        when(buscarOrdensPorStatusOrdenadoUseCase.execute(0, 10))
-                .thenReturn(paginated);
+        when(cleanController.buscarPorStatus(0, 10)).thenReturn(paginated);
 
         mockMvc.perform(get("/ordens-servico/status-service")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    @DisplayName("POST /ordens-servico/{id}/aprovacao-orcamento deve retornar 200 sem autenticação")
+    void shouldReturn200OnAprovacaoOrcamentoSemAutenticacao() throws Exception {
+        var viewModel = new ReceberAprovacaoOrcamentoClientePresenter.ViewModel(1L, "APROVADA");
+        when(cleanController.receberAprovacaoOrcamentoCliente(any())).thenReturn(viewModel);
+
+        var servico = new ReceberAprovacaoOrcamentoRequest.ServicoAprovacao(10L, StatusExecucaoServico.APROVADO);
+        var request = new ReceberAprovacaoOrcamentoRequest(List.of(servico));
+
+        mockMvc.perform(post("/ordens-servico/1/aprovacao-orcamento")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idOs").value(1L))
+                .andExpect(jsonPath("$.status").value("APROVADA"));
     }
 }

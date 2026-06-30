@@ -5,14 +5,11 @@ import br.com.lata.velha.ordem_servico.application.gateways.authentication.dtos.
 import br.com.lata.velha.ordem_servico.domain.entities.Cargo;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.CargoNotFoundException;
-import br.com.lata.velha.ordem_servico.domain.repositories.CargoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -27,16 +24,10 @@ import static org.mockito.Mockito.*;
 class CadastrarFuncionarioUseCaseTest {
 
     @Mock
-    private FuncionarioRepository funcionarioRepository;
-
-    @Mock
-    private CargoRepository cargoRepository;
+    private CadastrarFuncionarioGateway gateway;
 
     @Mock
     private AuthenticationService authService;
-
-    @InjectMocks
-    private CadastrarFuncionarioUseCase useCase;
 
     @Test
     @DisplayName("Deve cadastrar funcionário com sucesso")
@@ -46,31 +37,35 @@ class CadastrarFuncionarioUseCaseTest {
         var userId = UserId.random();
         var savedDomain = new Funcionario(10L, "Fulano", cargo, userId);
 
-        when(cargoRepository.getById(1L)).thenReturn(cargo);
-        when(funcionarioRepository.save(any(Funcionario.class))).thenReturn(savedDomain);
+        when(gateway.getCargoPorId(1L)).thenReturn(cargo);
+        when(gateway.salvarFuncionario(any(Funcionario.class))).thenReturn(savedDomain);
         when(authService.getRolesForCargo(1L)).thenReturn(Set.of());
         when(authService.createUser(any())).thenReturn(new CreateAuthUserResponseDto(userId.getValue()));
 
+        var useCase = new CadastrarFuncionarioUseCase(gateway, authService);
         var result = useCase.execute(input);
 
         assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(10L);
-        assertThat(result.nome()).isEqualTo("Fulano");
-        assertThat(result.cargo()).isEqualTo("MECANICO");
-        assertThat(result.userId()).isEqualTo(userId.getValue());
-        verify(funcionarioRepository).save(any(Funcionario.class));
+        assertThat(result.getId()).isEqualTo(10L);
+        assertThat(result.getNome()).isEqualTo("Fulano");
+        assertThat(result.getCargo().getNome()).isEqualTo("MECANICO");
+        assertThat(result.getUserId()).isEqualTo(userId);
+        verify(gateway).salvarFuncionario(any(Funcionario.class));
     }
 
     @Test
     @DisplayName("Deve lançar ResourceAlreadyExistsException ao cadastrar email já existente")
     void deveLancarExcecaoQuandoEmailJaExiste() {
         var input = new CadastrarFuncionarioUseCase.Input("Fulano", "fulano@example.com", "Senha123!", 1L);
+        var cargo = new Cargo(1L, "MECANICO", null);
 
+        when(gateway.getCargoPorId(1L)).thenReturn(cargo);
         when(authService.getRolesForCargo(1L)).thenReturn(Set.of());
         when(authService.createUser(any())).thenThrow(new ResourceAlreadyExistsException(""));
 
+        var useCase = new CadastrarFuncionarioUseCase(gateway, authService);
         assertThrows(ResourceAlreadyExistsException.class, () -> useCase.execute(input));
-        verify(funcionarioRepository, never()).save(any());
+        verify(gateway, never()).salvarFuncionario(any());
     }
 
     @Test
@@ -78,9 +73,10 @@ class CadastrarFuncionarioUseCaseTest {
     void deveFalharAoCriarFuncionarioComCargoInexistente() {
         var input = new CadastrarFuncionarioUseCase.Input("Fulano", "fulano@example.com", "Senha123!", 99L);
 
-        when(cargoRepository.getById(99L)).thenThrow(CargoNotFoundException.fromId(99L));
+        when(gateway.getCargoPorId(99L)).thenThrow(CargoNotFoundException.fromId(99L));
 
+        var useCase = new CadastrarFuncionarioUseCase(gateway, authService);
         assertThrows(CargoNotFoundException.class, () -> useCase.execute(input));
-        verify(funcionarioRepository, never()).save(any(Funcionario.class));
+        verify(gateway, never()).salvarFuncionario(any(Funcionario.class));
     }
 }

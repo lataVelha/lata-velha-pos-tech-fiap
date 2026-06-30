@@ -1,0 +1,68 @@
+package br.com.lata.velha.ordem_servico.infrastructure.config;
+
+import br.com.lata.velha.ordem_servico.application.controllers.ordemservico.OrdemServicoCleanController;
+import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
+import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.application.presenters.ordemservico.*;
+import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@RequiredArgsConstructor
+public class OrdemServicoBeansConfig {
+
+    private final NotificarOrdemServicoGateway notificarGateway;
+    private final NotificarAdminEncomendaPecaGateway notificarAdminGateway;
+    private final EmailProvider emailProvider;
+    private final EmailTemplateProvider templateProvider;
+
+    private final CriarOrdemServicoGateway criarGateway;
+    private final CriarOrdemServicoPresenter criarPresenter;
+    private final AdicionarServicoGateway adicionarGateway;
+    private final AprovarOrdemServicoGateway aprovarGateway;
+    private final AprovarOrdemServicoPresenter aprovarPresenter;
+    private final BuscarOrdemServicoGateway buscarGateway;
+    private final BuscarOrdemServicoPresenter buscarPresenter;
+    private final BuscarOrdensPorStatusOrdenadoGateway buscarOrdensPorStatusGateway;
+    private final BuscarOrdensPorStatusPresenter buscarOrdensPorStatusPresenter;
+    private final BuscarTempoMedioExecucaoGateway buscarTempoMedioGateway;
+    private final BuscarTempoMedioExecucaoPresenter buscarTempoMedioPresenter;
+    private final IniciarDiagnosticoGateway iniciarDiagnosticoGateway;
+    private final FinalizarDiagnosticoGateway finalizarDiagnosticoGateway;
+    private final ReprovarOrdemServicoGateway reprovarGateway;
+    private final IniciarServicoGateway iniciarServicoGateway;
+    private final FinalizarServicoGateway finalizarServicoGateway;
+    private final RetirarVeiculoGateway retirarVeiculoGateway;
+    private final ReceberAprovacaoOrcamentoClienteGateway receberAprovacaoGateway;
+    private final ReceberAprovacaoOrcamentoClientePresenter receberAprovacaoPresenter;
+
+    @Bean
+    public OrdemServicoCleanController ordemServicoCleanController() {
+        return new OrdemServicoCleanController(
+                notificarGateway,
+                notificarAdminGateway,
+                emailProvider,
+                templateProvider,
+                criarGateway,
+                criarPresenter,
+                adicionarGateway,
+                aprovarGateway,
+                aprovarPresenter,
+                buscarGateway,
+                buscarPresenter,
+                buscarOrdensPorStatusGateway,
+                buscarOrdensPorStatusPresenter,
+                buscarTempoMedioGateway,
+                buscarTempoMedioPresenter,
+                iniciarDiagnosticoGateway,
+                finalizarDiagnosticoGateway,
+                reprovarGateway,
+                iniciarServicoGateway,
+                finalizarServicoGateway,
+                retirarVeiculoGateway,
+                receberAprovacaoGateway,
+                receberAprovacaoPresenter);
+    }
+}

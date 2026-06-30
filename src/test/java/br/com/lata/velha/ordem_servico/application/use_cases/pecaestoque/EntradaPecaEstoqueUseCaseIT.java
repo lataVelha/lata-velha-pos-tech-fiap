@@ -1,6 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEstoqueRequest;
+import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
@@ -31,14 +32,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Transactional
 class EntradaPecaEstoqueUseCaseIT {
 
-    @Autowired private EntradaPecaEstoqueUseCase useCase;
+    @Autowired private EntradaPecaEstoqueGateway gateway;
     @Autowired private EntityManager em;
+
+    private EntradaPecaEstoqueUseCase useCase;
 
     private Long pecaId;
     private Long execucaoId;
 
     @BeforeEach
     void setUp() {
+        useCase = new EntradaPecaEstoqueUseCase(gateway);
+
         PecaEntity peca = new PecaEntity();
         peca.setNome("Filtro de óleo");
         peca.setDescricao("Filtro premium");
@@ -46,7 +51,6 @@ class EntradaPecaEstoqueUseCaseIT {
         em.persist(peca);
         pecaId = peca.getId();
 
-        // Minimal OS needed as FK for ExecucaoServico
         OrdemServicoEntity os = new OrdemServicoEntity();
         os.setProprietarioId(1L);
         os.setVeiculoId(1L);
@@ -77,10 +81,10 @@ class EntradaPecaEstoqueUseCaseIT {
     @Test
     @DisplayName("deve criar estoque e persistir quando não existe")
     void deveCriarEstoqueQuandoNaoExiste() {
-        var response = useCase.execute(pecaId, new MovimentarPecaEstoqueRequest(10));
+        PecaEstoque response = useCase.execute(pecaId, new MovimentarPecaEstoqueRequest(10));
 
-        assertThat(response.quantidadeArmazenada()).isEqualTo(10);
-        assertThat(response.quantidadeDisponivel()).isEqualTo(10);
+        assertThat(response.getQuantidadeArmazenada()).isEqualTo(10);
+        assertThat(response.getQuantidadeDisponivel()).isEqualTo(10);
 
         PecaEstoqueEntity estoque = em.find(PecaEstoqueEntity.class, pecaId);
         assertThat(estoque).isNotNull();
@@ -96,10 +100,10 @@ class EntradaPecaEstoqueUseCaseIT {
         em.flush();
         em.clear();
 
-        var response = useCase.execute(pecaId, new MovimentarPecaEstoqueRequest(3));
+        PecaEstoque response = useCase.execute(pecaId, new MovimentarPecaEstoqueRequest(3));
 
-        assertThat(response.quantidadeArmazenada()).isEqualTo(8);
-        assertThat(response.quantidadeDisponivel()).isEqualTo(8);
+        assertThat(response.getQuantidadeArmazenada()).isEqualTo(8);
+        assertThat(response.getQuantidadeDisponivel()).isEqualTo(8);
     }
 
     @Test

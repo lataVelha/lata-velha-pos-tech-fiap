@@ -1,11 +1,9 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.peca;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,30 +17,30 @@ import static org.mockito.Mockito.*;
 class DesativarPecaUseCaseTest {
 
     @Mock
-    private PecaRepository repository;
-
-    @InjectMocks
-    private DesativarPecaUseCase useCase;
+    private DesativarPecaGateway gateway;
 
     @Test
     @DisplayName("Deve desativar peça ativa com sucesso")
     void deveDesativarPecaAtivaComSucesso() {
         var peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("35.00"), true);
-        when(repository.getActiveById(1L)).thenReturn(peca);
+        when(gateway.getPecaAtivaPorId(1L)).thenReturn(peca);
 
+        DesativarPecaUseCase useCase = new DesativarPecaUseCase(gateway);
         useCase.execute(1L);
 
         assertFalse(peca.isAtivo());
-        verify(repository).save(peca);
+        verify(gateway).salvarPeca(peca);
     }
 
     @Test
     @DisplayName("Deve falhar quando peça já estiver desativada")
     void deveFalharQuandoPecaJaEstiverDesativada() {
         var peca = new Peca(1L, "Filtro", "Filtro de óleo", new BigDecimal("35.00"), false);
-        when(repository.getActiveById(1L)).thenReturn(peca);
+        when(gateway.getPecaAtivaPorId(1L)).thenReturn(peca);
+
+        DesativarPecaUseCase useCase = new DesativarPecaUseCase(gateway);
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(1L));
-        verify(repository, never()).save(peca);
+        verify(gateway, never()).salvarPeca(peca);
     }
 }

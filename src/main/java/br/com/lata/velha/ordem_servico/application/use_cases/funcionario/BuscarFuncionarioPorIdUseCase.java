@@ -1,18 +1,16 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.funcionario;
 
-import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResponse;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 
-@Component
-@RequiredArgsConstructor
 public class BuscarFuncionarioPorIdUseCase {
 
-    private final FuncionarioRepository repository;
+    private final BuscarFuncionarioPorIdGateway gateway;
 
-    public FuncionarioResponse execute(Long id) {
-        var funcionario = repository.getById(id);
-        return FuncionarioResponse.from(funcionario);
+    public BuscarFuncionarioPorIdUseCase(BuscarFuncionarioPorIdGateway gateway) {
+        this.gateway = gateway;
+    }
+
+    public Funcionario execute(Long id) {
+        return gateway.getFuncionarioById(id);
     }
 }

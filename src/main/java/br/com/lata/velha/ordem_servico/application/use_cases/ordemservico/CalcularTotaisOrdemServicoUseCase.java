@@ -3,13 +3,11 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 import br.com.lata.velha.ordem_servico.application.dtos.response.TotaisOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
-@Component
 public class CalcularTotaisOrdemServicoUseCase {
 
     private static final Set<StatusExecucaoServico> STATUS_APROVADOS = Set.of(

@@ -1,7 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.peca;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,28 +19,28 @@ import static org.mockito.Mockito.when;
 class BuscarPecaPorIdUseCaseTest {
 
     @Mock
-    private PecaRepository repository;
+    private BuscarPecaPorIdGateway gateway;
 
     @InjectMocks
     private BuscarPecaPorIdUseCase useCase;
 
     @Test
-    @DisplayName("Deve buscar peça ativa por ID com sucesso")
+    @DisplayName("Deve buscar peca ativa por ID com sucesso")
     void deveBuscarPecaAtivaPorIdComSucesso() {
         var peca = new Peca(1L, "Disco de freio", "Disco dianteiro", new BigDecimal("220.00"), true);
-        when(repository.getActiveById(1L)).thenReturn(peca);
+        when(gateway.getPecaAtivaPorId(1L)).thenReturn(peca);
 
         var result = useCase.execute(1L);
 
-        assertThat(result.id()).isEqualTo(1L);
-        assertThat(result.nome()).isEqualTo("Disco de freio");
-        verify(repository).getActiveById(1L);
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getNome()).isEqualTo("Disco de freio");
+        verify(gateway).getPecaAtivaPorId(1L);
     }
 
     @Test
-    @DisplayName("Deve falhar ao buscar peça inexistente")
+    @DisplayName("Deve falhar ao buscar peca inexistente")
     void deveFalharAoBuscarPecaInexistente() {
-        when(repository.getActiveById(99L)).thenThrow(new IllegalArgumentException("Peça não encontrada"));
+        when(gateway.getPecaAtivaPorId(99L)).thenThrow(new IllegalArgumentException("Peca nao encontrada"));
 
         assertThatThrownBy(() -> useCase.execute(99L))
                 .isInstanceOf(IllegalArgumentException.class);

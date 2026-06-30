@@ -1,10 +1,10 @@
 package br.com.lata.velha.ordem_servico.api.controllers;
 
 import br.com.lata.velha.authentication.infrastructure.security.config.SecurityConfig;
+import br.com.lata.velha.ordem_servico.application.controllers.servico.ServicoCleanController;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ServicoResponse;
-import br.com.lata.velha.ordem_servico.application.use_cases.servico.*;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ServicoNotFoundException;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,19 +41,7 @@ class ServicoControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private CadastrarServicoUseCase cadastrarUseCase;
-
-    @MockBean
-    private BuscarServicosUseCase buscarTodosUseCase;
-
-    @MockBean
-    private BuscarServicoPorIdUseCase buscarPorIdUseCase;
-
-    @MockBean
-    private AtualizarServicoUseCase atualizarUseCase;
-
-    @MockBean
-    private DesativarServicoUseCase desativarUseCase;
+    private ServicoCleanController cleanController;
 
     @MockBean
     private JwtDecoder jwtDecoder;
@@ -62,33 +50,31 @@ class ServicoControllerTest {
     private JwtAuthenticationConverter jwtAuthenticationConverter;
 
     private ServicoResponse buildResponse() {
-        return new ServicoResponse(1L, "Troca de Óleo", "Troca de óleo e filtro");
+        return new ServicoResponse(1L, "Troca de Oleo", "Troca de oleo e filtro");
     }
 
     private CadastrarServicoRequest buildRequest() {
-        return new CadastrarServicoRequest("Troca de Óleo", "Troca de óleo e filtro");
+        return new CadastrarServicoRequest("Troca de Oleo", "Troca de oleo e filtro");
     }
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("POST /servicos deve retornar 201 e o serviço criado")
+    @DisplayName("POST /servicos deve retornar 201 e o servico criado")
     void shouldReturn201OnCreate() throws Exception {
-        when(cadastrarUseCase.execute(any())).thenReturn(buildResponse());
-
+        when(cleanController.cadastrar(any())).thenReturn(buildResponse());
         mockMvc.perform(post("/servicos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(buildRequest())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.nome").value("Troca de Óleo"));
+                .andExpect(jsonPath("$.nome").value("Troca de Oleo"));
     }
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("POST /servicos com body inválido deve retornar 400")
+    @DisplayName("POST /servicos com body invalido deve retornar 400")
     void shouldReturn400OnInvalidCreateRequest() throws Exception {
         var invalid = new CadastrarServicoRequest("", "");
-
         mockMvc.perform(post("/servicos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -100,9 +86,7 @@ class ServicoControllerTest {
     @DisplayName("GET /servicos deve retornar 200 com lista paginada")
     void shouldReturn200OnList() throws Exception {
         var paginated = new PaginatedResult<>(List.of(buildResponse()), 0, 10, 1L, 1);
-
-        when(buscarTodosUseCase.execute(0, 10)).thenReturn(paginated);
-
+        when(cleanController.buscarTodos(0, 10)).thenReturn(paginated);
         mockMvc.perform(get("/servicos")
                         .param("page", "0")
                         .param("size", "10"))
@@ -113,49 +97,43 @@ class ServicoControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("GET /servicos/{id} deve retornar 200 com o serviço")
+    @DisplayName("GET /servicos/{id} deve retornar 200 com o servico")
     void shouldReturn200OnFindById() throws Exception {
-        when(buscarPorIdUseCase.execute(1L)).thenReturn(buildResponse());
-
+        when(cleanController.buscarPorId(1L)).thenReturn(buildResponse());
         mockMvc.perform(get("/servicos/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.nome").value("Troca de Óleo"));
+                .andExpect(jsonPath("$.nome").value("Troca de Oleo"));
     }
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("GET /servicos/{id} deve retornar 404 quando não encontrado")
+    @DisplayName("GET /servicos/{id} deve retornar 404 quando nao encontrado")
     void shouldReturn404WhenServicoNotFound() throws Exception {
-        when(buscarPorIdUseCase.execute(99L))
-                .thenThrow(ServicoNotFoundException.fromId(99L));
-
+        when(cleanController.buscarPorId(99L)).thenThrow(ServicoNotFoundException.fromId(99L));
         mockMvc.perform(get("/servicos/99"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("PUT /servicos/{id} deve retornar 200 com o serviço atualizado")
+    @DisplayName("PUT /servicos/{id} deve retornar 200 com o servico atualizado")
     void shouldReturn200OnUpdate() throws Exception {
-        var request = new AtualizarServicoRequest("Troca de Óleo Completa", "Inclui filtro e verificação");
-        var updated = new ServicoResponse(1L, "Troca de Óleo Completa", "Inclui filtro e verificação");
-
-        when(atualizarUseCase.execute(eq(1L), any())).thenReturn(updated);
-
+        var request = new AtualizarServicoRequest("Troca de Oleo Completa", "Inclui filtro e verificacao");
+        var updated = new ServicoResponse(1L, "Troca de Oleo Completa", "Inclui filtro e verificacao");
+        when(cleanController.atualizar(eq(1L), any())).thenReturn(updated);
         mockMvc.perform(put("/servicos/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nome").value("Troca de Óleo Completa"));
+                .andExpect(jsonPath("$.nome").value("Troca de Oleo Completa"));
     }
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("PUT /servicos/{id} com body inválido deve retornar 400")
+    @DisplayName("PUT /servicos/{id} com body invalido deve retornar 400")
     void shouldReturn400OnInvalidUpdateRequest() throws Exception {
         var invalid = new AtualizarServicoRequest("", "");
-
         mockMvc.perform(put("/servicos/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -166,24 +144,22 @@ class ServicoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /servicos/{id}/desativar deve retornar 204")
     void shouldReturn204OnDesativar() throws Exception {
-        doNothing().when(desativarUseCase).execute(1L);
-
+        doNothing().when(cleanController).desativar(1L);
         mockMvc.perform(patch("/servicos/1/desativar"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("PATCH /servicos/{id}/desativar deve retornar 404 quando não encontrado")
+    @DisplayName("PATCH /servicos/{id}/desativar deve retornar 404 quando nao encontrado")
     void shouldReturn404OnDesativarWhenNotFound() throws Exception {
-        doThrow(ServicoNotFoundException.fromId(99L)).when(desativarUseCase).execute(99L);
-
+        doThrow(ServicoNotFoundException.fromId(99L)).when(cleanController).desativar(99L);
         mockMvc.perform(patch("/servicos/99/desativar"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("GET /servicos sem autenticação deve retornar 401")
+    @DisplayName("GET /servicos sem autenticacao deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
         mockMvc.perform(get("/servicos"))
                 .andExpect(status().isUnauthorized());

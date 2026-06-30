@@ -4,11 +4,13 @@ import br.com.lata.velha.authentication.infrastructure.persistence.entities.Role
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.FuncionarioEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.OrdemServicoEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ProprietarioEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.VeiculoEntity;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.gateways.OrdemServicoGatewayImpl;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -25,6 +28,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -36,17 +41,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 class CriarOrdemServicoUseCaseIT {
 
-    @Autowired
+    @SpyBean
+    private OrdemServicoGatewayImpl gatewayImpl;
+
+    @Autowired private CriarOrdemServicoGateway criarGateway;
+    @Autowired private AdicionarServicoGateway adicionarGateway;
+    @Autowired private NotificarOrdemServicoGateway notificarGateway;
+    @Autowired private EntityManager em;
+
+    @MockBean private EmailProvider emailProvider;
+    @MockBean private EmailTemplateProvider emailTemplateProvider;
+
     private CriarOrdemServicoUseCase useCase;
-
-    @Autowired
-    private EntityManager em;
-
-    @MockBean
-    private EmailProvider emailProvider;
-
-    @MockBean
-    private EmailTemplateProvider emailTemplateProvider;
 
     private Long veiculoId;
     private Long proprietarioId;
@@ -55,6 +61,16 @@ class CriarOrdemServicoUseCaseIT {
 
     @BeforeEach
     void setUp() {
+        doAnswer(invocation -> {
+            Long id = invocation.getArgument(0);
+            OrdemServicoProjection proj = mock(OrdemServicoProjection.class);
+            when(proj.getId()).thenReturn(id);
+            return proj;
+        }).when(gatewayImpl).getOrdemServicoProjectionById(anyLong());
+
+        var adicionarUseCase = new AdicionarServicoUseCase(adicionarGateway);
+        var notificarUseCase = new NotificarOrdemServicoUseCase(notificarGateway, emailProvider, emailTemplateProvider);
+        useCase = new CriarOrdemServicoUseCase(criarGateway, adicionarUseCase, notificarUseCase);
 
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);
@@ -97,7 +113,6 @@ class CriarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve criar OrdemServico com sucesso e persistir no banco")
     void deveCriarOrdemServicoComSucesso() {
-
         var funcionarioUserId = UserId.create(funcionario.getUserId());
 
         var input = new CriarOrdemServicoUseCase.Input(
@@ -111,16 +126,16 @@ class CriarOrdemServicoUseCaseIT {
                 null
         );
 
-        var output = useCase.execute(input);
+        OrdemServicoProjection output = useCase.execute(input);
 
         assertThat(output).isNotNull();
-        assertThat(output.id()).isNotNull();
+        assertThat(output.getId()).isNotNull();
 
         em.flush();
         em.clear();
 
         OrdemServicoEntity entity =
-                em.find(OrdemServicoEntity.class, output.id());
+                em.find(OrdemServicoEntity.class, output.getId());
 
         assertThat(entity).isNotNull();
         assertThat(entity.getStatus()).isEqualTo(StatusOrdemServico.RECEBIDA);
@@ -133,7 +148,6 @@ class CriarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve persistir reclamação do proprietário corretamente")
     void devePersistirReclamacaoProprietario() {
-
         var funcionarioUserId = UserId.create(funcionario.getUserId());
 
         var input = new CriarOrdemServicoUseCase.Input(
@@ -147,13 +161,13 @@ class CriarOrdemServicoUseCaseIT {
                 null
         );
 
-        var output = useCase.execute(input);
+        OrdemServicoProjection output = useCase.execute(input);
 
         em.flush();
         em.clear();
 
         OrdemServicoEntity entity =
-                em.find(OrdemServicoEntity.class, output.id());
+                em.find(OrdemServicoEntity.class, output.getId());
 
         assertThat(entity).isNotNull();
         assertThat(entity.getReclamacaoProprietario())
@@ -163,7 +177,6 @@ class CriarOrdemServicoUseCaseIT {
     @Test
     @DisplayName("deve persistir atendente e status RECEBIDA corretamente")
     void devePersistirAtendenteEStatus() {
-
         var funcionarioUserId = UserId.create(funcionario.getUserId());
 
         var input = new CriarOrdemServicoUseCase.Input(
@@ -177,13 +190,13 @@ class CriarOrdemServicoUseCaseIT {
                 null
         );
 
-        var output = useCase.execute(input);
+        OrdemServicoProjection output = useCase.execute(input);
 
         em.flush();
         em.clear();
 
         OrdemServicoEntity entity =
-                em.find(OrdemServicoEntity.class, output.id());
+                em.find(OrdemServicoEntity.class, output.getId());
 
         assertThat(entity).isNotNull();
         assertThat(entity.getAtendenteInicioId()).isEqualTo(funcionarioId);

@@ -31,6 +31,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/ordens-servico/*/aprovacao-orcamento").permitAll()
 
                         // CRUD — USER e ADMIN
                         .requestMatchers("/proprietarios/**").hasAnyRole(USER, ADMIN)

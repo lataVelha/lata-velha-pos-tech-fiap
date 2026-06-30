@@ -2,31 +2,27 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
-@Component
-@RequiredArgsConstructor
 public class FinalizarServicoUseCase {
-    private final OrdemServicoRepository ordemServicoRepository;
-    private final PecaEstoqueRepository pecaEstoqueRepository;
-    private final FuncionarioRepository funcionarioRepository;
+
+    private final FinalizarServicoGateway gateway;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
-    @Transactional
+    public FinalizarServicoUseCase(FinalizarServicoGateway gateway,
+                                   NotificarOrdemServicoUseCase notificarUseCase) {
+        this.gateway = gateway;
+        this.notificarUseCase = notificarUseCase;
+    }
+
     public void execute(Input input) {
-        var ordemServico = ordemServicoRepository.getByIdWithExecucoesAndPecas(input.osId());
-        var mecanico = funcionarioRepository.getByUserId(input.userId());
+        var ordemServico = gateway.getOrdemServicoComServicosEPecas(input.osId());
+        var mecanico = gateway.getFuncionarioPorUserId(input.userId());
         ordemServico.finalizarExecucaoServico(input.servicoId(), mecanico.getId());
         retirarEstoques(ordemServico, input.servicoId());
-        var saved = ordemServicoRepository.save(ordemServico);
+        var saved = gateway.salvarOrdemServico(ordemServico);
         if (ordemServico.isFinalizada())
             notificarUseCase.execute(saved);
     }
@@ -38,12 +34,12 @@ public class FinalizarServicoUseCase {
                         PecaAlocada::getPecaId,
                         PecaAlocada::getQuantidadeSolicitada
                 ));
-        var estoques = pecaEstoqueRepository.findAllByPecaIds(quantidadesMap.keySet());
-        if(estoques.size() != quantidadesMap.size())
+        var estoques = gateway.getEstoquePorPecaIds(quantidadesMap.keySet());
+        if (estoques.size() != quantidadesMap.size())
             throw new IllegalStateException("Nem todas as peças da execução possuem registro de estoque");
         estoques.forEach(estoque -> estoque.retirar(quantidadesMap.get(estoque.getPecaId())));
-        pecaEstoqueRepository.saveAll(estoques);
+        gateway.salvarEstoques(estoques);
     }
 
-    public record Input(Long osId, Long servicoId, UserId userId){}
+    public record Input(Long osId, Long servicoId, UserId userId) {}
 }
