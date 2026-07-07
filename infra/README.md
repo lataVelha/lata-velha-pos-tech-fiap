@@ -26,7 +26,7 @@ Compatível com **AWS Academy (Learner Lab)** — usa a `LabRole` pré-existente
   - [Comandos Terraform diretos (sem apply.sh)](#comandos-terraform-diretos-sem-applysh)
   - [Verificando o deploy](#verificando-o-deploy)
   - [Flags do apply.sh](#flags-do-applysh)
-  - [Executar com apply.sh (alternativa local)](#o-que-o-applysh-faz-por-dentro)
+  - [O que o apply.sh faz por dentro](#o-que-o-applysh-faz-por-dentro)
 
 ---
 
