@@ -37,11 +37,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Transactional
 class FinalizarServicoUseCaseIT {
 
-    @Autowired private FinalizarServicoUseCase useCase;
+    @Autowired private FinalizarServicoGateway gateway;
+    @Autowired private NotificarOrdemServicoGateway notificarGateway;
     @Autowired private EntityManager em;
 
     @MockBean private EmailProvider emailProvider;
     @MockBean private EmailTemplateProvider emailTemplateProvider;
+
+    private FinalizarServicoUseCase useCase;
 
     private Long osId;
     private Long execucaoId;
@@ -50,6 +53,9 @@ class FinalizarServicoUseCaseIT {
 
     @BeforeEach
     void setUp() {
+        var notificarUseCase = new NotificarOrdemServicoUseCase(notificarGateway, emailProvider, emailTemplateProvider);
+        useCase = new FinalizarServicoUseCase(gateway, notificarUseCase);
+
         RoleEntity role = new RoleEntity(null, "MECANICO");
         em.persist(role);
 

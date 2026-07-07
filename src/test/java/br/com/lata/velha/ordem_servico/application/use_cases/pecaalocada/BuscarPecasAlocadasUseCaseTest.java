@@ -1,13 +1,10 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada;
 
-import br.com.lata.velha.ordem_servico.application.dtos.response.PecaAlocadaResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,32 +20,27 @@ import static org.mockito.Mockito.when;
 class BuscarPecasAlocadasUseCaseTest {
 
     @Mock
-    private PecaAlocadaRepository pecaAlocadaRepository;
-
-    @InjectMocks
-    private BuscarPecasAlocadasUseCase buscarPecasAlocadasUseCase;
+    private BuscarPecasAlocadasGateway gateway;
 
     @Test
     void deveBuscarPecasDeUmServicoComSucesso() {
-        // Arrange
         PecaAlocada peca1 = new PecaAlocada(1L, 2L, 99L, BigDecimal.ZERO, 2, 0, 0, 0, StatusPecaAlocada.PENDENTE, LocalDateTime.now());
         PecaAlocada peca2 = new PecaAlocada(2L, 2L, 99L, BigDecimal.ZERO, 4, 0, 0, 0, StatusPecaAlocada.PENDENTE, LocalDateTime.now());
-        
+
         PaginatedResult<PecaAlocada> paginatedResult = new PaginatedResult<>(
                 List.of(peca1, peca2), 0, 10, 2L, 1
         );
 
-        when(pecaAlocadaRepository.findByServicoOsId(99L, 0, 10)).thenReturn(paginatedResult);
+        when(gateway.findByExecucaoServicoId(99L, 0, 10)).thenReturn(paginatedResult);
 
-        // Act
-        PaginatedResult<PecaAlocadaResponse> response = buscarPecasAlocadasUseCase.execute(99L, 0, 10);
+        BuscarPecasAlocadasUseCase useCase = new BuscarPecasAlocadasUseCase(gateway);
+        PaginatedResult<PecaAlocada> response = useCase.execute(99L, 0, 10);
 
-        // Assert
         assertThat(response).isNotNull();
         assertThat(response.content()).hasSize(2);
-        assertThat(response.content().get(0).id()).isEqualTo(1L);
-        assertThat(response.content().get(1).id()).isEqualTo(2L);
-        assertThat(response.content().get(0).servicoOsId()).isEqualTo(99L);
-        verify(pecaAlocadaRepository).findByServicoOsId(99L, 0, 10);
+        assertThat(response.content().get(0).getId()).isEqualTo(1L);
+        assertThat(response.content().get(1).getId()).isEqualTo(2L);
+        assertThat(response.content().get(0).getExecucaoServicoId()).isEqualTo(99L);
+        verify(gateway).findByExecucaoServicoId(99L, 0, 10);
     }
 }

@@ -37,11 +37,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Transactional
 class AdicionarServicoUseCaseIT {
 
-    @Autowired private AdicionarServicoUseCase useCase;
+    @Autowired private AdicionarServicoGateway gateway;
     @Autowired private EntityManager em;
 
     @MockBean private EmailProvider emailProvider;
     @MockBean private EmailTemplateProvider emailTemplateProvider;
+
+    private AdicionarServicoUseCase useCase;
 
     private Long osId;
     private Long servicoId;
@@ -50,6 +52,8 @@ class AdicionarServicoUseCaseIT {
 
     @BeforeEach
     void setUp() {
+        useCase = new AdicionarServicoUseCase(gateway);
+
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);
 

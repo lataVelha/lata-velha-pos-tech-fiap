@@ -3,9 +3,12 @@ package br.com.lata.velha.ordem_servico.api.controllers;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.ReceberAprovacaoOrcamentoRequest;
+import br.com.lata.velha.ordem_servico.application.controllers.ordemservico.OrdemServicoCleanController;
 import br.com.lata.velha.ordem_servico.application.dtos.response.OrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoResponse;
+import br.com.lata.velha.ordem_servico.application.presenters.ordemservico.ReceberAprovacaoOrcamentoClientePresenter;
+import br.com.lata.velha.ordem_servico.application.dtos.request.AddServicoRequest;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
@@ -21,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -31,20 +35,10 @@ import java.time.LocalDate;
 @Tag(name = "Ordens de Serviço", description = "Ciclo de vida completo das OS: abertura, diagnóstico, aprovação, execução e entrega do veículo.")
 public class OrdemServicoController {
 
-    private final CriarOrdemServicoUseCase criarOrdemServicoUseCase;
-    private final IniciarDiagnosticoUseCase iniciarDiagnosticoUseCase;
-    private final BuscarOrdemServicoUseCase buscarOrdemServicoUseCase;
-    private final AprovarOrdemServicoUseCase aprovarOrdemServicoUseCase;
-    private final ReprovarOrdemServicoUseCase reprovarOrdemServicoUseCase;
-    private final AdicionarServicoUseCase adicionarServicoUseCase;
-    private final FinalizarDiagnosticoUseCase finalizarDiagnosticoUseCase;
-    private final IniciarServicoUseCase iniciarServicoUseCase;
-    private final FinalizarServicoUseCase finalizarServicoUseCase;
-    private final RetirarVeiculoUseCase retirarVeiculoUseCase;
-    private final BuscarTempoMedioExecucaoServicosFinalizadosUseCase buscarTempoMedioExecucaoServicosFinalizadosUseCase;
-    private final BuscarOrdensPorStatusOrdenadoUseCase buscarOrdensPorStatusOrdenadoUseCase;
+    private final OrdemServicoCleanController cleanController;
 
     @PostMapping
+    @Transactional
     @Operation(
             summary = "Abrir ordem de serviço",
             description = "**ATENDENTE** — Registra a entrada do veículo e a reclamação do proprietário. O atendente logado é vinculado automaticamente. Status resultante: `RECEBIDA`."
@@ -56,7 +50,7 @@ public class OrdemServicoController {
                                                        @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(criarOrdemServicoUseCase.execute(request.toCriarOsUseCaseInput(UserId.fromString(jwt.getSubject()))));
+                .body(cleanController.criar(request.toCriarOsUseCaseInput(UserId.fromString(jwt.getSubject()))));
     }
 
     @GetMapping
@@ -72,7 +66,7 @@ public class OrdemServicoController {
             @Parameter(description = "Filtrar por ID do mecânico") @RequestParam(required = false) Long mecanicoId,
             @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(buscarOrdemServicoUseCase.execute(id, status, proprietarioId, mecanicoId, page, size));
+        return ResponseEntity.ok(cleanController.buscar(id, status, proprietarioId, mecanicoId, page, size));
     }
 
     @GetMapping("/metricas/tempo-medio-execucao")
@@ -89,13 +83,11 @@ public class OrdemServicoController {
             @RequestParam(required = false)
             @DateTimeFormat(pattern = "dd/MM/yyyy")
             LocalDate dataFim) {
-
-        return ResponseEntity.ok(
-                buscarTempoMedioExecucaoServicosFinalizadosUseCase.execute(dataInicio, dataFim)
-        );
+        return ResponseEntity.ok(cleanController.buscarTempoMedioExecucao(dataInicio, dataFim));
     }
 
     @PatchMapping("/{idOs}/iniciar-diagnostico")
+    @Transactional
     @Operation(
             summary = "Iniciar diagnóstico",
             description = "**MECANICO** — Mecânico logado assume a OS e inicia a inspeção. Transição: `RECEBIDA` → `EM_DIAGNOSTICO`."
@@ -106,12 +98,12 @@ public class OrdemServicoController {
     public ResponseEntity<Void> startDiagnostic(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        var input = new IniciarDiagnosticoUseCase.Input(idOs, UserId.fromString(jwt.getSubject()));
-        iniciarDiagnosticoUseCase.execute(input);
+        cleanController.iniciarDiagnostico(new IniciarDiagnosticoUseCase.Input(idOs, UserId.fromString(jwt.getSubject())));
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{idOs}/adicionar-servico")
+    @Transactional
     @Operation(
             summary = "Adicionar serviços à OS",
             description = "**MECANICO** — Adiciona serviços (com mão de obra e peças) durante o diagnóstico. O mesmo serviço não pode ser adicionado duas vezes. Status inicial do serviço: `PENDENTE`."
@@ -124,12 +116,12 @@ public class OrdemServicoController {
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Valid @RequestBody AddServicoRequest request
     ) {
-        var input = request.toUseCaseInput(idOs);
-        adicionarServicoUseCase.execute(input);
+        cleanController.adicionarServico(request.toUseCaseInput(idOs));
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{idOs}/finalizar-diagnostico")
+    @Transactional
     @Operation(
             summary = "Finalizar diagnóstico",
             description = "**MECANICO** — Encerra o diagnóstico e envia e-mail ao proprietário com os serviços identificados. Transição: `EM_DIAGNOSTICO` → `AGUARDANDO_APROVACAO`."
@@ -140,12 +132,12 @@ public class OrdemServicoController {
     public ResponseEntity<Void> finalDiagnostic(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        var input = new FinalizarDiagnosticoUseCase.Input(idOs, UserId.fromString(jwt.getSubject()));
-        finalizarDiagnosticoUseCase.execute(input);
+        cleanController.finalizarDiagnostico(new FinalizarDiagnosticoUseCase.Input(idOs, UserId.fromString(jwt.getSubject())));
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{idOs}/aprovar")
+    @Transactional
     @Operation(
             summary = "Aprovar ou reprovar serviços da OS",
             description = """
@@ -161,13 +153,11 @@ public class OrdemServicoController {
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Valid @RequestBody AprovarOrdemServicoRequest request, @AuthenticationPrincipal Jwt jwt
     ) {
-        var userId = UserId.fromString(jwt.getSubject());
-        var input = request.toInput(userId, idOs);
-        var output = aprovarOrdemServicoUseCase.execute(input);
-        return ResponseEntity.ok(AprovarOrdemServicoResponse.fromOutput(output));
+        return ResponseEntity.ok(cleanController.aprovar(request.toInput(UserId.fromString(jwt.getSubject()), idOs)));
     }
 
     @PatchMapping("/{idOs}/reprovar")
+    @Transactional
     @Operation(
             summary = "Reprovar a OS inteira",
             description = "**ATENDENTE** — Recusa todos os serviços e encerra a OS. Use quando o proprietário recusar todos os serviços identificados. Para aprovação parcial, use `PATCH /aprovar`. Transição: `AGUARDANDO_APROVACAO` → `REPROVADA` (terminal)."
@@ -178,12 +168,12 @@ public class OrdemServicoController {
     public ResponseEntity<Void> reprove(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        var input = new ReprovarOrdemServicoUseCase.Input(idOs, UserId.fromString(jwt.getSubject()));
-        reprovarOrdemServicoUseCase.execute(input);
+        cleanController.reprovar(new ReprovarOrdemServicoUseCase.Input(idOs, UserId.fromString(jwt.getSubject())));
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{idOs}/iniciar-servico/{servicoId}")
+    @Transactional
     @Operation(
             summary = "Iniciar execução de um serviço",
             description = "**MECANICO** — Inicia a execução de um serviço aprovado. Apenas um serviço pode estar em execução por vez. Status do serviço: `APROVADO` → `EM_EXECUCAO`."
@@ -195,12 +185,12 @@ public class OrdemServicoController {
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Parameter(description = "ID do serviço a iniciar", example = "5") @PathVariable Long servicoId,
             @AuthenticationPrincipal Jwt jwt) {
-        var input = new IniciarServicoUseCase.Input(idOs, servicoId, UserId.fromString(jwt.getSubject()));
-        iniciarServicoUseCase.execute(input);
+        cleanController.iniciarServico(new IniciarServicoUseCase.Input(idOs, servicoId, UserId.fromString(jwt.getSubject())));
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{idOs}/finalizar-servico/{servicoId}")
+    @Transactional
     @Operation(
             summary = "Finalizar execução de um serviço",
             description = "**MECANICO** — Conclui um serviço (`EM_EXECUCAO` → `FINALIZADO`). Ao finalizar o último serviço, a OS passa para `FINALIZADA` e um e-mail é enviado ao proprietário."
@@ -212,12 +202,12 @@ public class OrdemServicoController {
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @Parameter(description = "ID do serviço a finalizar", example = "5") @PathVariable Long servicoId,
             @AuthenticationPrincipal Jwt jwt) {
-        var input = new FinalizarServicoUseCase.Input(idOs, servicoId, UserId.fromString(jwt.getSubject()));
-        finalizarServicoUseCase.execute(input);
+        cleanController.finalizarServico(new FinalizarServicoUseCase.Input(idOs, servicoId, UserId.fromString(jwt.getSubject())));
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{idOs}/retirar-veiculo")
+    @Transactional
     @Operation(
             summary = "Registrar retirada do veículo",
             description = "**ATENDENTE** — Registra a entrega do veículo ao proprietário. Baixa definitivamente o estoque das peças instaladas e retorna os totais financeiros da OS. Transição: `FINALIZADA` → `ENTREGUE` (terminal)."
@@ -228,7 +218,7 @@ public class OrdemServicoController {
     public ResponseEntity<Void> removeVehicle(
             @Parameter(description = "ID da ordem de serviço", example = "20") @PathVariable Long idOs,
             @AuthenticationPrincipal Jwt jwt) {
-        retirarVeiculoUseCase.execute(idOs, UserId.fromString(jwt.getSubject()));
+        cleanController.retirarVeiculo(idOs, UserId.fromString(jwt.getSubject()));
         return ResponseEntity.ok().build();
     }
 
@@ -241,6 +231,22 @@ public class OrdemServicoController {
     public ResponseEntity<PaginatedResult<OrdemServicoResponse>> getStatusService(
             @Parameter(description = "Número da página (começa em 0)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Itens por página") @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(buscarOrdensPorStatusOrdenadoUseCase.execute(page, size));
+        return ResponseEntity.ok(cleanController.buscarPorStatus(page, size));
+    }
+
+    @PostMapping("/{id}/aprovacao-orcamento")
+    @Transactional
+    @Operation(
+            summary = "Receber aprovação de orçamento do cliente",
+            description = "**Webhook aberto** — Endpoint chamado pelo cliente (sem autenticação) para informar quais serviços do orçamento foram aprovados ou recusados. Ao menos um serviço deve ser aprovado para a OS seguir para execução."
+    )
+    @ApiResponse(responseCode = "200", description = "Aprovação processada — retorna ID da OS e novo status")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos ou serviços não pertencem à OS")
+    @ApiResponse(responseCode = "404", description = "OS não encontrada")
+    @ApiResponse(responseCode = "422", description = "OS não está em AGUARDANDO_APROVACAO")
+    public ResponseEntity<ReceberAprovacaoOrcamentoClientePresenter.ViewModel> receberAprovacaoOrcamento(
+            @PathVariable Long id,
+            @Valid @RequestBody ReceberAprovacaoOrcamentoRequest request) {
+        return ResponseEntity.ok(cleanController.receberAprovacaoOrcamentoCliente(request.toInput(id)));
     }
 }

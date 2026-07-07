@@ -1,18 +1,11 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.veiculo;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.VeiculoRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResponse;
-import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
-import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
-import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,33 +16,24 @@ import static org.mockito.Mockito.*;
 class AtualizarVeiculoUseCaseTest {
 
     @Mock
-    private VeiculoRepository veiculoRepository;
-
-    @Mock
-    private ProprietarioRepository proprietarioRepository;
-
-    @InjectMocks
-    private AtualizarVeiculoUseCase useCase;
+    private AtualizarVeiculoGateway gateway;
 
     @Test
     @DisplayName("deve atualizar veículo com sucesso")
     void shouldUpdateVeiculo() {
-        VeiculoRequest request = mock(VeiculoRequest.class);
+        VeiculoRequest request = new VeiculoRequest(1L, "ABC1234", "Toyota", "Corolla", 2023, "Preto");
         Veiculo existing = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
         Veiculo saved = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Toyota", "Corolla", 2023, "Preto");
-        Proprietario proprietario = new Proprietario(1L, "João", "joao@email.com",
-                Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
 
-        when(request.proprietarioId()).thenReturn(1L);
-        when(veiculoRepository.getActiveById(1L)).thenReturn(existing);
-        when(proprietarioRepository.getActiveById(1L)).thenReturn(proprietario);
-        when(veiculoRepository.save(existing)).thenReturn(saved);
+        when(gateway.getVeiculoPorId(1L)).thenReturn(existing);
+        when(gateway.salvarVeiculo(existing)).thenReturn(saved);
 
-        VeiculoResponse result = useCase.execute(1L, request);
+        AtualizarVeiculoUseCase useCase = new AtualizarVeiculoUseCase(gateway);
+        Veiculo result = useCase.execute(1L, request);
 
         assertNotNull(result);
-        verify(veiculoRepository).getActiveById(1L);
-        verify(proprietarioRepository).getActiveById(1L);
-        verify(veiculoRepository).save(existing);
+        verify(gateway).getVeiculoPorId(1L);
+        verify(gateway).getProprietarioAtivoPorId(1L);
+        verify(gateway).salvarVeiculo(existing);
     }
 }

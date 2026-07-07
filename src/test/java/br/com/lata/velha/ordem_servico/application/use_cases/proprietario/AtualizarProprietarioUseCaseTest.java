@@ -2,13 +2,11 @@ package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequest;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
 import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,10 +18,7 @@ import static org.mockito.Mockito.when;
 class AtualizarProprietarioUseCaseTest {
 
     @Mock
-    private ProprietarioRepository repository;
-
-    @InjectMocks
-    private AtualizarProprietarioUseCase useCase;
+    private AtualizarProprietarioGateway gateway;
 
     @Test
     @DisplayName("deve atualizar proprietário com sucesso")
@@ -35,14 +30,15 @@ class AtualizarProprietarioUseCaseTest {
         Proprietario saved = new Proprietario(1L, "Maria", "maria@email.com",
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
 
-        when(repository.getActiveById(1L)).thenReturn(existing);
-        when(repository.save(existing)).thenReturn(saved);
+        when(gateway.getProprietarioPorId(1L)).thenReturn(existing);
+        when(gateway.salvarProprietario(existing)).thenReturn(saved);
 
-        var result = useCase.execute(1L, request);
+        AtualizarProprietarioUseCase useCase = new AtualizarProprietarioUseCase(gateway);
+        Proprietario result = useCase.execute(1L, request);
 
         assertThat(result).isNotNull();
-        assertThat(result.nome()).isEqualTo("Maria");
-        verify(repository).getActiveById(1L);
-        verify(repository).save(existing);
+        assertThat(result.getNome()).isEqualTo("Maria");
+        verify(gateway).getProprietarioPorId(1L);
+        verify(gateway).salvarProprietario(existing);
     }
 }

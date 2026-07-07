@@ -1,12 +1,10 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.veiculo;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
-import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,10 +16,7 @@ import static org.mockito.Mockito.when;
 class ReativarVeiculoUseCaseTest {
 
     @Mock
-    private VeiculoRepository repository;
-
-    @InjectMocks
-    private ReativarVeiculoUseCase useCase;
+    private ReativarVeiculoGateway gateway;
 
     @Test
     @DisplayName("deve reativar veículo inativo")
@@ -29,14 +24,15 @@ class ReativarVeiculoUseCaseTest {
         Veiculo veiculo = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
         veiculo.deactivate();
 
-        when(repository.findInactiveById(1L)).thenReturn(veiculo);
-        when(repository.save(veiculo)).thenReturn(veiculo);
+        when(gateway.getVeiculoInativoPorId(1L)).thenReturn(veiculo);
+        when(gateway.salvarVeiculo(veiculo)).thenReturn(veiculo);
 
+        ReativarVeiculoUseCase useCase = new ReativarVeiculoUseCase(gateway);
         var result = useCase.execute(1L);
 
         assertThat(veiculo.isAtivo()).isTrue();
         assertThat(result).isNotNull();
-        verify(repository).findInactiveById(1L);
-        verify(repository).save(veiculo);
+        verify(gateway).getVeiculoInativoPorId(1L);
+        verify(gateway).salvarVeiculo(veiculo);
     }
 }

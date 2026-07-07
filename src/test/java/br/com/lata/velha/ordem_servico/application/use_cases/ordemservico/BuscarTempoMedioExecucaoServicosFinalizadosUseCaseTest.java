@@ -1,15 +1,12 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecucaoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.TempoMedioExecucaoPorServico;
-import br.com.lata.velha.ordem_servico.domain.repositories.ExecucaoServicoMetricaRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -25,17 +22,21 @@ import static org.mockito.Mockito.when;
 class BuscarTempoMedioExecucaoServicosFinalizadosUseCaseTest {
 
     @Mock
-    private ExecucaoServicoMetricaRepository execucaoServicoMetricaRepository;
+    private BuscarTempoMedioExecucaoGateway gateway;
 
-    @InjectMocks
     private BuscarTempoMedioExecucaoServicosFinalizadosUseCase useCase;
+
+    @BeforeEach
+    void setUp() {
+        useCase = new BuscarTempoMedioExecucaoServicosFinalizadosUseCase(gateway);
+    }
 
     @Test
     void deveRetornarTempoMedioAgrupadoPorServico() {
         LocalDate dataInicio = LocalDate.parse("2026-01-01");
         LocalDate dataFim = LocalDate.parse("2026-01-31");
 
-        when(execucaoServicoMetricaRepository.buscarTempoMedioExecucaoServicosFinalizados(
+        when(gateway.buscarTempoMedioExecucao(
                 dataInicio.atStartOfDay(),
                 dataFim.atTime(LocalTime.MAX)
         )).thenReturn(List.of(
@@ -43,18 +44,17 @@ class BuscarTempoMedioExecucaoServicosFinalizadosUseCaseTest {
                 new TempoMedioExecucaoPorServico(5L, "Troca freio", 37.2)
         ));
 
-        TempoMedioExecucaoResponse response = useCase.execute(dataInicio, dataFim);
+        var result = useCase.execute(dataInicio, dataFim);
 
-        assertThat(response.servicos()).hasSize(2);
-        assertThat(response.servicos().get(0).servicoId()).isEqualTo(1L);
-        assertThat(response.servicos().get(0).servicoNome()).isEqualTo("Balanceamento");
-        assertThat(response.servicos().get(0).tempoMedioMinutos()).isEqualTo(new BigDecimal("12.35"));
-        assertThat(response.servicos().get(1).tempoMedioMinutos()).isEqualTo(new BigDecimal("37.20"));
-        assertThat(response.dataInicio()).isEqualTo(dataInicio);
-        assertThat(response.dataFim()).isEqualTo(dataFim);
-        assertThat(response.timezone()).isEqualTo("America/Sao_Paulo");
+        assertThat(result.itens()).hasSize(2);
+        assertThat(result.itens().get(0).servicoId()).isEqualTo(1L);
+        assertThat(result.itens().get(0).servicoNome()).isEqualTo("Balanceamento");
+        assertThat(result.itens().get(0).tempoMedioMinutos()).isEqualTo(12.345);
+        assertThat(result.itens().get(1).tempoMedioMinutos()).isEqualTo(37.2);
+        assertThat(result.dataInicio()).isEqualTo(dataInicio);
+        assertThat(result.dataFim()).isEqualTo(dataFim);
 
-        verify(execucaoServicoMetricaRepository).buscarTempoMedioExecucaoServicosFinalizados(
+        verify(gateway).buscarTempoMedioExecucao(
                 dataInicio.atStartOfDay(),
                 dataFim.atTime(LocalTime.MAX)
         );
@@ -65,16 +65,16 @@ class BuscarTempoMedioExecucaoServicosFinalizadosUseCaseTest {
         LocalDate dataInicio = LocalDate.parse("2026-01-01");
         LocalDate dataFim = LocalDate.parse("2026-01-31");
 
-        when(execucaoServicoMetricaRepository.buscarTempoMedioExecucaoServicosFinalizados(
+        when(gateway.buscarTempoMedioExecucao(
                 dataInicio.atStartOfDay(),
                 dataFim.atTime(LocalTime.MAX)
         )).thenReturn(List.of());
 
-        TempoMedioExecucaoResponse response = useCase.execute(dataInicio, dataFim);
+        var result = useCase.execute(dataInicio, dataFim);
 
-        assertThat(response.servicos()).isEmpty();
-        assertThat(response.dataInicio()).isEqualTo(dataInicio);
-        assertThat(response.dataFim()).isEqualTo(dataFim);
+        assertThat(result.itens()).isEmpty();
+        assertThat(result.dataInicio()).isEqualTo(dataInicio);
+        assertThat(result.dataFim()).isEqualTo(dataFim);
     }
 
     @Test
@@ -99,14 +99,14 @@ class BuscarTempoMedioExecucaoServicosFinalizadosUseCaseTest {
 
     @Test
     void deveAplicarPeriodoPadraoQuandoNaoInformado() {
-        when(execucaoServicoMetricaRepository.buscarTempoMedioExecucaoServicosFinalizados(any(LocalDateTime.class), any(LocalDateTime.class)))
+        when(gateway.buscarTempoMedioExecucao(any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(List.of(new TempoMedioExecucaoPorServico(1L, "Balanceamento", 20.0)));
 
-        TempoMedioExecucaoResponse response = useCase.execute(null, null);
+        var result = useCase.execute(null, null);
 
-        assertThat(response.servicos()).hasSize(1);
-        assertThat(response.servicos().get(0).tempoMedioMinutos()).isEqualTo(new BigDecimal("20.00"));
-        assertThat(response.dataFim()).isNotNull();
-        assertThat(response.dataInicio()).isEqualTo(response.dataFim().minusDays(29));
+        assertThat(result.itens()).hasSize(1);
+        assertThat(result.itens().get(0).tempoMedioMinutos()).isEqualTo(20.0);
+        assertThat(result.dataFim()).isNotNull();
+        assertThat(result.dataInicio()).isEqualTo(result.dataFim().minusDays(29));
     }
 }

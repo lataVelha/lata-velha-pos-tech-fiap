@@ -3,46 +3,31 @@ package br.com.lata.velha.ordem_servico.application.use_cases.funcionario;
 import br.com.lata.velha.ordem_servico.application.gateways.authentication.AuthenticationService;
 import br.com.lata.velha.ordem_servico.application.gateways.authentication.dtos.CreateAuthUserDto;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
-import br.com.lata.velha.ordem_servico.domain.repositories.CargoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
-@Component
-@RequiredArgsConstructor
 public class CadastrarFuncionarioUseCase {
-    private final FuncionarioRepository funcionarioRepository;
-    private final CargoRepository cargoRepository;
+
+    private final CadastrarFuncionarioGateway gateway;
     private final AuthenticationService authService;
 
-    public Output execute(Input input) {
-        var cargo = cargoRepository.getById(input.cargoId());
+    public CadastrarFuncionarioUseCase(CadastrarFuncionarioGateway gateway, AuthenticationService authService) {
+        this.gateway = gateway;
+        this.authService = authService;
+    }
+
+    public Funcionario execute(Input input) {
+        var cargo = gateway.getCargoPorId(input.cargoId());
         var userId = createUser(input);
         var funcionario = Funcionario.create(input.nome(), cargo, userId);
-        var saved = funcionarioRepository.save(funcionario);
-        return Output.fromDomain(saved);
+        return gateway.salvarFuncionario(funcionario);
     }
 
     private UserId createUser(Input input) {
         var roles = authService.getRolesForCargo(input.cargoId());
-        var createUserDto = new CreateAuthUserDto(input.username, input.senha, roles);
+        var createUserDto = new CreateAuthUserDto(input.username(), input.senha(), roles);
         var userResponse = authService.createUser(createUserDto);
         return UserId.create(userResponse.userId());
     }
 
-    public record Input(String nome, String username, String senha, Long cargoId) {};
-
-    public record Output(Long id, String nome, String cargo, UUID userId) {
-        public static Output fromDomain(Funcionario entity) {
-            return new Output(
-                    entity.getId(),
-                    entity.getNome(),
-                    entity.getCargo().getNome(),
-                    entity.getUserId().getValue()
-            );
-        }
-    }
+    public record Input(String nome, String username, String senha, Long cargoId) {}
 }

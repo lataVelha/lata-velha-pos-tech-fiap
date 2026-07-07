@@ -5,14 +5,11 @@ import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -30,11 +27,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class IniciarServicoUseCaseTest {
 
-    @Mock private OrdemServicoRepository ordemServicoRepository;
-    @Mock private FuncionarioRepository funcionarioRepository;
+    @Mock private IniciarServicoGateway gateway;
     @Mock private NotificarOrdemServicoUseCase notificarUseCase;
 
-    @InjectMocks
     private IniciarServicoUseCase useCase;
 
     private static final Long OS_ID = 1L;
@@ -46,6 +41,7 @@ class IniciarServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        useCase = new IniciarServicoUseCase(gateway, notificarUseCase);
         mecanico = new Funcionario(MECANICO_ID, "Carlos Mecânico", null, null);
         userId = UserId.random();
     }
@@ -74,9 +70,9 @@ class IniciarServicoUseCaseTest {
         var exec = buildExecAprovado(EXEC_ID);
         var os = buildOs(StatusOrdemServico.APROVADA, List.of(exec));
 
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenReturn(mecanico);
-        when(ordemServicoRepository.save(any())).thenReturn(os);
+        when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
+        when(gateway.salvarOrdemServico(any())).thenReturn(os);
 
         useCase.execute(new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId));
 
@@ -91,13 +87,13 @@ class IniciarServicoUseCaseTest {
         var exec = buildExecAprovado(EXEC_ID);
         var os = buildOs(StatusOrdemServico.APROVADA, List.of(exec));
 
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenReturn(mecanico);
-        when(ordemServicoRepository.save(any())).thenReturn(os);
+        when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
+        when(gateway.salvarOrdemServico(any())).thenReturn(os);
 
         useCase.execute(new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId));
 
-        verify(ordemServicoRepository).save(os);
+        verify(gateway).salvarOrdemServico(os);
     }
 
     @Test
@@ -106,9 +102,9 @@ class IniciarServicoUseCaseTest {
         var exec = buildExecAprovado(EXEC_ID);
         var os = buildOs(StatusOrdemServico.APROVADA, List.of(exec));
 
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenReturn(mecanico);
-        when(ordemServicoRepository.save(any())).thenReturn(os);
+        when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
+        when(gateway.salvarOrdemServico(any())).thenReturn(os);
 
         useCase.execute(new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId));
 
@@ -122,9 +118,9 @@ class IniciarServicoUseCaseTest {
         var exec2 = buildExecAprovado(11L);
         var os = buildOs(StatusOrdemServico.EM_EXECUCAO, List.of(exec1, exec2));
 
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenReturn(mecanico);
-        when(ordemServicoRepository.save(any())).thenReturn(os);
+        when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
+        when(gateway.salvarOrdemServico(any())).thenReturn(os);
 
         useCase.execute(new IniciarServicoUseCase.Input(OS_ID, 11L, userId));
 
@@ -134,14 +130,14 @@ class IniciarServicoUseCaseTest {
     @Test
     @DisplayName("deve propagar exceção quando OS não encontrada")
     void devePropagateExcecaoQuandoOsNaoEncontrada() {
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID))
+        when(gateway.getOrdemServicoComServicos(OS_ID))
                 .thenThrow(new RuntimeException("OS não encontrada"));
 
         assertThatThrownBy(() -> useCase.execute(new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId)))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("OS não encontrada");
 
-        verify(ordemServicoRepository, never()).save(any());
+        verify(gateway, never()).salvarOrdemServico(any());
         verify(notificarUseCase, never()).execute(any());
     }
 
@@ -150,14 +146,14 @@ class IniciarServicoUseCaseTest {
     void devePropagateExcecaoQuandoMecanicoNaoEncontrado() {
         var os = buildOs(StatusOrdemServico.APROVADA, List.of(buildExecAprovado(EXEC_ID)));
 
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenThrow(new RuntimeException("Mecânico não encontrado"));
+        when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenThrow(new RuntimeException("Mecânico não encontrado"));
 
         assertThatThrownBy(() -> useCase.execute(new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId)))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Mecânico não encontrado");
 
-        verify(ordemServicoRepository, never()).save(any());
+        verify(gateway, never()).salvarOrdemServico(any());
     }
 
     @Test
@@ -166,14 +162,14 @@ class IniciarServicoUseCaseTest {
         var exec = buildExecAprovado(EXEC_ID);
         var os = buildOs(StatusOrdemServico.APROVADA, List.of(exec));
 
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenReturn(mecanico);
+        when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
 
         Long execIdInvalido = 999L;
         assertThatThrownBy(() -> useCase.execute(new IniciarServicoUseCase.Input(OS_ID, execIdInvalido, userId)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(String.valueOf(execIdInvalido));
 
-        verify(ordemServicoRepository, never()).save(any());
+        verify(gateway, never()).salvarOrdemServico(any());
     }
 }

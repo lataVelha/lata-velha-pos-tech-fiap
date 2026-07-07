@@ -3,19 +3,22 @@ package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-@Slf4j
-@Component
-@RequiredArgsConstructor
 public class NotificarCadastroProprietarioUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificarCadastroProprietarioUseCase.class);
 
     private final EmailProvider emailProvider;
     private final EmailTemplateProvider templateProvider;
+
+    public NotificarCadastroProprietarioUseCase(EmailProvider emailProvider, EmailTemplateProvider templateProvider) {
+        this.emailProvider = emailProvider;
+        this.templateProvider = templateProvider;
+    }
 
     public void execute(Proprietario proprietario) {
         try {

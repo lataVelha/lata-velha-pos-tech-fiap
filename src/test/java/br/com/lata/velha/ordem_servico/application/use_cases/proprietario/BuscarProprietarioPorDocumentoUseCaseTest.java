@@ -1,13 +1,11 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
 import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,10 +17,7 @@ import static org.mockito.Mockito.when;
 class BuscarProprietarioPorDocumentoUseCaseTest {
 
     @Mock
-    private ProprietarioRepository repository;
-
-    @InjectMocks
-    private BuscarProprietarioPorDocumentoUseCase useCase;
+    private BuscarProprietarioPorDocumentoGateway gateway;
 
     @Test
     @DisplayName("deve buscar proprietário por documento")
@@ -30,13 +25,14 @@ class BuscarProprietarioPorDocumentoUseCaseTest {
         Proprietario domain = new Proprietario(1L, "João", "joao@email.com",
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
 
-        when(repository.findActiveByDocumento("52998224725")).thenReturn(domain);
+        when(gateway.getProprietarioPorDocumento("52998224725")).thenReturn(domain);
 
-        var result = useCase.execute("529.982.247-25");
+        BuscarProprietarioPorDocumentoUseCase useCase = new BuscarProprietarioPorDocumentoUseCase(gateway);
+        Proprietario result = useCase.execute("529.982.247-25");
 
         assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(1L);
-        verify(repository).findActiveByDocumento("52998224725");
+        assertThat(result.getId()).isEqualTo(1L);
+        verify(gateway).getProprietarioPorDocumento("52998224725");
     }
 
     @Test
@@ -45,10 +41,11 @@ class BuscarProprietarioPorDocumentoUseCaseTest {
         Proprietario domain = new Proprietario(1L, "João", "joao@email.com",
                 Documento.of("52998224725"), NumeroCelular.of("11999990001"), null);
 
-        when(repository.findActiveByDocumento("52998224725")).thenReturn(domain);
+        when(gateway.getProprietarioPorDocumento("52998224725")).thenReturn(domain);
 
+        BuscarProprietarioPorDocumentoUseCase useCase = new BuscarProprietarioPorDocumentoUseCase(gateway);
         useCase.execute("52998224725");
 
-        verify(repository).findActiveByDocumento("52998224725");
+        verify(gateway).getProprietarioPorDocumento("52998224725");
     }
 }

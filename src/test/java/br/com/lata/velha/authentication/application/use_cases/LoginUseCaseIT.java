@@ -3,6 +3,8 @@ package br.com.lata.velha.authentication.application.use_cases;
 import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
 import br.com.lata.velha.authentication.domain.exceptions.not_found_exceptions.UserNotFoundException;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
+import br.com.lata.velha.ordem_servico.application.gateways.authentication.AuthenticationService;
+import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioGateway;
 import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioUseCase;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
 import jakarta.persistence.EntityManager;
@@ -33,7 +35,10 @@ class LoginUseCaseIT {
     private LoginUseCase loginUseCase;
 
     @Autowired
-    private CadastrarFuncionarioUseCase cadastrarUseCase;
+    private CadastrarFuncionarioGateway cadastrarGateway;
+
+    @Autowired
+    private AuthenticationService authService;
 
     @Autowired
     private EntityManager em;
@@ -54,7 +59,7 @@ class LoginUseCaseIT {
         em.flush();
 
         var input = new CadastrarFuncionarioUseCase.Input("Técnico", USERNAME, SENHA, cargo.getId());
-        cadastrarUseCase.execute(input);
+        new CadastrarFuncionarioUseCase(cadastrarGateway, authService).execute(input);
 
         em.flush();
     }

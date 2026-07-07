@@ -1,9 +1,9 @@
 package br.com.lata.velha.ordem_servico.api.controllers;
 
 import br.com.lata.velha.authentication.infrastructure.security.config.SecurityConfig;
+import br.com.lata.velha.ordem_servico.application.controllers.veiculo.VeiculoCleanController;
 import br.com.lata.velha.ordem_servico.application.dtos.request.VeiculoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResponse;
-import br.com.lata.velha.ordem_servico.application.use_cases.veiculo.*;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.VeiculoNotFoundException;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
@@ -41,25 +41,7 @@ class VeiculoControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private CriarVeiculoUseCase cadastrarUseCase;
-
-    @MockBean
-    private BuscarVeiculoPorIdUseCase buscarPorIdUseCase;
-
-    @MockBean
-    private ListarVeiculosPorProprietarioUseCase listarPorProprietarioUseCase;
-
-    @MockBean
-    private ListarVeiculosUseCase listarUseCase;
-
-    @MockBean
-    private AtualizarVeiculoUseCase atualizarUseCase;
-
-    @MockBean
-    private DesativarVeiculoUseCase desativarUseCase;
-
-    @MockBean
-    private ReativarVeiculoUseCase reativarUseCase;
+    private VeiculoCleanController cleanController;
 
     @MockBean
     private JwtDecoder jwtDecoder;
@@ -77,10 +59,9 @@ class VeiculoControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("POST /veiculos deve retornar 201 e o veículo criado")
+    @DisplayName("POST /veiculos deve retornar 201 e o veiculo criado")
     void shouldReturn201OnCreate() throws Exception {
-        when(cadastrarUseCase.execute(any())).thenReturn(buildResponse());
-
+        when(cleanController.criar(any())).thenReturn(buildResponse());
         mockMvc.perform(post("/veiculos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(buildRequest())))
@@ -91,10 +72,9 @@ class VeiculoControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("POST /veiculos com body inválido deve retornar 400")
+    @DisplayName("POST /veiculos com body invalido deve retornar 400")
     void shouldReturn400OnInvalidCreateRequest() throws Exception {
         var invalid = new VeiculoRequest(null, "", "", "", null, "");
-
         mockMvc.perform(post("/veiculos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -105,9 +85,8 @@ class VeiculoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /veiculos com placa duplicada deve retornar 409")
     void shouldReturn409OnDuplicatePlaca() throws Exception {
-        when(cadastrarUseCase.execute(any()))
-                .thenThrow(new ResourceAlreadyExistsException("Placa já cadastrada"));
-
+        when(cleanController.criar(any()))
+                .thenThrow(new ResourceAlreadyExistsException("Placa ja cadastrada"));
         mockMvc.perform(post("/veiculos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(buildRequest())))
@@ -119,9 +98,7 @@ class VeiculoControllerTest {
     @DisplayName("GET /veiculos deve retornar 200 com lista paginada")
     void shouldReturn200OnList() throws Exception {
         var paginated = new PaginatedResult<>(List.of(buildResponse()), 0, 10, 1L, 1);
-
-        when(listarUseCase.execute(0, 10)).thenReturn(paginated);
-
+        when(cleanController.listar(0, 10)).thenReturn(paginated);
         mockMvc.perform(get("/veiculos")
                         .param("page", "0")
                         .param("size", "10"))
@@ -132,10 +109,9 @@ class VeiculoControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("GET /veiculos/{id} deve retornar 200 com o veículo")
+    @DisplayName("GET /veiculos/{id} deve retornar 200 com o veiculo")
     void shouldReturn200OnFindById() throws Exception {
-        when(buscarPorIdUseCase.execute(1L)).thenReturn(buildResponse());
-
+        when(cleanController.buscarPorId(1L)).thenReturn(buildResponse());
         mockMvc.perform(get("/veiculos/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
@@ -144,11 +120,9 @@ class VeiculoControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("GET /veiculos/{id} deve retornar 404 quando não encontrado")
+    @DisplayName("GET /veiculos/{id} deve retornar 404 quando nao encontrado")
     void shouldReturn404WhenVeiculoNotFound() throws Exception {
-        when(buscarPorIdUseCase.execute(99L))
-                .thenThrow(VeiculoNotFoundException.fromId(99L));
-
+        when(cleanController.buscarPorId(99L)).thenThrow(VeiculoNotFoundException.fromId(99L));
         mockMvc.perform(get("/veiculos/99"))
                 .andExpect(status().isNotFound());
     }
@@ -157,8 +131,7 @@ class VeiculoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("GET /veiculos/proprietario/{proprietarioId} deve retornar 200 com lista")
     void shouldReturn200OnListByProprietario() throws Exception {
-        when(listarPorProprietarioUseCase.execute(10L)).thenReturn(List.of(buildResponse()));
-
+        when(cleanController.listarPorProprietario(10L)).thenReturn(List.of(buildResponse()));
         mockMvc.perform(get("/veiculos/proprietario/10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -167,10 +140,9 @@ class VeiculoControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("PUT /veiculos/{id} deve retornar 200 com o veículo atualizado")
+    @DisplayName("PUT /veiculos/{id} deve retornar 200 com o veiculo atualizado")
     void shouldReturn200OnUpdate() throws Exception {
-        when(atualizarUseCase.execute(eq(1L), any())).thenReturn(buildResponse());
-
+        when(cleanController.atualizar(eq(1L), any())).thenReturn(buildResponse());
         mockMvc.perform(put("/veiculos/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(buildRequest())))
@@ -182,18 +154,16 @@ class VeiculoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /veiculos/{id}/desativar deve retornar 204")
     void shouldReturn204OnDesativar() throws Exception {
-        doNothing().when(desativarUseCase).execute(1L);
-
+        doNothing().when(cleanController).desativar(1L);
         mockMvc.perform(patch("/veiculos/1/desativar"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("PATCH /veiculos/{id}/desativar deve retornar 404 quando não encontrado")
+    @DisplayName("PATCH /veiculos/{id}/desativar deve retornar 404 quando nao encontrado")
     void shouldReturn404OnDesativarWhenNotFound() throws Exception {
-        doThrow(VeiculoNotFoundException.fromId(99L)).when(desativarUseCase).execute(99L);
-
+        doThrow(VeiculoNotFoundException.fromId(99L)).when(cleanController).desativar(99L);
         mockMvc.perform(patch("/veiculos/99/desativar"))
                 .andExpect(status().isNotFound());
     }
@@ -202,15 +172,14 @@ class VeiculoControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /veiculos/{id}/reativar deve retornar 200")
     void shouldReturn200OnReativar() throws Exception {
-        when(reativarUseCase.execute(1L)).thenReturn(buildResponse());
-
+        when(cleanController.reativar(1L)).thenReturn(buildResponse());
         mockMvc.perform(patch("/veiculos/1/reativar"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test
-    @DisplayName("GET /veiculos sem autenticação deve retornar 401")
+    @DisplayName("GET /veiculos sem autenticacao deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
         mockMvc.perform(get("/veiculos"))
                 .andExpect(status().isUnauthorized());

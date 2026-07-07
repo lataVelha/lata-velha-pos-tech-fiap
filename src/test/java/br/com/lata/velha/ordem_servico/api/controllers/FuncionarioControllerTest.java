@@ -2,16 +2,12 @@ package br.com.lata.velha.ordem_servico.api.controllers;
 
 import br.com.lata.velha.authentication.domain.exceptions.InactiveUserException;
 import br.com.lata.velha.authentication.infrastructure.security.config.SecurityConfig;
+import br.com.lata.velha.ordem_servico.application.controllers.funcionario.FuncionarioCleanController;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarFuncionarioRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarFuncionarioRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResponse;
-import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.AtualizarFuncionarioUseCase;
-import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.BuscarFuncionarioPorIdUseCase;
-import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioUseCase;
-import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.DesativarFuncionarioUseCase;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.FuncionarioNotFoundException;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
-import br.com.lata.velha.shared.domain.value_objects.UserId;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,16 +40,7 @@ class FuncionarioControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private CadastrarFuncionarioUseCase cadastrarUseCase;
-
-    @MockBean
-    private BuscarFuncionarioPorIdUseCase buscarPorIdUseCase;
-
-    @MockBean
-    private AtualizarFuncionarioUseCase atualizarUseCase;
-
-    @MockBean
-    private DesativarFuncionarioUseCase desativarUseCase;
+    private FuncionarioCleanController cleanController;
 
     @MockBean
     private JwtDecoder jwtDecoder;
@@ -63,28 +50,25 @@ class FuncionarioControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("POST /funcionarios deve retornar 201 e o funcionário criado")
+    @DisplayName("POST /funcionarios deve retornar 201 e o funcionario criado")
     void shouldReturn201OnCreate() throws Exception {
-        var request = new CadastrarFuncionarioRequest("Carlos Técnico", "carlos@example.com", "Senha1@!", 1L);
-
-        var output = new CadastrarFuncionarioUseCase.Output(1L, "Carlos Técnico", "MECANICO", UUID.randomUUID());
-        when(cadastrarUseCase.execute(any())).thenReturn(output);
-
+        var request = new CadastrarFuncionarioRequest("Carlos Tecnico", "carlos@example.com", "Senha1@!", 1L);
+        var response = new FuncionarioResponse(1L, "Carlos Tecnico", "MECANICO", UUID.randomUUID());
+        when(cleanController.cadastrar(any())).thenReturn(response);
         mockMvc.perform(post("/funcionarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.nome").value("Carlos Técnico"))
+                .andExpect(jsonPath("$.nome").value("Carlos Tecnico"))
                 .andExpect(jsonPath("$.cargo").value("MECANICO"));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("POST /funcionarios com body inválido deve retornar 400")
+    @DisplayName("POST /funcionarios com body invalido deve retornar 400")
     void shouldReturn400OnInvalidCreateRequest() throws Exception {
         var invalid = new CadastrarFuncionarioRequest("", "", "", null);
-
         mockMvc.perform(post("/funcionarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -96,10 +80,8 @@ class FuncionarioControllerTest {
     @DisplayName("POST /funcionarios com username duplicado deve retornar 409")
     void shouldReturn409OnDuplicateUsername() throws Exception {
         var request = new CadastrarFuncionarioRequest("Carlos", "duplicado@example.com", "Senha1@!", 1L);
-
-        when(cadastrarUseCase.execute(any()))
-                .thenThrow(new ResourceAlreadyExistsException("Username já cadastrado"));
-
+        when(cleanController.cadastrar(any()))
+                .thenThrow(new ResourceAlreadyExistsException("Username ja cadastrado"));
         mockMvc.perform(post("/funcionarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -108,36 +90,32 @@ class FuncionarioControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("GET /funcionarios/{id} deve retornar 200 com o funcionário")
+    @DisplayName("GET /funcionarios/{id} deve retornar 200 com o funcionario")
     void shouldReturn200OnFindById() throws Exception {
-        var response = new FuncionarioResponse(1L, "Carlos Técnico", "MECANICO", UUID.randomUUID());
-        when(buscarPorIdUseCase.execute(1L)).thenReturn(response);
-
+        var response = new FuncionarioResponse(1L, "Carlos Tecnico", "MECANICO", UUID.randomUUID());
+        when(cleanController.buscarPorId(1L)).thenReturn(response);
         mockMvc.perform(get("/funcionarios/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.nome").value("Carlos Técnico"));
+                .andExpect(jsonPath("$.nome").value("Carlos Tecnico"));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("GET /funcionarios/{id} deve retornar 404 quando não encontrado")
+    @DisplayName("GET /funcionarios/{id} deve retornar 404 quando nao encontrado")
     void shouldReturn400WhenFuncionarioNotFound() throws Exception {
-        when(buscarPorIdUseCase.execute(99L)).thenThrow(FuncionarioNotFoundException.fromId(99L));
-
+        when(cleanController.buscarPorId(99L)).thenThrow(FuncionarioNotFoundException.fromId(99L));
         mockMvc.perform(get("/funcionarios/99"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("PUT /funcionarios/{id} deve retornar 200 com o funcionário atualizado")
+    @DisplayName("PUT /funcionarios/{id} deve retornar 200 com o funcionario atualizado")
     void shouldReturn200OnUpdate() throws Exception {
         var request = new AtualizarFuncionarioRequest("Carlos Atualizado", 2L);
-        var updated = new AtualizarFuncionarioUseCase.Output(1L, "Carlos Atualizado", "ADMIN", UserId.random());
-
-        when(atualizarUseCase.execute(any())).thenReturn(updated);
-
+        var updated = new FuncionarioResponse(1L, "Carlos Atualizado", "ADMIN", UUID.randomUUID());
+        when(cleanController.atualizar(any())).thenReturn(updated);
         mockMvc.perform(put("/funcionarios/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -147,12 +125,10 @@ class FuncionarioControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("PUT /funcionarios/{id} deve retornar 404 quando funcionário não encontrado")
+    @DisplayName("PUT /funcionarios/{id} deve retornar 404 quando funcionario nao encontrado")
     void shouldReturn400WhenFuncionarioNotFoundOnUpdate() throws Exception {
         var request = new AtualizarFuncionarioRequest("Carlos Atualizado", 2L);
-
-        when(atualizarUseCase.execute(any())).thenThrow(FuncionarioNotFoundException.fromId(99L));
-
+        when(cleanController.atualizar(any())).thenThrow(FuncionarioNotFoundException.fromId(99L));
         mockMvc.perform(put("/funcionarios/99")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -161,12 +137,10 @@ class FuncionarioControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("PUT /funcionarios/{id} deve retornar 422 quando usuário estiver inativo")
+    @DisplayName("PUT /funcionarios/{id} deve retornar 422 quando usuario inativo")
     void shouldReturn400WhenUserIsInactiveOnUpdate() throws Exception {
         var request = new AtualizarFuncionarioRequest("Carlos Atualizado", 2L);
-
-        when(atualizarUseCase.execute(any())).thenThrow(InactiveUserException.fromEntityName("Funcionário"));
-
+        when(cleanController.atualizar(any())).thenThrow(InactiveUserException.fromEntityName("Funcionario"));
         mockMvc.perform(put("/funcionarios/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -175,10 +149,9 @@ class FuncionarioControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("PUT /funcionarios/{id} com body inválido deve retornar 400")
+    @DisplayName("PUT /funcionarios/{id} com body invalido deve retornar 400")
     void shouldReturn400OnInvalidUpdateRequest() throws Exception {
         var invalid = new AtualizarFuncionarioRequest("", null);
-
         mockMvc.perform(put("/funcionarios/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -189,18 +162,16 @@ class FuncionarioControllerTest {
     @WithMockUser(roles = "ADMIN")
     @DisplayName("PATCH /funcionarios/{id}/desativar deve retornar 204")
     void shouldReturn204OnDesativar() throws Exception {
-        doNothing().when(desativarUseCase).execute(1L);
-
+        doNothing().when(cleanController).desativar(1L);
         mockMvc.perform(patch("/funcionarios/1/desativar"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("PATCH /funcionarios/{id}/desativar deve retornar 404 quando não encontrado")
+    @DisplayName("PATCH /funcionarios/{id}/desativar deve retornar 404 quando nao encontrado")
     void shouldReturn400OnDesativarWhenNotFound() throws Exception {
-        doThrow(FuncionarioNotFoundException.fromId(99L)).when(desativarUseCase).execute(99L);
-
+        doThrow(FuncionarioNotFoundException.fromId(99L)).when(cleanController).desativar(99L);
         mockMvc.perform(patch("/funcionarios/99/desativar"))
                 .andExpect(status().isNotFound());
     }
@@ -210,7 +181,6 @@ class FuncionarioControllerTest {
     @DisplayName("POST /funcionarios com role USER deve retornar 403")
     void shouldReturn403ForUserRole() throws Exception {
         var request = new CadastrarFuncionarioRequest("Carlos", "carlos@example.com", "Senha1@!", 1L);
-
         mockMvc.perform(post("/funcionarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -218,7 +188,7 @@ class FuncionarioControllerTest {
     }
 
     @Test
-    @DisplayName("POST /funcionarios sem autenticação deve retornar 401")
+    @DisplayName("POST /funcionarios sem autenticacao deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
         mockMvc.perform(get("/funcionarios/1"))
                 .andExpect(status().isUnauthorized());

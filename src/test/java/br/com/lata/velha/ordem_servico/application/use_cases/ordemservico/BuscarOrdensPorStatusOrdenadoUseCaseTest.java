@@ -1,12 +1,11 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -14,7 +13,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -24,10 +22,14 @@ import static org.mockito.Mockito.when;
 class BuscarOrdensPorStatusOrdenadoUseCaseTest {
 
     @Mock
-    private OrdemServicoRepository ordemServicoRepository;
+    private BuscarOrdensPorStatusOrdenadoGateway gateway;
 
-    @InjectMocks
     private BuscarOrdensPorStatusOrdenadoUseCase useCase;
+
+    @BeforeEach
+    void setUp() {
+        useCase = new BuscarOrdensPorStatusOrdenadoUseCase(gateway);
+    }
 
     private OrdemServicoProjection buildProjection(Long id, String status) {
         return new OrdemServicoProjection() {
@@ -59,25 +61,23 @@ class BuscarOrdensPorStatusOrdenadoUseCaseTest {
         return new PaginatedResult<>(projections, page, size, total, totalPages);
     }
 
-    // ------------------------------------------------------------------
-
     @Test
     @DisplayName("deve retornar lista paginada quando há OS")
     void deveRetornarListaPaginadaComOs() {
         var projection = buildProjection(1L, "EM_EXECUCAO");
-        when(ordemServicoRepository.findOrderedByStatusPriority(anyInt(), anyInt()))
+        when(gateway.findOrderedByStatusPriority(anyInt(), anyInt()))
                 .thenReturn(paginatedResultOf(List.of(projection)));
 
         var result = useCase.execute(0, 10);
 
         assertThat(result.content()).hasSize(1);
-        assertThat(result.content().get(0).id()).isEqualTo(1L);
+        assertThat(result.content().get(0).getId()).isEqualTo(1L);
     }
 
     @Test
     @DisplayName("deve retornar lista vazia quando não há OS")
     void deveRetornarListaVaziaQuandoNaoHaOs() {
-        when(ordemServicoRepository.findOrderedByStatusPriority(anyInt(), anyInt()))
+        when(gateway.findOrderedByStatusPriority(anyInt(), anyInt()))
                 .thenReturn(paginatedResultOf(List.of()));
 
         var result = useCase.execute(0, 10);
@@ -87,15 +87,14 @@ class BuscarOrdensPorStatusOrdenadoUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve passar page e size corretos para o repositório")
+    @DisplayName("deve passar page e size corretos para o gateway")
     void devePassarPageSizeCorreto() {
-        when(ordemServicoRepository.findOrderedByStatusPriority(eq(2), eq(5)))
+        when(gateway.findOrderedByStatusPriority(eq(2), eq(5)))
                 .thenReturn(paginatedResultOf(List.of(), 2, 5, 0L));
 
         useCase.execute(2, 5);
 
-        verify(ordemServicoRepository)
-                .findOrderedByStatusPriority(eq(2), eq(5));
+        verify(gateway).findOrderedByStatusPriority(eq(2), eq(5));
     }
 
     @Test
@@ -105,7 +104,7 @@ class BuscarOrdensPorStatusOrdenadoUseCaseTest {
                 buildProjection(1L, "EM_EXECUCAO"),
                 buildProjection(2L, "AGUARDANDO_APROVACAO")
         );
-        when(ordemServicoRepository.findOrderedByStatusPriority(anyInt(), anyInt()))
+        when(gateway.findOrderedByStatusPriority(anyInt(), anyInt()))
                 .thenReturn(paginatedResultOf(projections, 0, 10, 25L));
 
         var result = useCase.execute(0, 10);
@@ -118,22 +117,22 @@ class BuscarOrdensPorStatusOrdenadoUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve mapear campos do projection no response")
+    @DisplayName("deve mapear campos do projection corretamente")
     void deveMapearCamposDoProjectionNoResponse() {
         var projection = buildProjection(99L, "EM_DIAGNOSTICO");
-        when(ordemServicoRepository.findOrderedByStatusPriority(anyInt(), anyInt()))
+        when(gateway.findOrderedByStatusPriority(anyInt(), anyInt()))
                 .thenReturn(paginatedResultOf(List.of(projection)));
 
         var result = useCase.execute(0, 10);
 
-        var response = result.content().get(0);
-        assertThat(response.id()).isEqualTo(99L);
-        assertThat(response.status()).isEqualTo("EM_DIAGNOSTICO");
-        assertThat(response.reclamacaoProprietario()).isEqualTo("Barulho ao frear");
-        assertThat(response.atendente().nome()).isEqualTo("Ana");
-        assertThat(response.mecanico().nome()).isEqualTo("Carlos");
-        assertThat(response.proprietario().nome()).isEqualTo("João");
-        assertThat(response.veiculo().descricao()).isEqualTo("Honda Civic");
+        var item = result.content().get(0);
+        assertThat(item.getId()).isEqualTo(99L);
+        assertThat(item.getStatus()).isEqualTo("EM_DIAGNOSTICO");
+        assertThat(item.getReclamacaoProprietario()).isEqualTo("Barulho ao frear");
+        assertThat(item.getAtendenteNome()).isEqualTo("Ana");
+        assertThat(item.getMecanicoNome()).isEqualTo("Carlos");
+        assertThat(item.getProprietarioNome()).isEqualTo("João");
+        assertThat(item.getVeiculoDescricao()).isEqualTo("Honda Civic");
     }
 
     @Test
@@ -144,7 +143,7 @@ class BuscarOrdensPorStatusOrdenadoUseCaseTest {
                 buildProjection(2L, "AGUARDANDO_APROVACAO"),
                 buildProjection(3L, "EM_DIAGNOSTICO")
         );
-        when(ordemServicoRepository.findOrderedByStatusPriority(anyInt(), anyInt()))
+        when(gateway.findOrderedByStatusPriority(anyInt(), anyInt()))
                 .thenReturn(paginatedResultOf(projections));
 
         var result = useCase.execute(0, 10);
@@ -155,29 +154,26 @@ class BuscarOrdensPorStatusOrdenadoUseCaseTest {
     }
 
     @Test
-    @DisplayName("deve chamar repositório com parâmetros corretos na página 1")
+    @DisplayName("deve chamar gateway com parâmetros corretos na página 1")
     void devePassarParametrosCorretosPagina1() {
-        when(ordemServicoRepository.findOrderedByStatusPriority(eq(1), eq(20)))
+        when(gateway.findOrderedByStatusPriority(eq(1), eq(20)))
                 .thenReturn(paginatedResultOf(List.of(), 1, 20, 50L));
 
         useCase.execute(1, 20);
 
-        verify(ordemServicoRepository)
-                .findOrderedByStatusPriority(eq(1), eq(20));
+        verify(gateway).findOrderedByStatusPriority(eq(1), eq(20));
     }
 
     @Test
     @DisplayName("deve retornar resultado com página 0 e tamanho 10 por padrão")
     void deveRetornarComParametrosPadrao() {
-        when(ordemServicoRepository.findOrderedByStatusPriority(eq(0), eq(10)))
+        when(gateway.findOrderedByStatusPriority(eq(0), eq(10)))
                 .thenReturn(paginatedResultOf(List.of()));
 
         var result = useCase.execute(0, 10);
 
         assertThat(result.page()).isZero();
         assertThat(result.size()).isEqualTo(10);
-        verify(ordemServicoRepository)
-                .findOrderedByStatusPriority(eq(0), eq(10));
+        verify(gateway).findOrderedByStatusPriority(eq(0), eq(10));
     }
 }
-

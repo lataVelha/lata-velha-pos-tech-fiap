@@ -1,24 +1,23 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
 public class RetirarVeiculoUseCase {
 
-    private final OrdemServicoRepository ordemServicoRepository;
-    private final FuncionarioRepository funcionarioRepository;
+    private final RetirarVeiculoGateway gateway;
     private final NotificarOrdemServicoUseCase notificarUseCase;
 
+    public RetirarVeiculoUseCase(RetirarVeiculoGateway gateway,
+                                 NotificarOrdemServicoUseCase notificarUseCase) {
+        this.gateway = gateway;
+        this.notificarUseCase = notificarUseCase;
+    }
+
     public void execute(Long idOs, UserId userId) {
-        var ordemServico = ordemServicoRepository.getById(idOs);
-        var funcionario = funcionarioRepository.getByUserId(userId);
+        var ordemServico = gateway.getOrdemServicoComServicosEPecas(idOs);
+        var funcionario = gateway.getFuncionarioPorUserId(userId);
         ordemServico.entregar(funcionario.getId());
-        ordemServicoRepository.save(ordemServico);
+        gateway.salvarOrdemServico(ordemServico);
         notificarUseCase.execute(ordemServico);
     }
 }

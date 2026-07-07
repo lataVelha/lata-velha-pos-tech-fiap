@@ -1,11 +1,9 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
-import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -17,21 +15,19 @@ import static org.mockito.Mockito.when;
 class BuscarServicoPorIdUseCaseTest {
 
     @Mock
-    private ServicoRepository repository;
-
-    @InjectMocks
-    private BuscarServicoPorIdUseCase useCase;
+    private BuscarServicoPorIdGateway gateway;
 
     @Test
     @DisplayName("Deve buscar serviço ativo por ID")
     void deveBuscarServicoAtivoPorId() {
         var servico = new Servico(1L, "Alinhamento", "Alinhamento completo", true);
-        when(repository.getActiveById(1L)).thenReturn(servico);
+        when(gateway.getServicoPorId(1L)).thenReturn(servico);
 
+        var useCase = new BuscarServicoPorIdUseCase(gateway);
         var result = useCase.execute(1L);
 
-        assertThat(result.id()).isEqualTo(1L);
-        assertThat(result.nome()).isEqualTo("Alinhamento");
-        verify(repository).getActiveById(1L);
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getNome()).isEqualTo("Alinhamento");
+        verify(gateway).getServicoPorId(1L);
     }
 }
