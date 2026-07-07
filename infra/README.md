@@ -33,7 +33,7 @@ Compatível com **AWS Academy (Learner Lab)** — usa a `LabRole` pré-existente
 ## Como executar
 
 - **Recomendado (CI):** push para `master` → pipeline roda automaticamente
-- **Local (caminho feliz):** `./apply.sh --auto` — executa a mesma sequência do CI
+- **Local (opcional, mesmo fluxo):** `./apply.sh --auto` — útil para iterar sem esperar o runner
 - **Manual / depuração:** seção "Comandos Terraform diretos" abaixo
 
 ---
@@ -559,3 +559,24 @@ O destroy acontece em ordem reversa:
 ./apply.sh --destroy          # destroi tudo com confirmação
 ./apply.sh --destroy --auto   # destroi tudo sem confirmação
 ```
+
+### O que o `apply.sh` faz por dentro
+
+Espelha o pipeline do GitHub Actions localmente — mesmas etapas, mesma ordem, mesmo backend S3. Útil para depurar um apply que falhou no CI ou iterar sem esperar o runner.
+
+| Etapa    | Comando                              | Saída                                                                 |
+| -------- | ------------------------------------ | --------------------------------------------------------------------- |
+| setup    | `aws sts get-caller-identity` + `s3api head-bucket` | Descobre o `ACCOUNT_ID`, monta `BUCKET=lata-velha-tfstate-${ACCOUNT_ID}` e cria o bucket com versionamento se não existir. |
+| init     | `tf_init` (helper)                   | `terraform init -reconfigure` com `backend-config` apontando para o bucket. |
+| env      | `export TF_VAR_aws_*`                | Injeta credenciais AWS em variáveis do Terraform — workaround para o Academy, que não permite IRSA (veja abaixo). |
+| `[1/5]`  | `docker run postgres` + `mvn test`   | Sobe um PostgreSQL efêmero na 5432, roda a suíte, derruba o container. Aborta o pipeline se algum teste falhar. |
+| `[2/5]`  | `terraform apply` (bootstrap)        | VPC + EKS + RDS + ECR. |
+| `[3/5]`  | `docker build` + `push`              | Tag = SHA curto do `git rev-parse` (mesma convenção do CI).         |
+| `[4/5]`  | `terraform apply` (deploy)           | ALB + app + autoscaler. Recebe o endpoint do EKS via `TF_VAR_*` lido do output do bootstrap. |
+| `[5/5]`  | `kubectl rollout status`             | Aguarda o rollout do `lata-velha-api` (timeout 5 min) e imprime a `app_url`. |
+
+#### `--destroy`
+
+Roda 3 etapas em ordem **reversa** (deploy → bootstrap → bucket) — inverter trava no `VPC has non-foreign dependents` por causa das ENIs do ALB. O bucket só é removido depois de esvaziar todas as versões (`list-object-versions` + `delete-object`) para não deixar lixo quando o versionamento está ativo.
+
+> **Por que exportar `TF_VAR_aws_access_key_id` etc.?** O módulo `cluster-autoscaler` precisa de credenciais AWS dentro do pod para chamar a API de autoscaling. O caminho padrão seria IRSA (OIDC + ServiceAccount), mas o AWS Academy bloqueia `iam:CreateOpenIDConnectProvider`. O `apply.sh` contorna isso lendo as credenciais do ambiente local e injetando-as num Secret do Kubernetes via `kubectl_manifest` — funciona, mas expira junto com a sessão do Academy (~4 h).
