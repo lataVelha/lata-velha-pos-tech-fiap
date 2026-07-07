@@ -1,11 +1,9 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
-import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,30 +17,30 @@ import static org.mockito.Mockito.when;
 class DesativarServicoUseCaseTest {
 
     @Mock
-    private ServicoRepository repository;
-
-    @InjectMocks
-    private DesativarServicoUseCase useCase;
+    private DesativarServicoGateway gateway;
 
     @Test
     @DisplayName("Deve desativar serviço ativo com sucesso")
     void deveDesativarServicoAtivoComSucesso() {
         var servico = new Servico(1L, "Balanceamento", "Balanceamento das rodas", true);
-        when(repository.getActiveById(1L)).thenReturn(servico);
+        when(gateway.getServicoPorId(1L)).thenReturn(servico);
 
+        DesativarServicoUseCase useCase = new DesativarServicoUseCase(gateway);
         useCase.execute(1L);
 
         assertFalse(servico.isAtivo());
-        verify(repository).save(servico);
+        verify(gateway).salvarServico(servico);
     }
 
     @Test
     @DisplayName("Deve falhar quando serviço já estiver desativado")
     void deveFalharQuandoServicoJaEstiverDesativado() {
         var servico = new Servico(1L, "Balanceamento", "Balanceamento das rodas", false);
-        when(repository.getActiveById(1L)).thenReturn(servico);
+        when(gateway.getServicoPorId(1L)).thenReturn(servico);
+
+        DesativarServicoUseCase useCase = new DesativarServicoUseCase(gateway);
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(1L));
-        verify(repository, never()).save(servico);
+        verify(gateway, never()).salvarServico(servico);
     }
 }

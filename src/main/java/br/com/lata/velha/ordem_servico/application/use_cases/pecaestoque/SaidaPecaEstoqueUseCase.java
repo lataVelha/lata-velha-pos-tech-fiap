@@ -1,27 +1,20 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEstoqueRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 
-@Component
-@RequiredArgsConstructor
 public class SaidaPecaEstoqueUseCase {
 
-    private final PecaRepository pecaRepository;
-    private final PecaEstoqueRepository pecaEstoqueRepository;
+    private final SaidaPecaEstoqueGateway gateway;
 
-    public PecaEstoqueResponse execute(Long pecaId, MovimentarPecaEstoqueRequest request) {
-        pecaRepository.getActiveById(pecaId);
+    public SaidaPecaEstoqueUseCase(SaidaPecaEstoqueGateway gateway) {
+        this.gateway = gateway;
+    }
 
-        var estoque = pecaEstoqueRepository.findByPecaId(pecaId)
-                .orElseThrow(() -> new IllegalArgumentException("Estoque da peça não encontrado"));
-
+    public PecaEstoque execute(Long pecaId, MovimentarPecaEstoqueRequest request) {
+        gateway.getPecaAtivaPorId(pecaId);
+        var estoque = gateway.getEstoquePorPecaId(pecaId);
         estoque.retirar(request.quantidade());
-        var saved = pecaEstoqueRepository.save(estoque);
-        return PecaEstoqueResponse.from(saved);
+        return gateway.salvarEstoque(estoque);
     }
 }

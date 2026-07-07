@@ -1,17 +1,16 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada;
 
-import br.com.lata.velha.ordem_servico.application.dtos.response.PecaAlocadaResponse;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 
-@Component
-@RequiredArgsConstructor
 public class BuscarPecaAlocadaPorIdUseCase {
 
-    private final PecaAlocadaRepository pecaAlocadaRepository;
+    private final BuscarPecaAlocadaPorIdGateway gateway;
 
-    public PecaAlocadaResponse execute(Long id) {
-        return PecaAlocadaResponse.from(pecaAlocadaRepository.findById(id));
+    public BuscarPecaAlocadaPorIdUseCase(BuscarPecaAlocadaPorIdGateway gateway) {
+        this.gateway = gateway;
+    }
+
+    public PecaAlocada execute(Long id) {
+        return gateway.getPecaAlocadaPorId(id);
     }
 }

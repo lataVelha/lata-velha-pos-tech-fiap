@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
@@ -37,11 +38,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 class AprovarOrdemServicoUseCaseIT {
 
-    @Autowired private AprovarOrdemServicoUseCase useCase;
+    @Autowired private AprovarOrdemServicoGateway aprovarGateway;
+    @Autowired private NotificarOrdemServicoGateway notificarGateway;
+    @Autowired private NotificarAdminEncomendaPecaGateway notificarAdminGateway;
     @Autowired private EntityManager em;
 
     @MockBean private EmailProvider emailProvider;
     @MockBean private EmailTemplateProvider emailTemplateProvider;
+
+    private AprovarOrdemServicoUseCase useCase;
 
     private Long funcionarioId;
     private UUID funcionarioUserId;
@@ -51,6 +56,10 @@ class AprovarOrdemServicoUseCaseIT {
 
     @BeforeEach
     void setUp() {
+        var notificarUseCase = new NotificarOrdemServicoUseCase(notificarGateway, emailProvider, emailTemplateProvider);
+        var notificarAdminUseCase = new NotificarAdminEncomendaPecaUseCase(notificarAdminGateway, emailProvider, emailTemplateProvider);
+        useCase = new AprovarOrdemServicoUseCase(aprovarGateway, notificarUseCase, notificarAdminUseCase);
+
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);
 
@@ -145,9 +154,9 @@ class AprovarOrdemServicoUseCaseIT {
         var input = new AprovarOrdemServicoUseCase.Input(osId, UserId.create(funcionarioUserId),
                 List.of(new AprovarOrdemServicoUseCase.Input.ServicoAprovacao(execucaoId, StatusExecucaoServico.APROVADO)));
 
-        var output = useCase.execute(input);
+        OrdemServico output = useCase.execute(input);
 
-        assertThat(output.status()).isEqualTo(StatusOrdemServico.APROVADA.name());
+        assertThat(output.getStatus().name()).isEqualTo(StatusOrdemServico.APROVADA.name());
 
         em.flush();
         em.clear();

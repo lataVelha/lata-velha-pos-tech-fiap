@@ -2,6 +2,8 @@ package br.com.lata.velha.ordem_servico.application.use_cases.funcionario;
 
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import br.com.lata.velha.authentication.infrastructure.persistence.jpa.UserJpaRepository;
+import br.com.lata.velha.ordem_servico.application.gateways.authentication.AuthenticationService;
+import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.CargoNotFoundException;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
@@ -30,7 +32,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class CadastrarFuncionarioUseCaseIT {
 
     @Autowired
-    private CadastrarFuncionarioUseCase useCase;
+    private CadastrarFuncionarioGateway gateway;
+
+    @Autowired
+    private AuthenticationService authService;
 
     @Autowired
     private UserJpaRepository userJpaRepository;
@@ -38,10 +43,13 @@ class CadastrarFuncionarioUseCaseIT {
     @Autowired
     private EntityManager em;
 
+    private CadastrarFuncionarioUseCase useCase;
     private Long cargoId;
 
     @BeforeEach
     void setUp() {
+        useCase = new CadastrarFuncionarioUseCase(gateway, authService);
+
         RoleEntity role = new RoleEntity(null, "MECANICO");
         em.persist(role);
 
@@ -58,23 +66,23 @@ class CadastrarFuncionarioUseCaseIT {
     @DisplayName("deve cadastrar funcionário com sucesso e retornar output com dados corretos")
     void shouldRegisterFuncionarioSuccessfully() {
         var input = new CadastrarFuncionarioUseCase.Input("João Silva", "joao@example.com", "Senha1@!", cargoId);
-        var output = useCase.execute(input);
+        Funcionario output = useCase.execute(input);
 
         assertNotNull(output);
-        assertNotNull(output.id());
-        assertEquals("João Silva", output.nome());
-        assertEquals("MECANICO", output.cargo());
-        assertNotNull(output.userId());
+        assertNotNull(output.getId());
+        assertEquals("João Silva", output.getNome());
+        assertEquals("MECANICO", output.getCargo().getNome());
+        assertNotNull(output.getUserId());
     }
 
     @Test
     @DisplayName("deve persistir usuário no banco com o email correto ao cadastrar funcionário")
     void shouldPersistUserWithCorrectEmail() {
         var input = new CadastrarFuncionarioUseCase.Input("João Silva", "joao@example.com", "Senha1@!", cargoId);
-        var output = useCase.execute(input);
+        Funcionario output = useCase.execute(input);
         em.flush();
 
-        var savedUser = userJpaRepository.findById(output.userId());
+        var savedUser = userJpaRepository.findById(output.getUserId().getValue());
 
         assertTrue(savedUser.isPresent());
         assertEquals("joao@example.com", savedUser.get().getEmail());
@@ -103,10 +111,10 @@ class CadastrarFuncionarioUseCaseIT {
     @DisplayName("o userId retornado no output deve corresponder ao usuário salvo no banco")
     void shouldReturnUserIdMatchingPersistedUser() {
         var input = new CadastrarFuncionarioUseCase.Input("João Silva", "joao@example.com", "Senha1@!", cargoId);
-        var output = useCase.execute(input);
+        Funcionario output = useCase.execute(input);
         em.flush();
 
-        assertTrue(userJpaRepository.existsById(output.userId()));
+        assertTrue(userJpaRepository.existsById(output.getUserId().getValue()));
     }
 
     @Test

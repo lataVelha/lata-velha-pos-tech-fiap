@@ -36,11 +36,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 class IniciarServicoUseCaseIT {
 
-    @Autowired private IniciarServicoUseCase useCase;
+    @Autowired private IniciarServicoGateway gateway;
+    @Autowired private NotificarOrdemServicoGateway notificarGateway;
     @Autowired private EntityManager em;
 
     @MockBean private EmailProvider emailProvider;
     @MockBean private EmailTemplateProvider emailTemplateProvider;
+
+    private IniciarServicoUseCase useCase;
 
     private Long osId;
     private Long execucaoId;
@@ -49,6 +52,9 @@ class IniciarServicoUseCaseIT {
 
     @BeforeEach
     void setUp() {
+        var notificarUseCase = new NotificarOrdemServicoUseCase(notificarGateway, emailProvider, emailTemplateProvider);
+        useCase = new IniciarServicoUseCase(gateway, notificarUseCase);
+
         RoleEntity role = new RoleEntity(null, "MECANICO");
         em.persist(role);
 

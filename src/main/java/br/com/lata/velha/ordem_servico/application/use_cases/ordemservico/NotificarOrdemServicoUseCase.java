@@ -2,49 +2,57 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
-import br.com.lata.velha.ordem_servico.domain.entities.*;
+import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
+import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
+import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
+import br.com.lata.velha.ordem_servico.domain.entities.Servico;
+import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-@Slf4j
-@Component
-@RequiredArgsConstructor
 public class NotificarOrdemServicoUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificarOrdemServicoUseCase.class);
+
+    private final NotificarOrdemServicoGateway gateway;
     private final EmailProvider emailProvider;
     private final EmailTemplateProvider templateProvider;
-    private final ProprietarioRepository proprietarioRepository;
-    private final VeiculoRepository veiculoRepository;
-    private final ServicoRepository servicoRepository;
-    private static final  String VALOR = "valor";
+
+    private static final String VALOR = "valor";
     private static final String RECEBIDA = "Recebida";
     private static final String EM_DIAGNOSTICO = "Em Diagnóstico";
     private static final String FINALIZADA = "Finalizada";
     private static final String ENTREGUE = "Entregue";
     private static final String AGUARDANDO_APROVACAO = "Aguardando Aprovação";
-
     private static final String MSG_VEICULO_RECEBIDO = "Veículo recebido pela oficina";
     private static final String MSG_MECANICO_AVALIOU = "Mecânico avaliando o veículo";
     private static final String MSG_VEICULO_RETIRADO = "Veículo retirado pelo proprietário";
-
     private static final String STATUS = "status";
     private static final String RECUSADO = "RECUSADO";
     private static final String CONCLUIDO = "CONCLUIDO";
 
+    public NotificarOrdemServicoUseCase(NotificarOrdemServicoGateway gateway,
+                                        EmailProvider emailProvider,
+                                        EmailTemplateProvider templateProvider) {
+        this.gateway = gateway;
+        this.emailProvider = emailProvider;
+        this.templateProvider = templateProvider;
+    }
 
     public void execute(OrdemServico os) {
         try {
-            Proprietario proprietario = proprietarioRepository.getActiveById(os.getProprietarioId());
-            Veiculo veiculo = veiculoRepository.getActiveById(os.getVeiculoId());
+            Proprietario proprietario = gateway.getProprietarioPorId(os.getProprietarioId());
+            Veiculo veiculo = gateway.getVeiculoPorId(os.getVeiculoId());
 
             Map<String, Object> variables = buildVariables(os, proprietario, veiculo);
             String assunto = getAssunto(os.getStatus());
@@ -157,8 +165,7 @@ public class NotificarOrdemServicoUseCase {
         var servicosIds = os.getExecucaoServicos().stream()
                 .map(ExecucaoServico::getServicoId)
                 .collect(Collectors.toSet());
-        var mapServicos = this.servicoRepository.getAllActiveById(servicosIds)
-                .stream()
+        var mapServicos = gateway.getServicosAtivosPorIds(servicosIds).stream()
                 .collect(Collectors.toMap(Servico::getId, servico -> servico));
 
         List<Map<String, Object>> servicos = os.getExecucaoServicos().stream()
@@ -237,7 +244,7 @@ public class NotificarOrdemServicoUseCase {
     }
 
     private Map<String, Object> toServicoMap(ExecucaoServico s) {
-        var servico = this.servicoRepository.getActiveById(s.getServicoId());
+        var servico = gateway.getServicoAtivoPorId(s.getServicoId());
         Map<String, Object> map = new HashMap<>();
         map.put("nome", servico.getNome());
         map.put(VALOR, calcularTotalServico(s));
@@ -276,7 +283,7 @@ public class NotificarOrdemServicoUseCase {
             steps = List.of(
                     new TimelineStep(1, RECEBIDA, MSG_VEICULO_RECEBIDO, StatusOrdemServico.RECEBIDA),
                     new TimelineStep(2, EM_DIAGNOSTICO, MSG_MECANICO_AVALIOU, StatusOrdemServico.EM_DIAGNOSTICO),
-                    new TimelineStep(3, AGUARDANDO_APROVACAO,"Serviços apresentados ao proprietário", StatusOrdemServico.AGUARDANDO_APROVACAO),
+                    new TimelineStep(3, AGUARDANDO_APROVACAO, "Serviços apresentados ao proprietário", StatusOrdemServico.AGUARDANDO_APROVACAO),
                     new TimelineStep(4, "Reprovada", "Todos os serviços foram recusados", StatusOrdemServico.REPROVADA),
                     new TimelineStep(5, ENTREGUE, MSG_VEICULO_RETIRADO, StatusOrdemServico.ENTREGUE)
             );

@@ -1,6 +1,8 @@
 package br.com.lata.velha.authentication.api.controllers;
 
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
+import br.com.lata.velha.ordem_servico.application.gateways.authentication.AuthenticationService;
+import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioGateway;
 import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioUseCase;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +44,10 @@ class LoginControllerIT {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private CadastrarFuncionarioUseCase cadastrarFuncionarioUseCase;
+    private CadastrarFuncionarioGateway cadastrarGateway;
+
+    @Autowired
+    private AuthenticationService authService;
 
     @Autowired
     private EntityManager em;
@@ -63,7 +68,7 @@ class LoginControllerIT {
         em.flush();
 
         var input = new CadastrarFuncionarioUseCase.Input("Funcionário Teste", USERNAME, SENHA, cargo.getId());
-        cadastrarFuncionarioUseCase.execute(input);
+        new CadastrarFuncionarioUseCase(cadastrarGateway, authService).execute(input);
 
         em.flush();
     }

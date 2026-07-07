@@ -1,21 +1,19 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequest;
-import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
 public class AtualizarProprietarioUseCase {
 
-    private final ProprietarioRepository repository;
+    private final AtualizarProprietarioGateway gateway;
 
-    public ProprietarioResponse execute(Long id, ProprietarioRequest request) {
-        Proprietario existing = repository.getActiveById(id);
+    public AtualizarProprietarioUseCase(AtualizarProprietarioGateway gateway) {
+        this.gateway = gateway;
+    }
+
+    public Proprietario execute(Long id, ProprietarioRequest request) {
+        Proprietario existing = gateway.getProprietarioPorId(id);
         request.updateDomain(existing);
-        return ProprietarioResponse.from(repository.save(existing));
+        return gateway.salvarProprietario(existing);
     }
 }

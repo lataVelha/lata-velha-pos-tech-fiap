@@ -1,10 +1,10 @@
 package br.com.lata.velha.ordem_servico.api.controllers;
 
 import br.com.lata.velha.authentication.infrastructure.security.config.SecurityConfig;
+import br.com.lata.velha.ordem_servico.application.controllers.peca.PecaCleanController;
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarPecaRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarPecaRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaResponse;
-import br.com.lata.velha.ordem_servico.application.use_cases.peca.*;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -41,19 +41,7 @@ class PecaControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private CadastrarPecaUseCase cadastrarUseCase;
-
-    @MockBean
-    private BuscarPecasUseCase buscarTodosUseCase;
-
-    @MockBean
-    private BuscarPecaPorIdUseCase buscarPorIdUseCase;
-
-    @MockBean
-    private AtualizarPecaUseCase atualizarUseCase;
-
-    @MockBean
-    private DesativarPecaUseCase desativarUseCase;
+    private PecaCleanController cleanController;
 
     @MockBean
     private JwtDecoder jwtDecoder;
@@ -71,10 +59,9 @@ class PecaControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("POST /pecas deve retornar 201 e a peça criada")
+    @DisplayName("POST /pecas deve retornar 201 e a peca criada")
     void shouldReturn201OnCreate() throws Exception {
-        when(cadastrarUseCase.execute(any())).thenReturn(buildResponse());
-
+        when(cleanController.cadastrar(any())).thenReturn(buildResponse());
         mockMvc.perform(post("/pecas")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(buildRequest())))
@@ -86,10 +73,9 @@ class PecaControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("POST /pecas com body inválido deve retornar 400")
+    @DisplayName("POST /pecas com body invalido deve retornar 400")
     void shouldReturn400OnInvalidCreateRequest() throws Exception {
         var invalid = new CadastrarPecaRequest("", "", null);
-
         mockMvc.perform(post("/pecas")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -101,9 +87,7 @@ class PecaControllerTest {
     @DisplayName("GET /pecas deve retornar 200 com lista paginada")
     void shouldReturn200OnList() throws Exception {
         var paginated = new PaginatedResult<>(List.of(buildResponse()), 0, 10, 1L, 1);
-
-        when(buscarTodosUseCase.execute(0, 10)).thenReturn(paginated);
-
+        when(cleanController.buscarTodos(0, 10)).thenReturn(paginated);
         mockMvc.perform(get("/pecas")
                         .param("page", "0")
                         .param("size", "10"))
@@ -114,10 +98,9 @@ class PecaControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("GET /pecas/{id} deve retornar 200 com a peça")
+    @DisplayName("GET /pecas/{id} deve retornar 200 com a peca")
     void shouldReturn200OnFindById() throws Exception {
-        when(buscarPorIdUseCase.execute(1L)).thenReturn(buildResponse());
-
+        when(cleanController.buscarPorId(1L)).thenReturn(buildResponse());
         mockMvc.perform(get("/pecas/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
@@ -126,13 +109,11 @@ class PecaControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("PUT /pecas/{id} deve retornar 200 com a peça atualizada")
+    @DisplayName("PUT /pecas/{id} deve retornar 200 com a peca atualizada")
     void shouldReturn200OnUpdate() throws Exception {
         var request = new AtualizarPecaRequest("Pastilha Dianteira", "Pastilha dianteira premium", new BigDecimal("65.00"));
         var updated = new PecaResponse(1L, "Pastilha Dianteira", "Pastilha dianteira premium", new BigDecimal("65.00"), true);
-
-        when(atualizarUseCase.execute(eq(1L), any())).thenReturn(updated);
-
+        when(cleanController.atualizar(eq(1L), any())).thenReturn(updated);
         mockMvc.perform(put("/pecas/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -142,10 +123,9 @@ class PecaControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
-    @DisplayName("PUT /pecas/{id} com body inválido deve retornar 400")
+    @DisplayName("PUT /pecas/{id} com body invalido deve retornar 400")
     void shouldReturn400OnInvalidUpdateRequest() throws Exception {
         var invalid = new AtualizarPecaRequest("", "", null);
-
         mockMvc.perform(put("/pecas/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -156,14 +136,13 @@ class PecaControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("PATCH /pecas/{id}/desativar deve retornar 204")
     void shouldReturn204OnDesativar() throws Exception {
-        doNothing().when(desativarUseCase).execute(1L);
-
+        doNothing().when(cleanController).desativar(1L);
         mockMvc.perform(patch("/pecas/1/desativar"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("GET /pecas sem autenticação deve retornar 401")
+    @DisplayName("GET /pecas sem autenticacao deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
         mockMvc.perform(get("/pecas"))
                 .andExpect(status().isUnauthorized());

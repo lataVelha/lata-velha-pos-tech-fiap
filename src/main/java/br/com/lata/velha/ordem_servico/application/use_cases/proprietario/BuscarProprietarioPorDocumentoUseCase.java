@@ -1,18 +1,17 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 
-import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResponse;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 
-@Component
-@RequiredArgsConstructor
 public class BuscarProprietarioPorDocumentoUseCase {
 
-    private final ProprietarioRepository repository;
+    private final BuscarProprietarioPorDocumentoGateway gateway;
 
-    public ProprietarioResponse execute(String documento) {
+    public BuscarProprietarioPorDocumentoUseCase(BuscarProprietarioPorDocumentoGateway gateway) {
+        this.gateway = gateway;
+    }
+
+    public Proprietario execute(String documento) {
         String cleaned = documento.replaceAll("[^\\dA-Za-z]", "").toUpperCase();
-        return ProprietarioResponse.from(repository.findActiveByDocumento(cleaned));
+        return gateway.getProprietarioPorDocumento(cleaned);
     }
 }

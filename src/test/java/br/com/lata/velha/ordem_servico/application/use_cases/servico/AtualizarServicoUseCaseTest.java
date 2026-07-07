@@ -2,11 +2,9 @@ package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarServicoRequest;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
-import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,10 +19,7 @@ import static org.mockito.Mockito.when;
 class AtualizarServicoUseCaseTest {
 
     @Mock
-    private ServicoRepository repository;
-
-    @InjectMocks
-    private AtualizarServicoUseCase useCase;
+    private AtualizarServicoGateway gateway;
 
     @Test
     @DisplayName("Deve atualizar serviço com sucesso")
@@ -32,25 +27,27 @@ class AtualizarServicoUseCaseTest {
         var request = new AtualizarServicoRequest("Alinhamento 3D", "Alinhamento eletrônico completo");
         var servico = new Servico(1L, "Alinhamento", "Alinhamento comum", true);
 
-        when(repository.getActiveById(1L)).thenReturn(servico);
-        when(repository.save(servico)).thenReturn(servico);
+        when(gateway.getServicoPorId(1L)).thenReturn(servico);
+        when(gateway.salvarServico(servico)).thenReturn(servico);
 
+        var useCase = new AtualizarServicoUseCase(gateway);
         var result = useCase.execute(1L, request);
 
         assertThat(servico.getNome()).isEqualTo("Alinhamento 3D");
         assertThat(servico.getDescricao()).isEqualTo("Alinhamento eletrônico completo");
-        assertThat(result.nome()).isEqualTo("Alinhamento 3D");
-        verify(repository).save(servico);
+        assertThat(result.getNome()).isEqualTo("Alinhamento 3D");
+        verify(gateway).salvarServico(servico);
     }
 
     @Test
     @DisplayName("Deve falhar quando serviço não existir")
     void deveFalharQuandoServicoNaoExistir() {
         var request = new AtualizarServicoRequest("Nome", "Descrição");
-        when(repository.getActiveById(99L)).thenThrow(new IllegalArgumentException("Serviço não encontrado"));
+        when(gateway.getServicoPorId(99L)).thenThrow(new IllegalArgumentException("Serviço não encontrado"));
 
+        var useCase = new AtualizarServicoUseCase(gateway);
         assertThatThrownBy(() -> useCase.execute(99L, request))
                 .isInstanceOf(IllegalArgumentException.class);
-        verify(repository, never()).save(any());
+        verify(gateway, never()).salvarServico(any());
     }
 }

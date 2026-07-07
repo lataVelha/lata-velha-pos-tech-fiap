@@ -2,12 +2,10 @@ package br.com.lata.velha.ordem_servico.application.use_cases.funcionario;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Cargo;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,31 +18,30 @@ import static org.mockito.Mockito.when;
 class BuscarFuncionarioPorIdUseCaseTest {
 
     @Mock
-    private FuncionarioRepository repository;
-
-    @InjectMocks
-    private BuscarFuncionarioPorIdUseCase useCase;
+    private BuscarFuncionarioPorIdGateway gateway;
 
     @Test
     @DisplayName("Deve buscar funcionario ativo por ID com sucesso")
     void deveBuscarFuncionarioAtivoPorIdComSucesso() {
         var funcionario = new Funcionario(1L, "Fulano", new Cargo(1L, "MECANICO", null), UserId.random());
 
-        when(repository.getById(1L)).thenReturn(funcionario);
+        when(gateway.getFuncionarioById(1L)).thenReturn(funcionario);
 
+        var useCase = new BuscarFuncionarioPorIdUseCase(gateway);
         var result = useCase.execute(1L);
 
-        assertEquals(1L, result.id());
-        assertEquals("Fulano", result.nome());
-        assertEquals("MECANICO", result.cargo());
-        verify(repository).getById(1L);
+        assertEquals(1L, result.getId());
+        assertEquals("Fulano", result.getNome());
+        assertEquals("MECANICO", result.getCargo().getNome());
+        verify(gateway).getFuncionarioById(1L);
     }
 
     @Test
     @DisplayName("Deve falhar ao buscar funcionario inexistente")
     void deveFalharAoBuscarFuncionarioInexistente() {
-        when(repository.getById(99L)).thenThrow(new IllegalArgumentException("Funcionario nao encontrado"));
+        when(gateway.getFuncionarioById(99L)).thenThrow(new IllegalArgumentException("Funcionario nao encontrado"));
 
+        var useCase = new BuscarFuncionarioPorIdUseCase(gateway);
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(99L));
     }
 }

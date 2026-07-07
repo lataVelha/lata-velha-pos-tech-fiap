@@ -6,16 +6,11 @@ import br.com.lata.velha.ordem_servico.domain.entities.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
-import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -31,14 +26,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class NotificarOrdemServicoUseCaseTest {
 
+    @Mock private NotificarOrdemServicoGateway gateway;
     @Mock private EmailProvider emailProvider;
     @Mock private EmailTemplateProvider templateProvider;
-    @Mock private ProprietarioRepository proprietarioRepository;
-    @Mock private VeiculoRepository veiculoRepository;
-    @Mock private PecaRepository pecaRepository;
-    @Mock private ServicoRepository servicoRepository;
 
-    @InjectMocks
     private NotificarOrdemServicoUseCase useCase;
 
     private static final Long OS_ID = 1L;
@@ -50,11 +41,12 @@ class NotificarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        useCase = new NotificarOrdemServicoUseCase(gateway, emailProvider, templateProvider);
         proprietario = new Proprietario(PROP_ID, "João Silva", "joao@example.com", null, null, null);
         veiculo = new Veiculo(VEICULO_ID, PROP_ID, null, "Honda", "Civic", 2022, "Prata");
 
-        when(proprietarioRepository.getActiveById(PROP_ID)).thenReturn(proprietario);
-        when(veiculoRepository.getActiveById(VEICULO_ID)).thenReturn(veiculo);
+        when(gateway.getProprietarioPorId(PROP_ID)).thenReturn(proprietario);
+        when(gateway.getVeiculoPorId(VEICULO_ID)).thenReturn(veiculo);
         when(templateProvider.render(anyString(), anyMap())).thenReturn("<html>email</html>");
     }
 
@@ -168,7 +160,7 @@ class NotificarOrdemServicoUseCaseTest {
         var exec = buildExec(10L, StatusExecucaoServico.PENDENTE);
         var os = buildOs(StatusOrdemServico.AGUARDANDO_APROVACAO, new ArrayList<>(List.of(exec)));
 
-        when(servicoRepository.getAllActiveById(any())).thenReturn(Set.of(new Servico(99L, "Troca de óleo", "desc")));
+        when(gateway.getServicosAtivosPorIds(any())).thenReturn(List.of(new Servico(99L, "Troca de óleo", "desc")));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
@@ -188,7 +180,7 @@ class NotificarOrdemServicoUseCaseTest {
         var execRecusado = buildExec(11L, StatusExecucaoServico.RECUSADO);
         var os = buildOs(StatusOrdemServico.APROVADA, new ArrayList<>(List.of(execAprovado, execRecusado)));
 
-        when(servicoRepository.getActiveById(anyLong())).thenReturn(new Servico(99L, "Troca de óleo", "desc"));
+        when(gateway.getServicoAtivoPorId(anyLong())).thenReturn(new Servico(99L, "Troca de óleo", "desc"));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
@@ -209,7 +201,7 @@ class NotificarOrdemServicoUseCaseTest {
         var exec = buildExec(10L, StatusExecucaoServico.APROVADO);
         var os = buildOs(StatusOrdemServico.EM_EXECUCAO, new ArrayList<>(List.of(exec)));
 
-        when(servicoRepository.getActiveById(anyLong())).thenReturn(new Servico(99L, "Troca de óleo", "desc"));
+        when(gateway.getServicoAtivoPorId(anyLong())).thenReturn(new Servico(99L, "Troca de óleo", "desc"));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
@@ -226,7 +218,7 @@ class NotificarOrdemServicoUseCaseTest {
         var exec = buildExec(10L, StatusExecucaoServico.RECUSADO);
         var os = buildOs(StatusOrdemServico.REPROVADA, new ArrayList<>(List.of(exec)));
 
-        when(servicoRepository.getActiveById(anyLong())).thenReturn(new Servico(99L, "Troca de óleo", "desc"));
+        when(gateway.getServicoAtivoPorId(anyLong())).thenReturn(new Servico(99L, "Troca de óleo", "desc"));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
@@ -249,7 +241,7 @@ class NotificarOrdemServicoUseCaseTest {
                 new BigDecimal("100.00"), new HashSet<>(Set.of(peca)), null, null, null, null, LocalDateTime.now());
         var os = buildOs(StatusOrdemServico.AGUARDANDO_APROVACAO, new ArrayList<>(List.of(exec)));
 
-        when(servicoRepository.getAllActiveById(any())).thenReturn(Set.of(new Servico(99L, "Troca de óleo", "desc")));
+        when(gateway.getServicosAtivosPorIds(any())).thenReturn(List.of(new Servico(99L, "Troca de óleo", "desc")));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);

@@ -5,14 +5,11 @@ import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
-import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -30,11 +27,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ReprovarOrdemServicoUseCaseTest {
 
-    @Mock private OrdemServicoRepository ordemServicoRepository;
-    @Mock private FuncionarioRepository funcionarioRepository;
+    @Mock private ReprovarOrdemServicoGateway gateway;
     @Mock private NotificarOrdemServicoUseCase notificarUseCase;
 
-    @InjectMocks
     private ReprovarOrdemServicoUseCase useCase;
 
     private static final Long OS_ID = 1L;
@@ -45,6 +40,7 @@ class ReprovarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        useCase = new ReprovarOrdemServicoUseCase(gateway, notificarUseCase);
         atendente = new Funcionario(ATENDENTE_ID, "Ana Atendente", null, null);
         userId = UserId.random();
     }
@@ -69,9 +65,9 @@ class ReprovarOrdemServicoUseCaseTest {
         var exec2 = buildExecPendente(11L);
         var os = buildOsAguardandoAprovacao(List.of(exec1, exec2));
 
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenReturn(atendente);
-        when(ordemServicoRepository.save(any())).thenReturn(os);
+        when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenReturn(atendente);
+        when(gateway.salvarOrdemServico(any())).thenReturn(os);
 
         useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId));
 
@@ -86,9 +82,9 @@ class ReprovarOrdemServicoUseCaseTest {
         var exec = buildExecPendente(10L);
         var os = buildOsAguardandoAprovacao(List.of(exec));
 
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenReturn(atendente);
-        when(ordemServicoRepository.save(any())).thenReturn(os);
+        when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenReturn(atendente);
+        when(gateway.salvarOrdemServico(any())).thenReturn(os);
 
         useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId));
 
@@ -100,13 +96,13 @@ class ReprovarOrdemServicoUseCaseTest {
     void deveSalvarOsAposReprovar() {
         var os = buildOsAguardandoAprovacao(List.of(buildExecPendente(10L)));
 
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenReturn(atendente);
-        when(ordemServicoRepository.save(any())).thenReturn(os);
+        when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenReturn(atendente);
+        when(gateway.salvarOrdemServico(any())).thenReturn(os);
 
         useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId));
 
-        verify(ordemServicoRepository).save(os);
+        verify(gateway).salvarOrdemServico(os);
     }
 
     @Test
@@ -114,9 +110,9 @@ class ReprovarOrdemServicoUseCaseTest {
     void deveEnviarNotificacaoAposReprovar() {
         var os = buildOsAguardandoAprovacao(List.of(buildExecPendente(10L)));
 
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenReturn(atendente);
-        when(ordemServicoRepository.save(any())).thenReturn(os);
+        when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenReturn(atendente);
+        when(gateway.salvarOrdemServico(any())).thenReturn(os);
 
         useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId));
 
@@ -126,14 +122,14 @@ class ReprovarOrdemServicoUseCaseTest {
     @Test
     @DisplayName("deve propagar exceção quando OS não encontrada")
     void devePropagateExcecaoQuandoOsNaoEncontrada() {
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID))
+        when(gateway.getOrdemServicoPorId(OS_ID))
                 .thenThrow(new RuntimeException("OS não encontrada"));
 
         assertThatThrownBy(() -> useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId)))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("OS não encontrada");
 
-        verify(ordemServicoRepository, never()).save(any());
+        verify(gateway, never()).salvarOrdemServico(any());
         verify(notificarUseCase, never()).execute(any());
     }
 
@@ -141,13 +137,13 @@ class ReprovarOrdemServicoUseCaseTest {
     @DisplayName("deve propagar exceção quando funcionário não encontrado")
     void devePropagateExcecaoQuandoFuncionarioNaoEncontrado() {
         var os = buildOsAguardandoAprovacao(List.of(buildExecPendente(10L)));
-        when(ordemServicoRepository.getByIdWithExecucoesAndPecas(OS_ID)).thenReturn(os);
-        when(funcionarioRepository.getByUserId(userId)).thenThrow(new RuntimeException("Funcionário não encontrado"));
+        when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(os);
+        when(gateway.getFuncionarioPorUserId(userId)).thenThrow(new RuntimeException("Funcionário não encontrado"));
 
         assertThatThrownBy(() -> useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId)))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Funcionário não encontrado");
 
-        verify(ordemServicoRepository, never()).save(any());
+        verify(gateway, never()).salvarOrdemServico(any());
     }
 }

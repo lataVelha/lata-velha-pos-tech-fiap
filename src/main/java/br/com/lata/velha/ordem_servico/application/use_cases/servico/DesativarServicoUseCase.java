@@ -1,20 +1,16 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
-import br.com.lata.velha.ordem_servico.domain.entities.Servico;
-import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
-@Component
-@RequiredArgsConstructor
 public class DesativarServicoUseCase {
 
-    private final ServicoRepository repository;
+    private final DesativarServicoGateway gateway;
+
+    public DesativarServicoUseCase(DesativarServicoGateway gateway) {
+        this.gateway = gateway;
+    }
 
     public void execute(Long id) {
-        Servico servico = repository.getActiveById(id);
-
+        var servico = gateway.getServicoPorId(id);
         servico.desativar();
-        repository.save(servico);
+        gateway.salvarServico(servico);
     }
 }
