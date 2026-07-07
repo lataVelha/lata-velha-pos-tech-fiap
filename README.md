@@ -17,6 +17,74 @@
 
 ---
 
+## Sumário
+
+### Fase 1 — Sistema de gestão (DDD + Docker Compose)
+
+- [Arquitetura (camadas DDD)](#arquitetura)
+- [Pré-requisitos](#pré-requisitos)
+- [Como rodar (Docker Compose)](#como-rodar)
+- [Configurações por Contexto](#configurações-por-contexto)
+- [Autenticação](#autenticação)
+- [Testes](#testes)
+- [SonarQube](#sonarqube)
+- [Tecnologias](#tecnologias)
+
+### Fase 2 — Infraestrutura cloud (K8s + Terraform + CI/CD)
+
+- [Objetivos e componentes](#fase-2--tech-challenge)
+- [Desenho da arquitetura AWS](./documentation/arquitetura-aws.svg)
+- [Fluxo de deploy (CI/CD)](./documentation/pipeline-cicd.svg)
+- [Provisionamento + deploy](./infra/README.md) — documentação completa no `infra/README.md`
+
+---
+
+## Fase 2 — Tech Challenge
+
+Evolução da Fase 1. Provisionamento, deploy e operação migrados para AWS com Terraform e GitHub Actions.
+
+### Objetivos
+
+- **Reduzir riscos operacionais** com infraestrutura escalável na AWS (EKS + RDS + ALB).
+- **Automatizar provisionamento e deploy** com Terraform e GitHub Actions.
+- **Sustentar a evolução do código** com Clean Architecture, testes automatizados e cobertura mínima de 80%.
+- **Absorver picos de demanda** com autoscaling em duas camadas (HPA de pods + Cluster Autoscaler de nodes).
+
+### Componentes da aplicação
+
+Refatoração para arquitetura em camadas com DDD: `domain` puro (zero framework), `application` com casos de uso, `infrastructure` com adapters (JPA, JWT, SMTP), `presentation` com controllers.
+
+Endpoints novos da fase:
+
+- Abertura de OS
+- Consulta de status da OS
+- Aprovação externa de orçamento
+- Listagem de OS ordenada por status (Em Execução > Aguardando Aprovação > Diagnóstico > Recebida, mais antigas primeiro)
+- Atualização de status via e-mail
+
+### Desenho da arquitetura
+
+<p align="center">
+  <img src="./documentation/arquitetura-aws.svg" alt="Arquitetura AWS" width="700"/>
+</p>
+
+<p align="center">
+  <img src="./documentation/pipeline-cicd.svg" alt="Pipeline CI/CD" width="700"/>
+</p>
+
+### Provisionamento, deploy e operação
+
+Comandos Terraform, `apply.sh`, pipeline do GitHub Actions, custos e pré-requisitos locais estão em **[`infra/README.md`](./infra/README.md)**.
+
+### Links da fase
+
+- **Collection de APIs (Swagger local):** http://url-lb-aws/swagger-ui.html *(após `docker compose up`)*
+- **Vídeo demonstrativo (≤15 min):**
+
+---
+
+## Fase 1 — Tech Challenge
+
 ## Arquitetura
 
 O projeto segue **Domain-Driven Design (DDD)** com arquitetura em camadas, onde cada camada possui responsabilidades bem definidas e as dependências sempre apontam para o centro (domínio).
@@ -34,20 +102,6 @@ br.com.lata.velha
 ```
 
 **Regra principal:** o `domain` não importa nenhuma outra camada. A `infrastructure` implementa as interfaces definidas pelo `domain` e `application`, conectadas via injeção de dependência do Spring.
-
-## Sumário
-
-- [Arquitetura](#arquitetura)
-- [Pré-requisitos](#pré-requisitos)
-- [Como rodar](#como-rodar)
-- [Configurações por Contexto](#configurações-por-contexto)
-- [Autenticação](#autenticação)
-- [Testes](#testes)
-- [SonarQube](#sonarqube)
-- [Infraestrutura (Terraform + EKS)](./infra/README.md)
-- [Tecnologias](#tecnologias)
-
----
 
 ### Estrutura de Contextos
 
