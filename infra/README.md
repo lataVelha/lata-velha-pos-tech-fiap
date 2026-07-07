@@ -40,8 +40,6 @@ Compatível com **AWS Academy (Learner Lab)** — usa a `LabRole` pré-existente
 
 ## Arquitetura
 
-> O que o stack é, como é organizado e quais são as garantias de segurança e disponibilidade.
-
 ### Visão geral
 
 ![Diagrama da arquitetura AWS](../documentation/arquitetura-aws.svg)
