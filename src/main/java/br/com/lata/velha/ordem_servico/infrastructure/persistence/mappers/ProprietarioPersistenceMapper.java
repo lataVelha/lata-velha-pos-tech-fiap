@@ -16,8 +16,6 @@ import java.util.List;
 @Component
 public class ProprietarioPersistenceMapper {
 
-    // --- Entity → Domain ---
-
     public Proprietario toDomain(ProprietarioEntity entity) {
         if (entity == null) return null;
 
@@ -63,8 +61,6 @@ public class ProprietarioPersistenceMapper {
         veiculo.setAtivo(entity.isAtivo());
         return veiculo;
     }
-
-    // --- Domain → Entity ---
 
     public ProprietarioEntity toEntity(Proprietario domain) {
         if (domain == null) return null;

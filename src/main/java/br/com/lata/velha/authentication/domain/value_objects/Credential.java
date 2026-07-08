@@ -5,11 +5,11 @@ import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import java.util.Objects;
 
 public final class Credential {
-    private final String credential;
+    private final String value;
     private final PasswordHasher hasher;
 
     private Credential(String value, PasswordHasher hasher) {
-        this.credential = value;
+        this.value = value;
         this.hasher = hasher;
     }
 
@@ -23,7 +23,7 @@ public final class Credential {
     }
 
     public String getHash() {
-        return credential;
+        return value;
     }
 
     public boolean match(String rawPassword) {
@@ -34,11 +34,11 @@ public final class Credential {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Credential that)) return false;
-        return Objects.equals(credential, that.credential);
+        return Objects.equals(value, that.value);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(credential);
+        return Objects.hashCode(value);
     }
 }

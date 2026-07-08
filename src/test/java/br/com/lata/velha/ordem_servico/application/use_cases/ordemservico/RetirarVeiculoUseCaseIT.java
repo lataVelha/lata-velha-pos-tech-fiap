@@ -141,7 +141,8 @@ class RetirarVeiculoUseCaseIT {
         em.flush();
         em.clear();
 
-        assertThatThrownBy(() -> useCase.execute(osId, UserId.create(atendenteUserId)))
+        var atendenteUserIdVo = UserId.create(atendenteUserId);
+        assertThatThrownBy(() -> useCase.execute(osId, atendenteUserIdVo))
                 .isInstanceOf(IllegalStateException.class);
     }
 }

@@ -48,7 +48,6 @@ class FuncionarioEntityTest {
         b.setCargo(cargo);
         b.setUserId(userId);
 
-        assertThat(a).isEqualTo(b);
-        assertThat(a.hashCode()).isEqualTo(b.hashCode());
+        assertThat(a).isEqualTo(b).hasSameHashCodeAs(b);
     }
 }

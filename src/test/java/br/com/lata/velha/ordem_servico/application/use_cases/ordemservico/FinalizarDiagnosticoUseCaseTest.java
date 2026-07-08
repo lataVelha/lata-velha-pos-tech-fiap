@@ -102,8 +102,9 @@ class FinalizarDiagnosticoUseCaseTest {
         var os = buildOs(StatusOrdemServico.EM_DIAGNOSTICO);
         when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
         when(gateway.getFuncionarioPorUserId(userId)).thenThrow(new RuntimeException("Usuário não é funcionário"));
+        var input = input();
 
-        assertThatThrownBy(() -> useCase.execute(input()))
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class);
 
         verify(gateway, never()).salvarOrdemServico(any());
@@ -116,8 +117,9 @@ class FinalizarDiagnosticoUseCaseTest {
         var os = buildOs(StatusOrdemServico.RECEBIDA);
         when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
         when(gateway.getFuncionarioPorUserId(userId)).thenReturn(funcionario);
+        var input = input();
 
-        assertThatThrownBy(() -> useCase.execute(input()))
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("EM_DIAGNOSTICO");
 
@@ -130,8 +132,9 @@ class FinalizarDiagnosticoUseCaseTest {
         var os = buildOs(StatusOrdemServico.AGUARDANDO_APROVACAO);
         when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
         when(gateway.getFuncionarioPorUserId(userId)).thenReturn(funcionario);
+        var input = input();
 
-        assertThatThrownBy(() -> useCase.execute(input()))
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalStateException.class);
 
         verify(gateway, never()).salvarOrdemServico(any());
@@ -142,8 +145,9 @@ class FinalizarDiagnosticoUseCaseTest {
     void devePropagateExcecaoQuandoOsNaoEncontrada() {
         when(gateway.getOrdemServicoComServicos(OS_ID))
                 .thenThrow(new RuntimeException("OS não encontrada"));
+        var input = input();
 
-        assertThatThrownBy(() -> useCase.execute(input()))
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("OS não encontrada");
 

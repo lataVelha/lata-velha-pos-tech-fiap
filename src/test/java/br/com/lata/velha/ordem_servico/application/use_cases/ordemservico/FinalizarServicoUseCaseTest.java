@@ -139,7 +139,8 @@ class FinalizarServicoUseCaseTest {
         when(gateway.getOrdemServicoComServicosEPecas(OS_ID))
                 .thenThrow(new RuntimeException("OS não encontrada"));
 
-        assertThatThrownBy(() -> useCase.execute(new FinalizarServicoUseCase.Input(OS_ID, EXEC_ID, userId)))
+        var input = new FinalizarServicoUseCase.Input(OS_ID, EXEC_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("OS não encontrada");
 
@@ -154,7 +155,8 @@ class FinalizarServicoUseCaseTest {
                 .thenReturn(buildOsEmExecucao(List.of(buildExecEmExecucao(EXEC_ID))));
         when(gateway.getFuncionarioPorUserId(userId)).thenThrow(new RuntimeException("Mecânico não encontrado"));
 
-        assertThatThrownBy(() -> useCase.execute(new FinalizarServicoUseCase.Input(OS_ID, EXEC_ID, userId)))
+        var input = new FinalizarServicoUseCase.Input(OS_ID, EXEC_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Mecânico não encontrado");
 
@@ -171,7 +173,8 @@ class FinalizarServicoUseCaseTest {
         when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
 
         Long execIdInvalido = 999L;
-        assertThatThrownBy(() -> useCase.execute(new FinalizarServicoUseCase.Input(OS_ID, execIdInvalido, userId)))
+        var input = new FinalizarServicoUseCase.Input(OS_ID, execIdInvalido, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(String.valueOf(execIdInvalido));
 
@@ -227,7 +230,8 @@ class FinalizarServicoUseCaseTest {
         when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
         when(gateway.getEstoquePorPecaIds(any())).thenReturn(List.of());
 
-        assertThatThrownBy(() -> useCase.execute(new FinalizarServicoUseCase.Input(OS_ID, EXEC_ID, userId)))
+        var input = new FinalizarServicoUseCase.Input(OS_ID, EXEC_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("estoque");
 

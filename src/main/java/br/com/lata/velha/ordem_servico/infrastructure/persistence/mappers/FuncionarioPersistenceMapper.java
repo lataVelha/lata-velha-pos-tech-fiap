@@ -22,8 +22,6 @@ public class FuncionarioPersistenceMapper {
 
     private final PasswordHasher passwordHasher;
 
-    // --- Entity → Domain ---
-
     public Funcionario toDomain(FuncionarioEntity entity) {
         if (entity == null) return null;
 
@@ -49,8 +47,6 @@ public class FuncionarioPersistenceMapper {
         if (entity == null) return null;
         return new Role(RoleId.create(entity.getId()), entity.getNome());
     }
-
-    // --- Domain → Entity ---
 
     public FuncionarioEntity toEntity(Funcionario model) {
         if (model == null) return null;

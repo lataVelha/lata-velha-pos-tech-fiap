@@ -547,7 +547,7 @@ class OrdemServicoTest {
             OrdemServico b = new OrdemServico(1L, 9L, 9L, "y", StatusOrdemServico.FINALIZADA,
                     null, null, null, null, null, 9L, null, new java.util.ArrayList<>());
 
-            assertThat(a.hashCode()).isEqualTo(b.hashCode());
+            assertThat(a).hasSameHashCodeAs(b);
         }
 
         @Test

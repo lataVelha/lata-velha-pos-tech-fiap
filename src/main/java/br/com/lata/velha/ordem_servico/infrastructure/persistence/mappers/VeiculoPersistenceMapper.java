@@ -9,8 +9,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class VeiculoPersistenceMapper {
 
-    // --- Entity → Domain ---
-
     public Veiculo toDomain(VeiculoEntity entity) {
         if (entity == null) return null;
 
@@ -26,8 +24,6 @@ public class VeiculoPersistenceMapper {
         veiculo.setAtivo(entity.isAtivo());
         return veiculo;
     }
-
-    // --- Domain → Entity ---
 
     public VeiculoEntity toEntity(Veiculo domain, ProprietarioEntity proprietarioEntity) {
         if (domain == null) return null;

@@ -26,6 +26,5 @@ public interface OrdemServicoProjection {
     LocalDateTime getEntregueEm();
     LocalDateTime getAtualizadoEm();
 
-    // JSON com serviços e peças
     String getServicos();
 }

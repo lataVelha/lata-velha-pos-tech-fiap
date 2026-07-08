@@ -4,8 +4,6 @@ import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.shared.domain.exceptions.NotFoundException;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 
-import java.util.UUID;
-
 public class FuncionarioNotFoundException extends NotFoundException {
     private FuncionarioNotFoundException(String paramName, String paramValue) {
         super(Funcionario.class, paramName, paramValue);

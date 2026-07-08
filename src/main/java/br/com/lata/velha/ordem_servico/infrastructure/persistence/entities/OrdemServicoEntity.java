@@ -88,17 +88,17 @@ public class OrdemServicoEntity {
     }
 
     public OrdemServico toDomain() {
-        var servicos = this.servicos.stream()
+        var execucaoServicosDomain = this.servicos.stream()
                 .map(ExecucaoServicoEntity::toDomain)
                 .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
-        return map(servicos);
+        return map(execucaoServicosDomain);
     }
 
     public OrdemServico toDomain(List<ExecucaoServicoEntity> execucoes) {
-        var servicos = execucoes.stream()
+        var execucaoServicosDomain = execucoes.stream()
                 .map(ExecucaoServicoEntity::toDomain)
                 .toList();
-        return map(servicos);
+        return map(execucaoServicosDomain);
     }
 
     private OrdemServico map(List<ExecucaoServico> servicos){

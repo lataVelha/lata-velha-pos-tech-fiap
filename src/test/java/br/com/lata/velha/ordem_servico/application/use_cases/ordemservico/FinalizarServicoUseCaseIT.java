@@ -334,8 +334,9 @@ class FinalizarServicoUseCaseIT {
         pecaAlocada.setAtualizado(LocalDateTime.now());
         em.persist(pecaAlocada);
         em.flush();
+        var input = new FinalizarServicoUseCase.Input(osId, execucaoId, UserId.create(mecanicoUserId));
 
-        assertThatThrownBy(() -> useCase.execute(new FinalizarServicoUseCase.Input(osId, execucaoId, UserId.create(mecanicoUserId))))
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("estoque");
     }

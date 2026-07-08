@@ -133,7 +133,8 @@ class IniciarServicoUseCaseTest {
         when(gateway.getOrdemServicoComServicos(OS_ID))
                 .thenThrow(new RuntimeException("OS não encontrada"));
 
-        assertThatThrownBy(() -> useCase.execute(new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId)))
+        var input = new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("OS não encontrada");
 
@@ -149,7 +150,8 @@ class IniciarServicoUseCaseTest {
         when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
         when(gateway.getFuncionarioPorUserId(userId)).thenThrow(new RuntimeException("Mecânico não encontrado"));
 
-        assertThatThrownBy(() -> useCase.execute(new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId)))
+        var input = new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Mecânico não encontrado");
 
@@ -166,7 +168,8 @@ class IniciarServicoUseCaseTest {
         when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
 
         Long execIdInvalido = 999L;
-        assertThatThrownBy(() -> useCase.execute(new IniciarServicoUseCase.Input(OS_ID, execIdInvalido, userId)))
+        var input = new IniciarServicoUseCase.Input(OS_ID, execIdInvalido, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(String.valueOf(execIdInvalido));
 

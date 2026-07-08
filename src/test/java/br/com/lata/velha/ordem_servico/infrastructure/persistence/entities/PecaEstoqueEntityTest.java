@@ -28,7 +28,6 @@ class PecaEstoqueEntityTest {
         b.setPecaId(1L);
         b.setQuantidadeArmazenada(3);
 
-        assertThat(a).isEqualTo(b);
-        assertThat(a.hashCode()).isEqualTo(b.hashCode());
+        assertThat(a).isEqualTo(b).hasSameHashCodeAs(b);
     }
 }

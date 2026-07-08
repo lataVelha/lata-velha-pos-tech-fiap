@@ -93,7 +93,8 @@ class IniciarDiagnosticoUseCaseTest {
         when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(os);
         when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
 
-        assertThatThrownBy(() -> useCase.execute(new IniciarDiagnosticoUseCase.Input(OS_ID, userId)))
+        var input = new IniciarDiagnosticoUseCase.Input(OS_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("RECEBIDA");
 
@@ -106,7 +107,8 @@ class IniciarDiagnosticoUseCaseTest {
     void devePropagarExcecaoQuandoOsNaoEncontrada() {
         when(gateway.getOrdemServicoPorId(OS_ID)).thenThrow(new RuntimeException("OS não encontrada"));
 
-        assertThatThrownBy(() -> useCase.execute(new IniciarDiagnosticoUseCase.Input(OS_ID, userId)))
+        var input = new IniciarDiagnosticoUseCase.Input(OS_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("OS não encontrada");
 
@@ -120,7 +122,8 @@ class IniciarDiagnosticoUseCaseTest {
         when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(buildOs(StatusOrdemServico.RECEBIDA));
         when(gateway.getFuncionarioPorUserId(userId)).thenThrow(new RuntimeException("Funcionário não encontrado"));
 
-        assertThatThrownBy(() -> useCase.execute(new IniciarDiagnosticoUseCase.Input(OS_ID, userId)))
+        var input = new IniciarDiagnosticoUseCase.Input(OS_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Funcionário não encontrado");
 

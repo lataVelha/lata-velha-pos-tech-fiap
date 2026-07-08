@@ -125,7 +125,8 @@ class ReprovarOrdemServicoUseCaseTest {
         when(gateway.getOrdemServicoPorId(OS_ID))
                 .thenThrow(new RuntimeException("OS não encontrada"));
 
-        assertThatThrownBy(() -> useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId)))
+        var input = new ReprovarOrdemServicoUseCase.Input(OS_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("OS não encontrada");
 
@@ -140,7 +141,8 @@ class ReprovarOrdemServicoUseCaseTest {
         when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(os);
         when(gateway.getFuncionarioPorUserId(userId)).thenThrow(new RuntimeException("Funcionário não encontrado"));
 
-        assertThatThrownBy(() -> useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId)))
+        var input = new ReprovarOrdemServicoUseCase.Input(OS_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Funcionário não encontrado");
 

@@ -122,8 +122,8 @@ class IniciarDiagnosticoUseCaseIT {
         em.flush();
         em.clear();
 
-        assertThatThrownBy(() ->
-                useCase.execute(new IniciarDiagnosticoUseCase.Input(osId, UserId.create(mecanicoUserId))))
+        var input = new IniciarDiagnosticoUseCase.Input(osId, UserId.create(mecanicoUserId));
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("RECEBIDA");
     }

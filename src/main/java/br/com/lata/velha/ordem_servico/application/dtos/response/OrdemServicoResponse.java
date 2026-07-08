@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @Schema(name = "OrdemServicoResponse", description = "Resposta da Ordem de Serviço")
 public record OrdemServicoResponse(
@@ -63,8 +64,6 @@ public record OrdemServicoResponse(
         TotaisOrdemServicoResponse totais
 
 ) {
-    // USE_ANNOTATIONS=false: ignora @JsonFormat nas datas, usando ISO-8601 (formato do banco).
-    // O ObjectMapper do Spring (para a resposta HTTP) continua respeitando @JsonFormat normalmente.
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .findAndRegisterModules()
             .configure(MapperFeature.USE_ANNOTATIONS, false)
@@ -152,7 +151,7 @@ public record OrdemServicoResponse(
 
         BigDecimal pecasAprovadas = servicos.stream()
                 .filter(s -> s.status() != StatusExecucaoServico.RECUSADO && s.status() != StatusExecucaoServico.PENDENTE)
-                .flatMap(s -> s.pecas() != null ? s.pecas().stream() : java.util.stream.Stream.empty())
+                .flatMap(s -> s.pecas() != null ? s.pecas().stream() : Stream.empty())
                 .map(p -> {
                     BigDecimal valor = p.valor() != null ? p.valor() : BigDecimal.ZERO;
                     int qtd = p.quantidadeSolicitada() != null ? p.quantidadeSolicitada() : 0;

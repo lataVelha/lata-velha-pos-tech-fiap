@@ -101,9 +101,10 @@ class NotificarOrdemServicoUseCaseTest {
 
         verify(templateProvider).render(eq("os-notificacao"), captor.capture());
         var vars = captor.getValue();
-        assertThat(vars.get("nome")).isEqualTo("João Silva");
-        assertThat(vars.get("osNumero")).isEqualTo(OS_ID);
-        assertThat(vars.get("veiculo")).isEqualTo("Honda Civic");
+        assertThat(vars)
+                .containsEntry("nome", "João Silva")
+                .containsEntry("osNumero", OS_ID)
+                .containsEntry("veiculo", "Honda Civic");
     }
 
     @Test
@@ -169,8 +170,7 @@ class NotificarOrdemServicoUseCaseTest {
 
         verify(templateProvider).render(anyString(), captor.capture());
         var vars = captor.getValue();
-        assertThat(vars).containsKey("servicos");
-        assertThat(vars).containsKey("valorTotal");
+        assertThat(vars).containsKeys("servicos", "valorTotal");
     }
 
     @Test
@@ -189,10 +189,7 @@ class NotificarOrdemServicoUseCaseTest {
 
         verify(templateProvider).render(anyString(), captor.capture());
         var vars = captor.getValue();
-        assertThat(vars).containsKey("servicosAprovados");
-        assertThat(vars).containsKey("servicosRecusados");
-        assertThat(vars).containsKey("valorAprovado");
-        assertThat(vars).containsKey("valorRecusado");
+        assertThat(vars).containsKeys("servicosAprovados", "servicosRecusados", "valorAprovado", "valorRecusado");
     }
 
     @Test
@@ -227,9 +224,9 @@ class NotificarOrdemServicoUseCaseTest {
 
         verify(templateProvider).render(anyString(), captor.capture());
         var vars = captor.getValue();
-        assertThat(vars).containsKey("servicosRecusados");
-        assertThat(vars).containsKey("valorRecusado");
-        assertThat(vars.get("reprovada")).isEqualTo(true);
+        assertThat(vars)
+                .containsKeys("servicosRecusados", "valorRecusado")
+                .containsEntry("reprovada", true);
     }
 
     @Test
@@ -294,9 +291,9 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         var timeline = (List<Map<String, Object>>) captor.getValue().get("timeline");
 
-        assertThat(timeline.get(0).get("status")).isEqualTo("CONCLUIDO"); // RECEBIDA
-        assertThat(timeline.get(1).get("status")).isEqualTo("ATUAL");     // EM_DIAGNOSTICO
-        assertThat(timeline.get(2).get("status")).isEqualTo("PENDENTE");  // AGUARDANDO_APROVACAO
+        assertThat(timeline.get(0)).containsEntry("status", "CONCLUIDO"); // RECEBIDA
+        assertThat(timeline.get(1)).containsEntry("status", "ATUAL");     // EM_DIAGNOSTICO
+        assertThat(timeline.get(2)).containsEntry("status", "PENDENTE");  // AGUARDANDO_APROVACAO
     }
 
     @Test
@@ -311,7 +308,7 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         var timeline = (List<Map<String, Object>>) captor.getValue().get("timeline");
 
-        assertThat(timeline.get(3).get("status")).isEqualTo("RECUSADO"); // REPROVADA step
+        assertThat(timeline.get(3)).containsEntry("status", "RECUSADO"); // REPROVADA step
     }
 
     @Test
@@ -326,7 +323,7 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         var timeline = (List<Map<String, Object>>) captor.getValue().get("timeline");
 
-        assertThat(timeline.get(0).get("status")).isEqualTo("CONCLUIDO");
+        assertThat(timeline.get(0)).containsEntry("status", "CONCLUIDO");
     }
 
     @Test

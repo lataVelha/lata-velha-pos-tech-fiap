@@ -30,7 +30,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -148,7 +147,7 @@ class OrdemServicoControllerTest {
     void shouldReturn200OnListWithFilters() throws Exception {
         var paginated = new PaginatedResult<>(List.of(buildOrdemResponse()), 0, 10, 1L, 1);
 
-        when(cleanController.buscar(eq(1L), eq(StatusOrdemServico.RECEBIDA), eq(4L), eq(null), eq(0), eq(10)))
+        when(cleanController.buscar(1L, StatusOrdemServico.RECEBIDA, 4L, null, 0, 10))
                 .thenReturn(paginated);
 
         mockMvc.perform(get("/ordens-servico")
