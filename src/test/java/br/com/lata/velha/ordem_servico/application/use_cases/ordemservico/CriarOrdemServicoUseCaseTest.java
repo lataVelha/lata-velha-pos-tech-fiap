@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
@@ -27,7 +28,7 @@ import static org.mockito.Mockito.*;
 class CriarOrdemServicoUseCaseTest {
 
     @Mock private CriarOrdemServicoGateway gateway;
-    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
+    @Mock private NotificarOrdemServicoService notificarService;
 
     private CriarOrdemServicoUseCase useCase;
 
@@ -41,7 +42,7 @@ class CriarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new CriarOrdemServicoUseCase(gateway, notificarUseCase);
+        useCase = new CriarOrdemServicoUseCase(gateway, notificarService);
 
         userId = UserId.random();
 
@@ -87,7 +88,7 @@ class CriarOrdemServicoUseCaseTest {
         assertThat(output.getId()).isEqualTo(1L);
 
         verify(gateway).salvarOrdemServico(any(OrdemServico.class));
-        verify(notificarUseCase).execute(savedOs);
+        verify(notificarService).execute(savedOs);
     }
 
     @Test
@@ -117,7 +118,7 @@ class CriarOrdemServicoUseCaseTest {
 
         useCase.execute(input);
 
-        verify(notificarUseCase).execute(savedOs);
+        verify(notificarService).execute(savedOs);
     }
 
     @Test
@@ -131,7 +132,7 @@ class CriarOrdemServicoUseCaseTest {
                 .hasMessage("Proprietário não encontrado");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test

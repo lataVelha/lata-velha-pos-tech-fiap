@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
@@ -7,12 +8,12 @@ import br.com.lata.velha.shared.domain.value_objects.UserId;
 public class CriarOrdemServicoUseCase {
 
     private final CriarOrdemServicoGateway gateway;
-    private final NotificarOrdemServicoUseCase notificarUseCase;
+    private final NotificarOrdemServicoService notificarService;
 
     public CriarOrdemServicoUseCase(CriarOrdemServicoGateway gateway,
-                                    NotificarOrdemServicoUseCase notificarUseCase) {
+                                    NotificarOrdemServicoService notificarService) {
         this.gateway = gateway;
-        this.notificarUseCase = notificarUseCase;
+        this.notificarService = notificarService;
     }
 
     public OrdemServicoProjection execute(Input input) {
@@ -28,7 +29,7 @@ public class CriarOrdemServicoUseCase {
         );
         var saved = gateway.salvarOrdemServico(ordemServico);
 
-        notificarUseCase.execute(saved);
+        notificarService.execute(saved);
 
         return gateway.getOrdemServicoProjectionById(saved.getId());
     }

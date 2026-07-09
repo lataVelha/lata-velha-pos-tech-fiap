@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.*;
 class FinalizarServicoUseCaseTest {
 
     @Mock private FinalizarServicoGateway gateway;
-    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
+    @Mock private NotificarOrdemServicoService notificarService;
 
     private FinalizarServicoUseCase useCase;
 
@@ -46,7 +47,7 @@ class FinalizarServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new FinalizarServicoUseCase(gateway, notificarUseCase);
+        useCase = new FinalizarServicoUseCase(gateway, notificarService);
         mecanico = new Funcionario(MECANICO_ID, "Carlos Mecânico", null, null);
         userId = UserId.random();
     }
@@ -95,7 +96,7 @@ class FinalizarServicoUseCaseTest {
 
         assertThat(exec.getStatus()).isEqualTo(StatusExecucaoServico.FINALIZADO);
         assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.FINALIZADA);
-        verify(notificarUseCase).execute(os);
+        verify(notificarService).execute(os);
     }
 
     @Test
@@ -114,7 +115,7 @@ class FinalizarServicoUseCaseTest {
 
         assertThat(exec1.getStatus()).isEqualTo(StatusExecucaoServico.FINALIZADO);
         assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.EM_EXECUCAO);
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test
@@ -145,7 +146,7 @@ class FinalizarServicoUseCaseTest {
                 .hasMessage("OS não encontrada");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test

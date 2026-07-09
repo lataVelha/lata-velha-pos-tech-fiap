@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
@@ -23,7 +24,7 @@ import static org.mockito.Mockito.*;
 class FinalizarDiagnosticoUseCaseTest {
 
     @Mock private FinalizarDiagnosticoGateway gateway;
-    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
+    @Mock private NotificarOrdemServicoService notificarService;
 
     private FinalizarDiagnosticoUseCase useCase;
 
@@ -38,7 +39,7 @@ class FinalizarDiagnosticoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new FinalizarDiagnosticoUseCase(gateway, notificarUseCase);
+        useCase = new FinalizarDiagnosticoUseCase(gateway, notificarService);
         userId = UserId.random();
         funcionario = new Funcionario(MECANICO_ID, "Carlos Mecânico", null, null);
     }
@@ -93,7 +94,7 @@ class FinalizarDiagnosticoUseCaseTest {
 
         useCase.execute(input());
 
-        verify(notificarUseCase).execute(os);
+        verify(notificarService).execute(os);
     }
 
     @Test
@@ -108,7 +109,7 @@ class FinalizarDiagnosticoUseCaseTest {
                 .isInstanceOf(RuntimeException.class);
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test
@@ -152,6 +153,6 @@ class FinalizarDiagnosticoUseCaseTest {
                 .hasMessage("OS não encontrada");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 }

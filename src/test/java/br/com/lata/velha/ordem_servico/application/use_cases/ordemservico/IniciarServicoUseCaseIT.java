@@ -3,6 +3,8 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoGateway;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
@@ -52,8 +54,8 @@ class IniciarServicoUseCaseIT {
 
     @BeforeEach
     void setUp() {
-        var notificarUseCase = new NotificarOrdemServicoUseCase(notificarGateway, emailProvider, emailTemplateProvider);
-        useCase = new IniciarServicoUseCase(gateway, notificarUseCase);
+        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider);
+        useCase = new IniciarServicoUseCase(gateway, notificarService);
 
         RoleEntity role = new RoleEntity(null, "MECANICO");
         em.persist(role);

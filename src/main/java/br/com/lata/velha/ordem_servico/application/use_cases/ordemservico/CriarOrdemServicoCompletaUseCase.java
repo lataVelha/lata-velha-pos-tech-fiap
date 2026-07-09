@@ -1,6 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequest;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.application.dtos.request.VeiculoSemProprietarioRequest;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.CriarProprietarioGateway;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.CriarProprietarioUseCase;
@@ -19,20 +20,20 @@ public class CriarOrdemServicoCompletaUseCase {
     private final CriarProprietarioGateway criarProprietarioGateway;
     private final CriarVeiculoGateway criarVeiculoGateway;
     private final AdicionarServicoGateway adicionarServicoGateway;
-    private final NotificarOrdemServicoUseCase notificarUseCase;
+    private final NotificarOrdemServicoService notificarService;
     private final NotificarCadastroProprietarioUseCase notificarCadastroProprietarioUseCase;
 
     public CriarOrdemServicoCompletaUseCase(CriarOrdemServicoGateway criarOrdemServicoGateway,
                                              CriarProprietarioGateway criarProprietarioGateway,
                                              CriarVeiculoGateway criarVeiculoGateway,
                                              AdicionarServicoGateway adicionarServicoGateway,
-                                             NotificarOrdemServicoUseCase notificarUseCase,
+                                             NotificarOrdemServicoService notificarService,
                                              NotificarCadastroProprietarioUseCase notificarCadastroProprietarioUseCase) {
         this.criarOrdemServicoGateway = criarOrdemServicoGateway;
         this.criarProprietarioGateway = criarProprietarioGateway;
         this.criarVeiculoGateway = criarVeiculoGateway;
         this.adicionarServicoGateway = adicionarServicoGateway;
-        this.notificarUseCase = notificarUseCase;
+        this.notificarService = notificarService;
         this.notificarCadastroProprietarioUseCase = notificarCadastroProprietarioUseCase;
     }
 
@@ -58,7 +59,7 @@ public class CriarOrdemServicoCompletaUseCase {
                     .execute(new AdicionarServicoUseCase.Input(saved.getId(), input.servicos()));
         }
 
-        notificarUseCase.execute(saved);
+        notificarService.execute(saved);
 
         return criarOrdemServicoGateway.getOrdemServicoProjectionById(saved.getId());
     }

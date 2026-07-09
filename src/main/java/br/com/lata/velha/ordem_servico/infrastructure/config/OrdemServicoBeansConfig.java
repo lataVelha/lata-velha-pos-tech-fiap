@@ -4,6 +4,7 @@ import br.com.lata.velha.ordem_servico.application.controllers.ordemservico.Orde
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.application.presenters.ordemservico.*;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.CriarProprietarioGateway;
 import br.com.lata.velha.ordem_servico.application.use_cases.veiculo.CriarVeiculoGateway;

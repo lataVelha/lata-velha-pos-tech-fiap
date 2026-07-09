@@ -1,6 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequest;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.application.dtos.request.VeiculoSemProprietarioRequest;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.CriarProprietarioGateway;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.NotificarCadastroProprietarioUseCase;
@@ -40,7 +41,7 @@ class CriarOrdemServicoCompletaUseCaseTest {
     @Mock private CriarProprietarioGateway criarProprietarioGateway;
     @Mock private CriarVeiculoGateway criarVeiculoGateway;
     @Mock private AdicionarServicoGateway adicionarServicoGateway;
-    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
+    @Mock private NotificarOrdemServicoService notificarService;
     @Mock private NotificarCadastroProprietarioUseCase notificarCadastroProprietarioUseCase;
 
     private CriarOrdemServicoCompletaUseCase useCase;
@@ -57,7 +58,7 @@ class CriarOrdemServicoCompletaUseCaseTest {
     void setUp() {
         useCase = new CriarOrdemServicoCompletaUseCase(
                 criarOrdemServicoGateway, criarProprietarioGateway, criarVeiculoGateway,
-                adicionarServicoGateway, notificarUseCase, notificarCadastroProprietarioUseCase);
+                adicionarServicoGateway, notificarService, notificarCadastroProprietarioUseCase);
 
         userId = UserId.random();
 
@@ -109,7 +110,7 @@ class CriarOrdemServicoCompletaUseCaseTest {
         verify(criarVeiculoGateway).salvarVeiculo(any(Veiculo.class));
         verify(criarOrdemServicoGateway).salvarOrdemServico(any(OrdemServico.class));
         verify(notificarCadastroProprietarioUseCase).execute(proprietarioSalvo);
-        verify(notificarUseCase).execute(savedOs);
+        verify(notificarService).execute(savedOs);
     }
 
     @Test

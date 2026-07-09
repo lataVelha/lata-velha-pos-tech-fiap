@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.response.TempoMedioExecu
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.application.presenters.ordemservico.*;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.CriarProprietarioGateway;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.NotificarCadastroProprietarioUseCase;
@@ -18,8 +19,8 @@ import java.time.LocalDate;
 
 public class OrdemServicoCleanController {
 
-    private final NotificarOrdemServicoUseCase notificarUseCase;
-    private final NotificarAdminEncomendaPecaUseCase notificarAdminUseCase;
+    private final NotificarOrdemServicoService notificarService;
+    private final NotificarAdminEncomendaPecaService notificarAdminService;
     private final EmailProvider emailProvider;
     private final EmailTemplateProvider templateProvider;
 
@@ -72,8 +73,8 @@ public class OrdemServicoCleanController {
             ReceberAprovacaoOrcamentoClienteGateway receberAprovacaoGateway,
             ReceberAprovacaoOrcamentoClientePresenter receberAprovacaoPresenter) {
 
-        this.notificarUseCase = new NotificarOrdemServicoUseCase(notificarGateway, emailProvider, templateProvider);
-        this.notificarAdminUseCase = new NotificarAdminEncomendaPecaUseCase(notificarAdminGateway, emailProvider, templateProvider);
+        this.notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, templateProvider);
+        this.notificarAdminService = new NotificarAdminEncomendaPecaService(notificarAdminGateway, emailProvider, templateProvider);
         this.emailProvider = emailProvider;
         this.templateProvider = templateProvider;
         this.criarGateway = criarGateway;
@@ -100,7 +101,7 @@ public class OrdemServicoCleanController {
     }
 
     public OrdemServicoResponse criar(CriarOrdemServicoUseCase.Input input) {
-        var useCase = new CriarOrdemServicoUseCase(criarGateway, notificarUseCase);
+        var useCase = new CriarOrdemServicoUseCase(criarGateway, notificarService);
         return criarPresenter.present(useCase.execute(input));
     }
 
@@ -108,7 +109,7 @@ public class OrdemServicoCleanController {
         var notificarCadastroProprietario = new NotificarCadastroProprietarioUseCase(emailProvider, templateProvider);
         var useCase = new CriarOrdemServicoCompletaUseCase(
                 criarGateway, criarProprietarioGateway, criarVeiculoGateway, adicionarGateway,
-                notificarUseCase, notificarCadastroProprietario);
+                notificarService, notificarCadastroProprietario);
         return criarPresenter.present(useCase.execute(input));
     }
 
@@ -131,7 +132,7 @@ public class OrdemServicoCleanController {
     }
 
     public void iniciarDiagnostico(IniciarDiagnosticoUseCase.Input input) {
-        new IniciarDiagnosticoUseCase(iniciarDiagnosticoGateway, notificarUseCase).execute(input);
+        new IniciarDiagnosticoUseCase(iniciarDiagnosticoGateway, notificarService).execute(input);
     }
 
     public void adicionarServico(AdicionarServicoUseCase.Input input) {
@@ -139,33 +140,33 @@ public class OrdemServicoCleanController {
     }
 
     public void finalizarDiagnostico(FinalizarDiagnosticoUseCase.Input input) {
-        new FinalizarDiagnosticoUseCase(finalizarDiagnosticoGateway, notificarUseCase).execute(input);
+        new FinalizarDiagnosticoUseCase(finalizarDiagnosticoGateway, notificarService).execute(input);
     }
 
     public AprovarOrdemServicoResponse aprovar(AprovarOrdemServicoUseCase.Input input) {
-        var useCase = new AprovarOrdemServicoUseCase(aprovarGateway, notificarUseCase, notificarAdminUseCase);
+        var useCase = new AprovarOrdemServicoUseCase(aprovarGateway, notificarService, notificarAdminService);
         return aprovarPresenter.present(useCase.execute(input));
     }
 
     public void reprovar(ReprovarOrdemServicoUseCase.Input input) {
-        new ReprovarOrdemServicoUseCase(reprovarGateway, notificarUseCase).execute(input);
+        new ReprovarOrdemServicoUseCase(reprovarGateway, notificarService).execute(input);
     }
 
     public void iniciarServico(IniciarServicoUseCase.Input input) {
-        new IniciarServicoUseCase(iniciarServicoGateway, notificarUseCase).execute(input);
+        new IniciarServicoUseCase(iniciarServicoGateway, notificarService).execute(input);
     }
 
     public void finalizarServico(FinalizarServicoUseCase.Input input) {
-        new FinalizarServicoUseCase(finalizarServicoGateway, notificarUseCase).execute(input);
+        new FinalizarServicoUseCase(finalizarServicoGateway, notificarService).execute(input);
     }
 
     public void retirarVeiculo(Long idOs, UserId userId) {
-        new RetirarVeiculoUseCase(retirarVeiculoGateway, notificarUseCase).execute(idOs, userId);
+        new RetirarVeiculoUseCase(retirarVeiculoGateway, notificarService).execute(idOs, userId);
     }
 
     public ReceberAprovacaoOrcamentoClientePresenter.ViewModel receberAprovacaoOrcamentoCliente(
             ReceberAprovacaoOrcamentoClienteUseCase.Input input) {
-        var useCase = new ReceberAprovacaoOrcamentoClienteUseCase(receberAprovacaoGateway, notificarUseCase);
+        var useCase = new ReceberAprovacaoOrcamentoClienteUseCase(receberAprovacaoGateway, notificarService);
         return receberAprovacaoPresenter.present(useCase.execute(input));
     }
 }

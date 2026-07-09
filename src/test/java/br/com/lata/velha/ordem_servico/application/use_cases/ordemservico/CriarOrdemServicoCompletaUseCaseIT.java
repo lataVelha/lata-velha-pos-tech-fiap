@@ -5,6 +5,8 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequ
 import br.com.lata.velha.ordem_servico.application.dtos.request.VeiculoSemProprietarioRequest;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoGateway;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.CriarProprietarioGateway;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.NotificarCadastroProprietarioUseCase;
 import br.com.lata.velha.ordem_servico.application.use_cases.veiculo.CriarVeiculoGateway;
@@ -76,11 +78,11 @@ class CriarOrdemServicoCompletaUseCaseIT {
             return proj;
         }).when(gatewayImpl).getOrdemServicoProjectionById(anyLong());
 
-        var notificarUseCase = new NotificarOrdemServicoUseCase(notificarGateway, emailProvider, emailTemplateProvider);
+        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider);
         var notificarCadastroProprietario = new NotificarCadastroProprietarioUseCase(emailProvider, emailTemplateProvider);
         useCase = new CriarOrdemServicoCompletaUseCase(
                 criarOrdemServicoGateway, criarProprietarioGateway, criarVeiculoGateway,
-                adicionarServicoGateway, notificarUseCase, notificarCadastroProprietario);
+                adicionarServicoGateway, notificarService, notificarCadastroProprietario);
 
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);

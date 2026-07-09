@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
@@ -9,12 +10,12 @@ import java.util.stream.Collectors;
 public class FinalizarServicoUseCase {
 
     private final FinalizarServicoGateway gateway;
-    private final NotificarOrdemServicoUseCase notificarUseCase;
+    private final NotificarOrdemServicoService notificarService;
 
     public FinalizarServicoUseCase(FinalizarServicoGateway gateway,
-                                   NotificarOrdemServicoUseCase notificarUseCase) {
+                                   NotificarOrdemServicoService notificarService) {
         this.gateway = gateway;
-        this.notificarUseCase = notificarUseCase;
+        this.notificarService = notificarService;
     }
 
     public void execute(Input input) {
@@ -24,7 +25,7 @@ public class FinalizarServicoUseCase {
         retirarEstoques(ordemServico, input.servicoId());
         var saved = gateway.salvarOrdemServico(ordemServico);
         if (ordemServico.isFinalizada())
-            notificarUseCase.execute(saved);
+            notificarService.execute(saved);
     }
 
     private void retirarEstoques(OrdemServico ordemServico, Long servicoId) {

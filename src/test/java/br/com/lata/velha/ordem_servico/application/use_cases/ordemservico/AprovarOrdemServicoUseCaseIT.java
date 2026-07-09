@@ -3,6 +3,10 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarAdminEncomendaPecaGateway;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarAdminEncomendaPecaService;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoGateway;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
@@ -56,9 +60,9 @@ class AprovarOrdemServicoUseCaseIT {
 
     @BeforeEach
     void setUp() {
-        var notificarUseCase = new NotificarOrdemServicoUseCase(notificarGateway, emailProvider, emailTemplateProvider);
-        var notificarAdminUseCase = new NotificarAdminEncomendaPecaUseCase(notificarAdminGateway, emailProvider, emailTemplateProvider);
-        useCase = new AprovarOrdemServicoUseCase(aprovarGateway, notificarUseCase, notificarAdminUseCase);
+        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider);
+        var notificarAdminService = new NotificarAdminEncomendaPecaService(notificarAdminGateway, emailProvider, emailTemplateProvider);
+        useCase = new AprovarOrdemServicoUseCase(aprovarGateway, notificarService, notificarAdminService);
 
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);

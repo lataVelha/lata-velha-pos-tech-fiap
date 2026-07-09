@@ -1,7 +1,7 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.gateways;
 
 import br.com.lata.velha.authentication.domain.repositories.UserRepository;
-import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.NotificarAdminEncomendaPecaGateway;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarAdminEncomendaPecaGateway;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;

@@ -1,5 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarAdminEncomendaPecaService;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
@@ -26,8 +28,8 @@ import static org.mockito.Mockito.*;
 class AprovarOrdemServicoUseCaseTest {
 
     @Mock private AprovarOrdemServicoGateway gateway;
-    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
-    @Mock private NotificarAdminEncomendaPecaUseCase notificarAdminEncomendaUseCase;
+    @Mock private NotificarOrdemServicoService notificarService;
+    @Mock private NotificarAdminEncomendaPecaService notificarAdminEncomendaService;
 
     private AprovarOrdemServicoUseCase useCase;
 
@@ -42,7 +44,7 @@ class AprovarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new AprovarOrdemServicoUseCase(gateway, notificarUseCase, notificarAdminEncomendaUseCase);
+        useCase = new AprovarOrdemServicoUseCase(gateway, notificarService, notificarAdminEncomendaService);
         funcionario = new Funcionario(FUNCIONARIO_ID, "Ana Atendente", null, null);
         userId = UserId.random();
         lenient().when(gateway.getServicosAtivosPorIds(any()))
@@ -246,7 +248,7 @@ class AprovarOrdemServicoUseCaseTest {
 
         useCase.execute(input);
 
-        verify(notificarUseCase).execute(os);
+        verify(notificarService).execute(os);
     }
 
     @Test
@@ -284,7 +286,7 @@ class AprovarOrdemServicoUseCaseTest {
                 .hasMessage("OS não encontrada");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test
