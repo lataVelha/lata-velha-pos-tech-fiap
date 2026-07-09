@@ -45,7 +45,6 @@ class CriarOrdemServicoUseCaseIT {
     private OrdemServicoGatewayImpl gatewayImpl;
 
     @Autowired private CriarOrdemServicoGateway criarGateway;
-    @Autowired private AdicionarServicoGateway adicionarGateway;
     @Autowired private NotificarOrdemServicoGateway notificarGateway;
     @Autowired private EntityManager em;
 
@@ -68,9 +67,8 @@ class CriarOrdemServicoUseCaseIT {
             return proj;
         }).when(gatewayImpl).getOrdemServicoProjectionById(anyLong());
 
-        var adicionarUseCase = new AdicionarServicoUseCase(adicionarGateway);
         var notificarUseCase = new NotificarOrdemServicoUseCase(notificarGateway, emailProvider, emailTemplateProvider);
-        useCase = new CriarOrdemServicoUseCase(criarGateway, adicionarUseCase, notificarUseCase);
+        useCase = new CriarOrdemServicoUseCase(criarGateway, notificarUseCase);
 
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);
@@ -119,11 +117,7 @@ class CriarOrdemServicoUseCaseIT {
                 veiculoId,
                 proprietarioId,
                 funcionarioUserId,
-                "Barulho ao frear",
-                null,
-                null,
-                null,
-                null
+                "Barulho ao frear"
         );
 
         OrdemServicoProjection output = useCase.execute(input);
@@ -154,11 +148,7 @@ class CriarOrdemServicoUseCaseIT {
                 veiculoId,
                 proprietarioId,
                 funcionarioUserId,
-                "Motor superaquecendo",
-                null,
-                null,
-                null,
-                null
+                "Motor superaquecendo"
         );
 
         OrdemServicoProjection output = useCase.execute(input);
@@ -183,11 +173,7 @@ class CriarOrdemServicoUseCaseIT {
                 veiculoId,
                 proprietarioId,
                 funcionarioUserId,
-                "Freio falhando",
-                null,
-                null,
-                null,
-                null
+                "Freio falhando"
         );
 
         OrdemServicoProjection output = useCase.execute(input);

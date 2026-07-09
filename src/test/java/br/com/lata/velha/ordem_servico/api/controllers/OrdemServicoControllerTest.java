@@ -3,9 +3,12 @@ package br.com.lata.velha.ordem_servico.api.controllers;
 import br.com.lata.velha.authentication.infrastructure.security.config.SecurityConfig;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoResponse;
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoCompletaRequest;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.ReceberAprovacaoOrcamentoRequest;
 import br.com.lata.velha.ordem_servico.application.controllers.ordemservico.OrdemServicoCleanController;
+import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequest;
+import br.com.lata.velha.ordem_servico.application.dtos.request.VeiculoSemProprietarioRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.*;
 import br.com.lata.velha.ordem_servico.application.presenters.ordemservico.ReceberAprovacaoOrcamentoClientePresenter;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
@@ -72,7 +75,7 @@ class OrdemServicoControllerTest {
     @Test
     @DisplayName("POST /ordens-servico deve retornar 201 com a ordem criada")
     void shouldReturn201OnCreate() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear", 3L, 4, 3L, new BigDecimal(3));
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Barulho ao frear");
 
         when(cleanController.criar(any())).thenReturn(buildOrdemResponse());
 
@@ -87,9 +90,41 @@ class OrdemServicoControllerTest {
     @Test
     @DisplayName("POST /ordens-servico com body inválido deve retornar 400")
     void shouldReturn400OnInvalidCreateRequest() throws Exception {
-        var invalid = new CriarOrdemServicoRequest(null, null, "x".repeat(501), 3L, 4, 3L, new BigDecimal(3));
+        var invalid = new CriarOrdemServicoRequest(null, null, "x".repeat(501));
 
         mockMvc.perform(post("/ordens-servico")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalid)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("POST /ordens-servico/completa deve retornar 201 com a ordem criada")
+    void shouldReturn201OnCreateCompleta() throws Exception {
+        var request = new CriarOrdemServicoCompletaRequest(
+                new ProprietarioRequest("João da Silva", "joao@example.com", "359.493.430-69", "(11) 99999-9999", null),
+                new VeiculoSemProprietarioRequest("ABC1D23", "Fiat", "Uno", 2020, "Prata"),
+                "Barulho ao frear",
+                List.of()
+        );
+
+        when(cleanController.criarCompleta(any())).thenReturn(buildOrdemResponse());
+
+        mockMvc.perform(post("/ordens-servico/completa")
+                        .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L));
+    }
+
+    @Test
+    @DisplayName("POST /ordens-servico/completa com body inválido deve retornar 400")
+    void shouldReturn400OnInvalidCreateCompletaRequest() throws Exception {
+        var invalid = new CriarOrdemServicoCompletaRequest(null, null, "x".repeat(501), List.of());
+
+        mockMvc.perform(post("/ordens-servico/completa")
                         .with(jwt().jwt(b -> b.subject(TEST_USER_ID)).authorities(new SimpleGrantedAuthority("ROLE_USER")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -242,7 +277,7 @@ class OrdemServicoControllerTest {
     @Test
     @DisplayName("POST /ordens-servico sem autenticação deve retornar 401")
     void shouldReturn401WhenUnauthenticated() throws Exception {
-        var request = new CriarOrdemServicoRequest(3L, 4L, "Test", 3L, 4, 3L, new BigDecimal(3));
+        var request = new CriarOrdemServicoRequest(3L, 4L, "Test");
 
         mockMvc.perform(post("/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)

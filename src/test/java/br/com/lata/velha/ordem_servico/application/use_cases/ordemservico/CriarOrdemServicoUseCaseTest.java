@@ -15,7 +15,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
@@ -29,7 +28,6 @@ class CriarOrdemServicoUseCaseTest {
 
     @Mock private CriarOrdemServicoGateway gateway;
     @Mock private NotificarOrdemServicoUseCase notificarUseCase;
-    @Mock private AdicionarServicoUseCase adicionarServicoUseCase;
 
     private CriarOrdemServicoUseCase useCase;
 
@@ -43,12 +41,12 @@ class CriarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new CriarOrdemServicoUseCase(gateway, adicionarServicoUseCase, notificarUseCase);
+        useCase = new CriarOrdemServicoUseCase(gateway, notificarUseCase);
 
         userId = UserId.random();
 
         input = new CriarOrdemServicoUseCase.Input(
-                3L, 4L, userId, "Barulho ao frear", null, null, null, null
+                3L, 4L, userId, "Barulho ao frear"
         );
 
         veiculo = mock(Veiculo.class);
@@ -120,21 +118,6 @@ class CriarOrdemServicoUseCaseTest {
         useCase.execute(input);
 
         verify(notificarUseCase).execute(savedOs);
-    }
-
-    @Test
-    @DisplayName("deve adicionar serviço quando informado")
-    void deveAdicionarServicoQuandoInformado() {
-        stubHappyPath();
-
-        var inputComServico = new CriarOrdemServicoUseCase.Input(
-                3L, 4L, userId, "Barulho ao frear", 10L, 2, 20L, BigDecimal.TEN
-        );
-
-        useCase.execute(inputComServico);
-
-        verify(adicionarServicoUseCase).execute(any(AdicionarServicoUseCase.Input.class));
-        verify(gateway, times(1)).salvarOrdemServico(any(OrdemServico.class));
     }
 
     @Test

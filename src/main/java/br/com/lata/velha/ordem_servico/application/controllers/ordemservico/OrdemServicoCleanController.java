@@ -7,6 +7,9 @@ import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.application.presenters.ordemservico.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
+import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.CriarProprietarioGateway;
+import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.NotificarCadastroProprietarioUseCase;
+import br.com.lata.velha.ordem_servico.application.use_cases.veiculo.CriarVeiculoGateway;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
@@ -17,9 +20,13 @@ public class OrdemServicoCleanController {
 
     private final NotificarOrdemServicoUseCase notificarUseCase;
     private final NotificarAdminEncomendaPecaUseCase notificarAdminUseCase;
+    private final EmailProvider emailProvider;
+    private final EmailTemplateProvider templateProvider;
 
     private final CriarOrdemServicoGateway criarGateway;
     private final CriarOrdemServicoPresenter criarPresenter;
+    private final CriarProprietarioGateway criarProprietarioGateway;
+    private final CriarVeiculoGateway criarVeiculoGateway;
     private final AdicionarServicoGateway adicionarGateway;
     private final AprovarOrdemServicoGateway aprovarGateway;
     private final AprovarOrdemServicoPresenter aprovarPresenter;
@@ -45,6 +52,8 @@ public class OrdemServicoCleanController {
             EmailTemplateProvider templateProvider,
             CriarOrdemServicoGateway criarGateway,
             CriarOrdemServicoPresenter criarPresenter,
+            CriarProprietarioGateway criarProprietarioGateway,
+            CriarVeiculoGateway criarVeiculoGateway,
             AdicionarServicoGateway adicionarGateway,
             AprovarOrdemServicoGateway aprovarGateway,
             AprovarOrdemServicoPresenter aprovarPresenter,
@@ -65,8 +74,12 @@ public class OrdemServicoCleanController {
 
         this.notificarUseCase = new NotificarOrdemServicoUseCase(notificarGateway, emailProvider, templateProvider);
         this.notificarAdminUseCase = new NotificarAdminEncomendaPecaUseCase(notificarAdminGateway, emailProvider, templateProvider);
+        this.emailProvider = emailProvider;
+        this.templateProvider = templateProvider;
         this.criarGateway = criarGateway;
         this.criarPresenter = criarPresenter;
+        this.criarProprietarioGateway = criarProprietarioGateway;
+        this.criarVeiculoGateway = criarVeiculoGateway;
         this.adicionarGateway = adicionarGateway;
         this.aprovarGateway = aprovarGateway;
         this.aprovarPresenter = aprovarPresenter;
@@ -87,8 +100,15 @@ public class OrdemServicoCleanController {
     }
 
     public OrdemServicoResponse criar(CriarOrdemServicoUseCase.Input input) {
-        var adicionarServico = new AdicionarServicoUseCase(adicionarGateway);
-        var useCase = new CriarOrdemServicoUseCase(criarGateway, adicionarServico, notificarUseCase);
+        var useCase = new CriarOrdemServicoUseCase(criarGateway, notificarUseCase);
+        return criarPresenter.present(useCase.execute(input));
+    }
+
+    public OrdemServicoResponse criarCompleta(CriarOrdemServicoCompletaUseCase.Input input) {
+        var notificarCadastroProprietario = new NotificarCadastroProprietarioUseCase(emailProvider, templateProvider);
+        var useCase = new CriarOrdemServicoCompletaUseCase(
+                criarGateway, criarProprietarioGateway, criarVeiculoGateway, adicionarGateway,
+                notificarUseCase, notificarCadastroProprietario);
         return criarPresenter.present(useCase.execute(input));
     }
 
