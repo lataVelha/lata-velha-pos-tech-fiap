@@ -77,7 +77,7 @@ public class ExecucaoServicoEntity {
     }
 
     public ExecucaoServico toDomain() {
-        var pecas = this.pecas.stream()
+        var pecasDomain = this.pecas.stream()
                 .map(PecaAlocadaEntity::toDomain)
                 .collect(Collectors.toSet());
         return new ExecucaoServico(
@@ -86,7 +86,7 @@ public class ExecucaoServicoEntity {
                 ordemServicoId,
                 statusExecucaoServico,
                 valorMaoDeObra,
-                pecas,
+                pecasDomain,
                 atendenteAprovacaoId,
                 mecanicoResponsavelId,
                 iniciadoEm,
@@ -95,7 +95,6 @@ public class ExecucaoServicoEntity {
         );
     }
 
-    // Métodos de compatibilidade para testes baseados em relacionamentos diretos.
     public void setOrdemServico(OrdemServicoEntity ordemServico) {
         this.ordemServicoId = ordemServico != null ? ordemServico.getId() : null;
     }

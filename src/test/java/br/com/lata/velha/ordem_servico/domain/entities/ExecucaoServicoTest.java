@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -82,9 +83,11 @@ class ExecucaoServicoTest {
         @Test
         @DisplayName("deve lançar exceção quando valorMaoDeObra é negativo")
         void deveLancarExcecaoQuandoValorNegativo() {
+            var value = new BigDecimal("-1");
+
             assertThatThrownBy(() ->
                     new ExecucaoServico(null, SERVICO_ID, OS_ID, StatusExecucaoServico.PENDENTE,
-                            new BigDecimal("-1"), new HashSet<>(), null, null, null, null, null))
+                            value, new HashSet<>(), null, null, null, null, null))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Valor inválido");
         }
@@ -253,7 +256,7 @@ class ExecucaoServicoTest {
         void deveLancarExcecaoQuandoNaoEmExecucao() {
             ExecucaoServico exec = aprovado();
 
-            assertThatThrownBy(() -> exec.finalizar())
+            assertThatThrownBy(exec::finalizar)
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessage("Não é possível finalizar um serviço que não está em execução");
         }
@@ -303,8 +306,9 @@ class ExecucaoServicoTest {
         @DisplayName("deve lançar exceção quando serviço já está finalizado")
         void deveLancarExcecaoQuandoFinalizado() {
             ExecucaoServico exec = build(StatusExecucaoServico.FINALIZADO, new HashSet<>());
+            var pecaAlocacao = peca(5L, StatusPecaAlocada.RESERVADA, 1, 1, 0);
 
-            assertThatThrownBy(() -> exec.adicionarPeca(peca(5L, StatusPecaAlocada.RESERVADA, 1, 1, 0)))
+            assertThatThrownBy(() -> exec.adicionarPeca(pecaAlocacao))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessage("Serviço já finalizado");
         }
@@ -324,8 +328,9 @@ class ExecucaoServicoTest {
         void deveLancarExcecaoQuandoPecaDuplicada() {
             ExecucaoServico exec = pendente();
             exec.adicionarPeca(peca(5L, StatusPecaAlocada.RESERVADA, 2, 2, 0));
+            var pecaAlocacao = peca(5L, StatusPecaAlocada.RESERVADA, 1, 1, 0);
 
-            assertThatThrownBy(() -> exec.adicionarPeca(peca(5L, StatusPecaAlocada.RESERVADA, 1, 1, 0)))
+            assertThatThrownBy(() -> exec.adicionarPeca(pecaAlocacao))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessage("Peça já adicionada ao serviço");
         }
@@ -355,8 +360,9 @@ class ExecucaoServicoTest {
         void deveLancarExcecaoQuandoPecaNaoPertenceAoExecucao() {
             ExecucaoServico exec = build(StatusExecucaoServico.AGUARDANDO_PECA,
                     new HashSet<>(Set.of(peca(5L, StatusPecaAlocada.ENCOMENDA, 2, 0, 0))));
+            var pecaEstoque = estoque(99L, 5);
 
-            assertThatThrownBy(() -> exec.reservarPeca(estoque(99L, 5)))
+            assertThatThrownBy(() -> exec.reservarPeca(pecaEstoque))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -488,9 +494,9 @@ class ExecucaoServicoTest {
         @Test
         @DisplayName("deve retornar todos os valores corretamente")
         void deveRetornarTodosOsValores() {
-            var iniciadoEm = LocalDateTime.of(2024, 1, 1, 10, 0);
-            var terminadoEm = LocalDateTime.of(2024, 1, 1, 12, 0);
-            var atualizadoEm = LocalDateTime.of(2024, 1, 1, 12, 0);
+            var iniciadoEm = LocalDateTime.of(2024, Month.JANUARY, 1, 10, 0);
+            var terminadoEm = LocalDateTime.of(2024, Month.JANUARY, 1, 12, 0);
+            var atualizadoEm = LocalDateTime.of(2024, Month.JANUARY, 1, 12, 0);
 
             ExecucaoServico exec = new ExecucaoServico(EXEC_ID, SERVICO_ID, OS_ID,
                     StatusExecucaoServico.EM_EXECUCAO, new BigDecimal("200.00"),

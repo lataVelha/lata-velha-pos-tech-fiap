@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "ORDEM_SERVICO")
@@ -68,7 +70,7 @@ public class OrdemServicoEntity {
     public static OrdemServicoEntity fromDomain(OrdemServico domain) {
         var servicos = domain.getExecucaoServicos().stream()
                 .map(ExecucaoServicoEntity::fromDomain)
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
         return new OrdemServicoEntity(
                 domain.getId(),
                 domain.getProprietarioId(),
@@ -88,17 +90,17 @@ public class OrdemServicoEntity {
     }
 
     public OrdemServico toDomain() {
-        var servicos = this.servicos.stream()
+        var execucaoServicosDomain = this.servicos.stream()
                 .map(ExecucaoServicoEntity::toDomain)
                 .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
-        return map(servicos);
+        return map(execucaoServicosDomain);
     }
 
     public OrdemServico toDomain(List<ExecucaoServicoEntity> execucoes) {
-        var servicos = execucoes.stream()
+        var execucaoServicosDomain = execucoes.stream()
                 .map(ExecucaoServicoEntity::toDomain)
                 .toList();
-        return map(servicos);
+        return map(execucaoServicosDomain);
     }
 
     private OrdemServico map(List<ExecucaoServico> servicos){

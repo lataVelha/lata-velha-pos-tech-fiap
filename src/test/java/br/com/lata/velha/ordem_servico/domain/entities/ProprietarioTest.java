@@ -181,8 +181,9 @@ class ProprietarioTest {
         @DisplayName("lista de veículos deve ser imutável")
         void shouldBeImmutableList() {
             var veiculo = new Veiculo(1L, 1L, Placa.of("ABC1234"), "Fiat", "Uno", 2020, "Prata");
+            var veiculos = proprietario.getVeiculos();
             assertThrows(UnsupportedOperationException.class,
-                    () -> proprietario.getVeiculos().add(veiculo));
+                    () -> veiculos.add(veiculo));
         }
 
         @Test

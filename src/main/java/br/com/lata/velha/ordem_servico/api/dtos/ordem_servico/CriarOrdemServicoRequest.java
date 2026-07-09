@@ -6,8 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.math.BigDecimal;
-
 @Schema(name = "OrdemServicoRequest", description = "Dados para criação da Ordem de Serviço")
 public record CriarOrdemServicoRequest(
         @NotNull(message = "Veículo Id é obrigatório!")
@@ -23,22 +21,10 @@ public record CriarOrdemServicoRequest(
                 description = "Observações da ordem de serviço",
                 example = "Proprietário relatou barulho ao frear"
         )
-        String reclamacaoProprietario,
-
-        @Schema(description = "Id da peça", example = "3")
-        Long pecaId,
-
-        @Schema(description = "quantidade de  peças", example = "3")
-        Integer quantidade,
-
-        @Schema(description = "Id do serviço", example = "3")
-        Long servicoId,
-
-        @Schema(description = "Valor da mão de obra", example = "200.00")
-        BigDecimal valorMaoDeObra
+        String reclamacaoProprietario
 
 ) {
         public CriarOrdemServicoUseCase.Input toCriarOsUseCaseInput(UserId userId) {
-                return new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, userId, reclamacaoProprietario,pecaId, quantidade, servicoId, valorMaoDeObra);
+                return new CriarOrdemServicoUseCase.Input(veiculoId, proprietarioId, userId, reclamacaoProprietario);
         }
 }

@@ -108,10 +108,11 @@ class EntradaPecaEstoqueUseCaseTest {
     @DisplayName("deve lançar exceção quando peça não existe")
     void deveLancarExcecaoQuandoPecaNaoExiste() {
         when(gateway.getPecaAtivaPorId(99L)).thenThrow(PecaNotFoundException.fromId(99L));
-
+        var request = new MovimentarPecaEstoqueRequest(5);
+        
         EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway);
 
-        assertThatThrownBy(() -> useCase.execute(99L, new MovimentarPecaEstoqueRequest(5)))
+        assertThatThrownBy(() -> useCase.execute(99L, request))
                 .isInstanceOf(PecaNotFoundException.class);
     }
 }

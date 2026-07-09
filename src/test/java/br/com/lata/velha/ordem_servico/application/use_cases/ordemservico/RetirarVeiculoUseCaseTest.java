@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
@@ -23,7 +24,7 @@ import static org.mockito.Mockito.*;
 class RetirarVeiculoUseCaseTest {
 
     @Mock private RetirarVeiculoGateway gateway;
-    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
+    @Mock private NotificarOrdemServicoService notificarService;
 
     private RetirarVeiculoUseCase useCase;
 
@@ -38,7 +39,7 @@ class RetirarVeiculoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new RetirarVeiculoUseCase(gateway, notificarUseCase);
+        useCase = new RetirarVeiculoUseCase(gateway, notificarService);
         userId = UserId.random();
         atendente = new Funcionario(ATENDENTE_ID, "Ana Atendente", null, null);
     }
@@ -103,7 +104,7 @@ class RetirarVeiculoUseCaseTest {
 
         useCase.execute(OS_ID, userId);
 
-        verify(notificarUseCase).execute(os);
+        verify(notificarService).execute(os);
     }
 
     @Test
@@ -117,7 +118,7 @@ class RetirarVeiculoUseCaseTest {
                 .isInstanceOf(IllegalStateException.class);
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test
@@ -157,7 +158,7 @@ class RetirarVeiculoUseCaseTest {
                 .hasMessage("OS não encontrada");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test

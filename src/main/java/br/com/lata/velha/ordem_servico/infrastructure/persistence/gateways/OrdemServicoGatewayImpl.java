@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.gateways;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.entities.*;
 import br.com.lata.velha.ordem_servico.domain.repositories.*;

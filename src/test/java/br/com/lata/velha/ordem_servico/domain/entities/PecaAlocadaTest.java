@@ -179,8 +179,8 @@ class PecaAlocadaTest {
 
         assertThat(a)
                 .isEqualTo(b)
-                .isNotEqualTo(c);
-        assertThat(a.hashCode()).isEqualTo(b.hashCode());
+                .isNotEqualTo(c)
+                .hasSameHashCodeAs(b);
     }
 
     @Test

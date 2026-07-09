@@ -124,7 +124,7 @@ public final class OrdemServico {
         if (servico == null)
             throw new IllegalArgumentException("Serviço inválido");
 
-        if (!this.isEmDiagnostico())
+        if (!this.isEmDiagnostico() && !this.isRecebida())
             throw new IllegalStateException("Não é possível adicionar serviço");
 
         boolean jaExiste = execucaoServicos.stream()
@@ -172,6 +172,8 @@ public final class OrdemServico {
     }
 
     public boolean isEmDiagnostico() { return this.status == StatusOrdemServico.EM_DIAGNOSTICO; }
+
+    public boolean isRecebida() { return this.status == StatusOrdemServico.RECEBIDA; }
 
     public boolean isEmExecucao() {
         return this.status == StatusOrdemServico.EM_EXECUCAO;

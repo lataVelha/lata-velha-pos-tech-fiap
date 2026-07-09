@@ -214,6 +214,6 @@ class BuscarOrdemServicoUseCaseTest {
 
         useCase.execute(1L, StatusOrdemServico.EM_EXECUCAO, 30L, 20L, 0, 10);
 
-        verify(gateway).findByFiltros(eq(1L), eq("EM_EXECUCAO"), eq(30L), eq(20L), eq(0), eq(10));
+        verify(gateway).findByFiltros(1L, "EM_EXECUCAO", 30L, 20L, 0, 10);
     }
 }

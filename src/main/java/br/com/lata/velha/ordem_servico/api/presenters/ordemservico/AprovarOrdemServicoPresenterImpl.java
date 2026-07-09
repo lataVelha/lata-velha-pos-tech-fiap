@@ -4,7 +4,6 @@ import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServic
 import br.com.lata.velha.ordem_servico.application.dtos.response.TotaisOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.application.presenters.ordemservico.AprovarOrdemServicoPresenter;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
-import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import org.springframework.stereotype.Component;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @Component
 public class AprovarOrdemServicoPresenterImpl implements AprovarOrdemServicoPresenter {
@@ -49,7 +49,7 @@ public class AprovarOrdemServicoPresenterImpl implements AprovarOrdemServicoPres
 
         BigDecimal pecasAprovadas = execucoes.stream()
                 .filter(s -> STATUS_APROVADOS.contains(s.getStatus()))
-                .flatMap(s -> s.getPecas() != null ? s.getPecas().stream() : java.util.stream.Stream.empty())
+                .flatMap(s -> s.getPecas() != null ? s.getPecas().stream() : Stream.empty())
                 .map(p -> {
                     BigDecimal valor = p.getValorUnitarioPeca() != null ? p.getValorUnitarioPeca() : BigDecimal.ZERO;
                     int qtd = p.getQuantidadeSolicitada() != null ? p.getQuantidadeSolicitada() : 0;

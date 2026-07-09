@@ -1,16 +1,17 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 
 public class IniciarServicoUseCase {
 
     private final IniciarServicoGateway gateway;
-    private final NotificarOrdemServicoUseCase notificarUseCase;
+    private final NotificarOrdemServicoService notificarService;
 
     public IniciarServicoUseCase(IniciarServicoGateway gateway,
-                                 NotificarOrdemServicoUseCase notificarUseCase) {
+                                 NotificarOrdemServicoService notificarService) {
         this.gateway = gateway;
-        this.notificarUseCase = notificarUseCase;
+        this.notificarService = notificarService;
     }
 
     public void execute(Input input) {
@@ -20,7 +21,7 @@ public class IniciarServicoUseCase {
         ordemServico.iniciarExecucaoServico(input.servicoId(), mecanico.getId());
         var saved = gateway.salvarOrdemServico(ordemServico);
         if (primeiroServico)
-            notificarUseCase.execute(saved);
+            notificarService.execute(saved);
     }
 
     public record Input(Long idOs, Long servicoId, UserId userId) {}

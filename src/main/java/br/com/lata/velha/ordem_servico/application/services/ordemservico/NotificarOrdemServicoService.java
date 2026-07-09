@@ -1,4 +1,4 @@
-package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
+package br.com.lata.velha.ordem_servico.application.services.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
@@ -20,9 +20,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class NotificarOrdemServicoUseCase {
+public class NotificarOrdemServicoService {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificarOrdemServicoUseCase.class);
+    private static final Logger log = LoggerFactory.getLogger(NotificarOrdemServicoService.class);
 
     private final NotificarOrdemServicoGateway gateway;
     private final EmailProvider emailProvider;
@@ -41,7 +41,7 @@ public class NotificarOrdemServicoUseCase {
     private static final String RECUSADO = "RECUSADO";
     private static final String CONCLUIDO = "CONCLUIDO";
 
-    public NotificarOrdemServicoUseCase(NotificarOrdemServicoGateway gateway,
+    public NotificarOrdemServicoService(NotificarOrdemServicoGateway gateway,
                                         EmailProvider emailProvider,
                                         EmailTemplateProvider templateProvider) {
         this.gateway = gateway;

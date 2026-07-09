@@ -38,7 +38,8 @@ class DesativarFuncionarioUseCaseTest {
         when(gateway.getFuncionarioById(99L))
                 .thenThrow(FuncionarioNotFoundException.fromId(99L));
 
-        assertThrows(FuncionarioNotFoundException.class, () -> new DesativarFuncionarioUseCase(gateway).execute(99L));
+        var useCase = new DesativarFuncionarioUseCase(gateway);
+        assertThrows(FuncionarioNotFoundException.class, () -> useCase.execute(99L));
         verify(gateway, never()).desativarUsuario(any());
     }
 

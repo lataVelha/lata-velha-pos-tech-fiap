@@ -129,7 +129,7 @@ class EntityConversionTest {
         assertThat(entity.getQuantidadeSolicitada()).isEqualTo(4);
         assertThat(entity.getQuantidadeReservada()).isEqualTo(2);
         assertThat(entity.getQuantidadeEncomendada()).isEqualTo(2);
-        assertThat(entity.getQuantidadeInstalada()).isEqualTo(0);
+        assertThat(entity.getQuantidadeInstalada()).isZero();
         assertThat(entity.getStatus()).isEqualTo(StatusPecaAlocada.PARCIAL);
         assertThat(entity.getAtualizado()).isEqualTo(now);
     }
