@@ -14,9 +14,12 @@ import java.util.stream.Collectors;
 public class ReceberAprovacaoOrcamentoClienteUseCase {
 
     private final ReceberAprovacaoOrcamentoClienteGateway gateway;
+    private final NotificarOrdemServicoUseCase notificarUseCase;
 
-    public ReceberAprovacaoOrcamentoClienteUseCase(ReceberAprovacaoOrcamentoClienteGateway gateway) {
+    public ReceberAprovacaoOrcamentoClienteUseCase(ReceberAprovacaoOrcamentoClienteGateway gateway,
+                                                    NotificarOrdemServicoUseCase notificarUseCase) {
         this.gateway = gateway;
+        this.notificarUseCase = notificarUseCase;
     }
 
     public OrdemServico execute(Input input) {
@@ -46,6 +49,8 @@ public class ReceberAprovacaoOrcamentoClienteUseCase {
         } else {
             ordemServico.aprovar(null);
         }
+
+        notificarUseCase.execute(ordemServico);
 
         gateway.salvarEstoques(pecasEstoque.values());
         return gateway.salvarOrdemServico(ordemServico);

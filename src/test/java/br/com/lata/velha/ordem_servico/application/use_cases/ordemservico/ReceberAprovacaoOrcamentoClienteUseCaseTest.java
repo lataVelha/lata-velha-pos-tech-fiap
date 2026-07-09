@@ -30,6 +30,7 @@ import static org.mockito.Mockito.*;
 class ReceberAprovacaoOrcamentoClienteUseCaseTest {
 
     @Mock private ReceberAprovacaoOrcamentoClienteGateway gateway;
+    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
 
     private ReceberAprovacaoOrcamentoClienteUseCase useCase;
 
@@ -39,7 +40,7 @@ class ReceberAprovacaoOrcamentoClienteUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new ReceberAprovacaoOrcamentoClienteUseCase(gateway);
+        useCase = new ReceberAprovacaoOrcamentoClienteUseCase(gateway, notificarUseCase);
     }
 
     private ExecucaoServico buildExecPendente(Long id) {
@@ -76,6 +77,7 @@ class ReceberAprovacaoOrcamentoClienteUseCaseTest {
         assertThat(exec1.getStatus()).isEqualTo(StatusExecucaoServico.APROVADO);
         assertThat(exec2.getStatus()).isEqualTo(StatusExecucaoServico.RECUSADO);
         assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.APROVADA);
+        verify(notificarUseCase).execute(os);
     }
 
     @Test
@@ -97,6 +99,7 @@ class ReceberAprovacaoOrcamentoClienteUseCaseTest {
         useCase.execute(input);
 
         assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.REPROVADA);
+        verify(notificarUseCase).execute(os);
     }
 
     @Test

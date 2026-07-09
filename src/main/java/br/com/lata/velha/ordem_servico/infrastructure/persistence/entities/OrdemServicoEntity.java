@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "ORDEM_SERVICO")
@@ -68,7 +70,7 @@ public class OrdemServicoEntity {
     public static OrdemServicoEntity fromDomain(OrdemServico domain) {
         var servicos = domain.getExecucaoServicos().stream()
                 .map(ExecucaoServicoEntity::fromDomain)
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
         return new OrdemServicoEntity(
                 domain.getId(),
                 domain.getProprietarioId(),

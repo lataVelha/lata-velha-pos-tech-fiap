@@ -165,7 +165,7 @@ public class OrdemServicoCleanController {
 
     public ReceberAprovacaoOrcamentoClientePresenter.ViewModel receberAprovacaoOrcamentoCliente(
             ReceberAprovacaoOrcamentoClienteUseCase.Input input) {
-        var useCase = new ReceberAprovacaoOrcamentoClienteUseCase(receberAprovacaoGateway);
+        var useCase = new ReceberAprovacaoOrcamentoClienteUseCase(receberAprovacaoGateway, notificarUseCase);
         return receberAprovacaoPresenter.present(useCase.execute(input));
     }
 }
