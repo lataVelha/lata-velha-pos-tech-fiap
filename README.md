@@ -17,6 +17,74 @@
 
 ---
 
+## Sumário
+
+### Fase 1 — Sistema de gestão (DDD + Docker Compose)
+
+- [Arquitetura (camadas DDD)](#arquitetura)
+- [Pré-requisitos](#pré-requisitos)
+- [Como rodar (Docker Compose)](#como-rodar)
+- [Configurações por Contexto](#configurações-por-contexto)
+- [Autenticação](#autenticação)
+- [Testes](#testes)
+- [SonarQube](#sonarqube)
+- [Tecnologias](#tecnologias)
+
+### Fase 2 — Infraestrutura cloud (K8s + Terraform + CI/CD)
+
+- [Objetivos e componentes](#fase-2--tech-challenge)
+- [Desenho da arquitetura AWS](./documentation/arquitetura-aws.svg)
+- [Fluxo de deploy (CI/CD)](./documentation/pipeline-cicd.svg)
+- [Provisionamento + deploy](./infra/README.md) — documentação completa no `infra/README.md`
+
+---
+
+## Fase 2 — Tech Challenge
+
+Evolução da Fase 1. Provisionamento, deploy e operação migrados para AWS com Terraform e GitHub Actions.
+
+### Objetivos
+
+- **Reduzir riscos operacionais** com infraestrutura escalável na AWS (EKS + RDS + ALB).
+- **Automatizar provisionamento e deploy** com Terraform e GitHub Actions.
+- **Sustentar a evolução do código** com Clean Architecture, testes automatizados e cobertura mínima de 80%.
+- **Absorver picos de demanda** com autoscaling em duas camadas (HPA de pods + Cluster Autoscaler de nodes).
+
+### Componentes da aplicação
+
+Refatoração para arquitetura em camadas com DDD: `domain` puro (zero framework), `application` com casos de uso, `infrastructure` com adapters (JPA, JWT, SMTP), `presentation` com controllers.
+
+Endpoints novos da fase:
+
+- Abertura de OS
+- Consulta de status da OS
+- Aprovação externa de orçamento
+- Listagem de OS ordenada por status (Em Execução > Aguardando Aprovação > Diagnóstico > Recebida, mais antigas primeiro)
+- Atualização de status via e-mail
+
+### Desenho da arquitetura
+
+<p align="center">
+  <img src="./documentation/arquitetura-aws.svg" alt="Arquitetura AWS" width="700"/>
+</p>
+
+<p align="center">
+  <img src="./documentation/pipeline-cicd.svg" alt="Pipeline CI/CD" width="700"/>
+</p>
+
+### Provisionamento, deploy e operação
+
+Comandos Terraform, `apply.sh`, pipeline do GitHub Actions, custos e pré-requisitos locais estão em **[`infra/README.md`](./infra/README.md)**.
+
+### Links da fase
+
+- **Collection de APIs (Swagger local):** http://url-lb-aws/swagger-ui.html *(após `docker compose up`)*
+- **Vídeo demonstrativo (≤15 min):**
+
+---
+
+## Fase 1 — Tech Challenge
+
 ## Arquitetura
 
 O projeto segue **Domain-Driven Design (DDD)** com arquitetura em camadas, onde cada camada possui responsabilidades bem definidas e as dependências sempre apontam para o centro (domínio).
@@ -56,6 +124,27 @@ O código é dividido em 3 contextos bem separados:
 
 **Shared**
 - Código que qualquer contexto precisa: exceções, validadores, tipos básicos que se repetem
+
+### Notificações por E-mail
+
+O sistema dispara e-mails em 3 momentos do fluxo:
+
+| Evento | Destinatário | Template |
+|--------|-------------|----------|
+| Mudança de status da OS (7 transições) | Proprietário do veículo | `os-notificacao.html` |
+| Cadastro de novo proprietário | Proprietário | `proprietario-cadastro.html` |
+| Aprovação de OS com peça em falta no estoque | Todos os admins | `peca-encomenda.html` |
+
+A implementação segue **Ports & Adapters**: a camada `domain` não conhece SMTP, e a `application` depende apenas das interfaces `EmailProvider` e `EmailTemplateProvider`. O adapter `GmailEmailProvider` (SMTP via `JavaMailSender`) é `@Async` — falha no envio **nunca quebra a request HTTP**.
+
+Configuração via env vars:
+
+```bash
+SPRING_MAIL_USERNAME=seu@gmail.com
+SPRING_MAIL_PASSWORD=xxxx xxxx xxxx xxxx   # Senha de App do Google
+```
+
+> Detalhes completos (arquitetura, regras de implementação, checklist de PR) em [`guias-desenvolvimento.md`](./guias-desenvolvimento.md#envio-de-e-mail).
 
 ## Pré-requisitos
 
