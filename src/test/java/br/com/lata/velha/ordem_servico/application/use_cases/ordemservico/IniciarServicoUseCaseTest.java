@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.*;
 class IniciarServicoUseCaseTest {
 
     @Mock private IniciarServicoGateway gateway;
-    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
+    @Mock private NotificarOrdemServicoService notificarService;
 
     private IniciarServicoUseCase useCase;
 
@@ -41,7 +42,7 @@ class IniciarServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new IniciarServicoUseCase(gateway, notificarUseCase);
+        useCase = new IniciarServicoUseCase(gateway, notificarService);
         mecanico = new Funcionario(MECANICO_ID, "Carlos Mecânico", null, null);
         userId = UserId.random();
     }
@@ -108,7 +109,7 @@ class IniciarServicoUseCaseTest {
 
         useCase.execute(new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId));
 
-        verify(notificarUseCase).execute(os);
+        verify(notificarService).execute(os);
     }
 
     @Test
@@ -124,7 +125,7 @@ class IniciarServicoUseCaseTest {
 
         useCase.execute(new IniciarServicoUseCase.Input(OS_ID, 11L, userId));
 
-        verify(notificarUseCase, never()).execute(os);
+        verify(notificarService, never()).execute(os);
     }
 
     @Test
@@ -133,12 +134,13 @@ class IniciarServicoUseCaseTest {
         when(gateway.getOrdemServicoComServicos(OS_ID))
                 .thenThrow(new RuntimeException("OS não encontrada"));
 
-        assertThatThrownBy(() -> useCase.execute(new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId)))
+        var input = new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("OS não encontrada");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test
@@ -149,7 +151,8 @@ class IniciarServicoUseCaseTest {
         when(gateway.getOrdemServicoComServicos(OS_ID)).thenReturn(os);
         when(gateway.getFuncionarioPorUserId(userId)).thenThrow(new RuntimeException("Mecânico não encontrado"));
 
-        assertThatThrownBy(() -> useCase.execute(new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId)))
+        var input = new IniciarServicoUseCase.Input(OS_ID, EXEC_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Mecânico não encontrado");
 
@@ -166,7 +169,8 @@ class IniciarServicoUseCaseTest {
         when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
 
         Long execIdInvalido = 999L;
-        assertThatThrownBy(() -> useCase.execute(new IniciarServicoUseCase.Input(OS_ID, execIdInvalido, userId)))
+        var input = new IniciarServicoUseCase.Input(OS_ID, execIdInvalido, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(String.valueOf(execIdInvalido));
 

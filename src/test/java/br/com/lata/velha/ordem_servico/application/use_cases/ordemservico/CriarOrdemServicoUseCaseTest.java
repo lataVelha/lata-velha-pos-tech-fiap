@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
@@ -15,7 +16,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
@@ -28,8 +28,7 @@ import static org.mockito.Mockito.*;
 class CriarOrdemServicoUseCaseTest {
 
     @Mock private CriarOrdemServicoGateway gateway;
-    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
-    @Mock private AdicionarServicoUseCase adicionarServicoUseCase;
+    @Mock private NotificarOrdemServicoService notificarService;
 
     private CriarOrdemServicoUseCase useCase;
 
@@ -43,12 +42,12 @@ class CriarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new CriarOrdemServicoUseCase(gateway, adicionarServicoUseCase, notificarUseCase);
+        useCase = new CriarOrdemServicoUseCase(gateway, notificarService);
 
         userId = UserId.random();
 
         input = new CriarOrdemServicoUseCase.Input(
-                3L, 4L, userId, "Barulho ao frear", null, null, null, null
+                3L, 4L, userId, "Barulho ao frear"
         );
 
         veiculo = mock(Veiculo.class);
@@ -89,7 +88,7 @@ class CriarOrdemServicoUseCaseTest {
         assertThat(output.getId()).isEqualTo(1L);
 
         verify(gateway).salvarOrdemServico(any(OrdemServico.class));
-        verify(notificarUseCase).execute(savedOs);
+        verify(notificarService).execute(savedOs);
     }
 
     @Test
@@ -119,22 +118,7 @@ class CriarOrdemServicoUseCaseTest {
 
         useCase.execute(input);
 
-        verify(notificarUseCase).execute(savedOs);
-    }
-
-    @Test
-    @DisplayName("deve adicionar serviço quando informado")
-    void deveAdicionarServicoQuandoInformado() {
-        stubHappyPath();
-
-        var inputComServico = new CriarOrdemServicoUseCase.Input(
-                3L, 4L, userId, "Barulho ao frear", 10L, 2, 20L, BigDecimal.TEN
-        );
-
-        useCase.execute(inputComServico);
-
-        verify(adicionarServicoUseCase).execute(any(AdicionarServicoUseCase.Input.class));
-        verify(gateway, times(1)).salvarOrdemServico(any(OrdemServico.class));
+        verify(notificarService).execute(savedOs);
     }
 
     @Test
@@ -148,7 +132,7 @@ class CriarOrdemServicoUseCaseTest {
                 .hasMessage("Proprietário não encontrado");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test

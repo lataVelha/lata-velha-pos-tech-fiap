@@ -69,14 +69,14 @@ public class UserEntity {
     }
 
     public User toDomain(PasswordHasher passwordHasher) {
-        var roles = this.roles.stream()
+        var roleEntities = this.roles.stream()
                 .map(RoleEntity::toDomain)
                 .collect(Collectors.toSet());
         var userData = new UserData(UserId.create(this.id), this.username, Email.fromString(this.email), this.isAtivo());
         return new User(
             userData,
             Credential.fromHash(this.credential, passwordHasher),
-            roles,
+            roleEntities,
             this.criacaoDate,
             this.ultimoLoginDate
         );

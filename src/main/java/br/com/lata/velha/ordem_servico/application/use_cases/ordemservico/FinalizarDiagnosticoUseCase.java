@@ -1,16 +1,17 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 
 public class FinalizarDiagnosticoUseCase {
 
     private final FinalizarDiagnosticoGateway gateway;
-    private final NotificarOrdemServicoUseCase notificarUseCase;
+    private final NotificarOrdemServicoService notificarService;
 
     public FinalizarDiagnosticoUseCase(FinalizarDiagnosticoGateway gateway,
-                                       NotificarOrdemServicoUseCase notificarUseCase) {
+                                       NotificarOrdemServicoService notificarService) {
         this.gateway = gateway;
-        this.notificarUseCase = notificarUseCase;
+        this.notificarService = notificarService;
     }
 
     public void execute(Input input) {
@@ -18,7 +19,7 @@ public class FinalizarDiagnosticoUseCase {
         gateway.getFuncionarioPorUserId(input.userId()); // validates user is a funcionario
         ordemServico.finalizarDiagnostico(ordemServico.getMecanicoResponsavelId());
         gateway.salvarOrdemServico(ordemServico);
-        notificarUseCase.execute(ordemServico);
+        notificarService.execute(ordemServico);
     }
 
     public record Input(Long idOs, UserId userId) {}

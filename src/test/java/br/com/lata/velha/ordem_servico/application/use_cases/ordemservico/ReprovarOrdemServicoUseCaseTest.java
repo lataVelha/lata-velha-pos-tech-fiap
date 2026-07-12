@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.*;
 class ReprovarOrdemServicoUseCaseTest {
 
     @Mock private ReprovarOrdemServicoGateway gateway;
-    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
+    @Mock private NotificarOrdemServicoService notificarService;
 
     private ReprovarOrdemServicoUseCase useCase;
 
@@ -40,7 +41,7 @@ class ReprovarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new ReprovarOrdemServicoUseCase(gateway, notificarUseCase);
+        useCase = new ReprovarOrdemServicoUseCase(gateway, notificarService);
         atendente = new Funcionario(ATENDENTE_ID, "Ana Atendente", null, null);
         userId = UserId.random();
     }
@@ -116,7 +117,7 @@ class ReprovarOrdemServicoUseCaseTest {
 
         useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId));
 
-        verify(notificarUseCase).execute(os);
+        verify(notificarService).execute(os);
     }
 
     @Test
@@ -125,12 +126,13 @@ class ReprovarOrdemServicoUseCaseTest {
         when(gateway.getOrdemServicoPorId(OS_ID))
                 .thenThrow(new RuntimeException("OS não encontrada"));
 
-        assertThatThrownBy(() -> useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId)))
+        var input = new ReprovarOrdemServicoUseCase.Input(OS_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("OS não encontrada");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test
@@ -140,7 +142,8 @@ class ReprovarOrdemServicoUseCaseTest {
         when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(os);
         when(gateway.getFuncionarioPorUserId(userId)).thenThrow(new RuntimeException("Funcionário não encontrado"));
 
-        assertThatThrownBy(() -> useCase.execute(new ReprovarOrdemServicoUseCase.Input(OS_ID, userId)))
+        var input = new ReprovarOrdemServicoUseCase.Input(OS_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Funcionário não encontrado");
 

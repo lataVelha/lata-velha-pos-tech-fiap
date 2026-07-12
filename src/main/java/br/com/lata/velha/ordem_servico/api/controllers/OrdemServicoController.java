@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.api.controllers;
 
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.AprovarOrdemServicoResponse;
+import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoCompletaRequest;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.CriarOrdemServicoRequest;
 import br.com.lata.velha.ordem_servico.api.dtos.ordem_servico.ReceberAprovacaoOrcamentoRequest;
 import br.com.lata.velha.ordem_servico.application.controllers.ordemservico.OrdemServicoCleanController;
@@ -51,6 +52,22 @@ public class OrdemServicoController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(cleanController.criar(request.toCriarOsUseCaseInput(UserId.fromString(jwt.getSubject()))));
+    }
+
+    @PostMapping("/completa")
+    @Transactional
+    @Operation(
+            summary = "Abrir ordem de serviço com cadastro completo",
+            description = "**ATENDENTE** — Cadastra proprietário e veículo (dados completos) e abre a OS em uma única requisição, opcionalmente já vinculando serviços/peças (referenciados por Id). O atendente logado é vinculado automaticamente. Status resultante: `RECEBIDA`."
+    )
+    @ApiResponse(responseCode = "201", description = "Proprietário, veículo e OS criados — status RECEBIDA")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    @ApiResponse(responseCode = "404", description = "Atendente, serviço ou peça não encontrado")
+    public ResponseEntity<OrdemServicoResponse> createCompleta(@Valid @RequestBody CriarOrdemServicoCompletaRequest request,
+                                                                @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(cleanController.criarCompleta(request.toUseCaseInput(UserId.fromString(jwt.getSubject()))));
     }
 
     @GetMapping

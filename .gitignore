@@ -32,6 +32,13 @@ build/
 ### VS Code ###
 .vscode/
 
+### E2E (Python) ###
+e2e/
+e2e/.venv/
+e2e/.pytest_cache/
+e2e/**/__pycache__/
+e2e/.env
+
 ### Terraform ###
 infra/terraform/**/.terraform/
 infra/terraform/**/.terraform.lock.hcl
@@ -54,3 +61,4 @@ __pycache__/
 *$py.class
 *.so
 .Python
+temp/

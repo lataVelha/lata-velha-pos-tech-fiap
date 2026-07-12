@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Set;
 import java.util.UUID;
 
@@ -40,7 +41,7 @@ class UserEntityTest {
         email = Email.fromString("joao@example.com");
         credential = Credential.fromHash("hashed-password", PLAIN_HASHER);
         role = new Role(RoleId.create(UUID.randomUUID()), "ADMIN");
-        criacaoDate = LocalDateTime.of(2025, 1, 1, 12, 0);
+        criacaoDate = LocalDateTime.of(2025, Month.JANUARY, 1, 12, 0);
         var userData = new UserData(userId, "joao", email, true);
         user = new User(userData, credential, Set.of(role), criacaoDate, null);
     }

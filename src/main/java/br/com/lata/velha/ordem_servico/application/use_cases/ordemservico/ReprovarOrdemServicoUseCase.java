@@ -1,16 +1,17 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 
 public class ReprovarOrdemServicoUseCase {
 
     private final ReprovarOrdemServicoGateway gateway;
-    private final NotificarOrdemServicoUseCase notificarUseCase;
+    private final NotificarOrdemServicoService notificarService;
 
     public ReprovarOrdemServicoUseCase(ReprovarOrdemServicoGateway gateway,
-                                       NotificarOrdemServicoUseCase notificarUseCase) {
+                                       NotificarOrdemServicoService notificarService) {
         this.gateway = gateway;
-        this.notificarUseCase = notificarUseCase;
+        this.notificarService = notificarService;
     }
 
     public void execute(Input input) {
@@ -22,7 +23,7 @@ public class ReprovarOrdemServicoUseCase {
         );
         ordemServico.reprovar(funcionario.getId());
         gateway.salvarOrdemServico(ordemServico);
-        notificarUseCase.execute(ordemServico);
+        notificarService.execute(ordemServico);
     }
 
     public record Input(Long osId, UserId userId) {}

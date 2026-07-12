@@ -80,7 +80,6 @@ public class PecaAlocadaEntity {
         );
     }
 
-    // Métodos de compatibilidade para testes legados baseados em relacionamentos diretos.
     public void setPeca(PecaEntity peca) {
         this.pecaId = peca != null ? peca.getId() : null;
     }

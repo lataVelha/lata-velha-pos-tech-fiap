@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
@@ -14,9 +15,12 @@ import java.util.stream.Collectors;
 public class ReceberAprovacaoOrcamentoClienteUseCase {
 
     private final ReceberAprovacaoOrcamentoClienteGateway gateway;
+    private final NotificarOrdemServicoService notificarService;
 
-    public ReceberAprovacaoOrcamentoClienteUseCase(ReceberAprovacaoOrcamentoClienteGateway gateway) {
+    public ReceberAprovacaoOrcamentoClienteUseCase(ReceberAprovacaoOrcamentoClienteGateway gateway,
+                                                    NotificarOrdemServicoService notificarService) {
         this.gateway = gateway;
+        this.notificarService = notificarService;
     }
 
     public OrdemServico execute(Input input) {
@@ -46,6 +50,8 @@ public class ReceberAprovacaoOrcamentoClienteUseCase {
         } else {
             ordemServico.aprovar(null);
         }
+
+        notificarService.execute(ordemServico);
 
         gateway.salvarEstoques(pecasEstoque.values());
         return gateway.salvarOrdemServico(ordemServico);

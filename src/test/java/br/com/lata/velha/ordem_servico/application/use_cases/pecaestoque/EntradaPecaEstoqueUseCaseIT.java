@@ -169,8 +169,9 @@ class EntradaPecaEstoqueUseCaseIT {
     @DisplayName("deve lançar exceção quando peça não existe")
     void deveLancarExcecaoQuandoPecaNaoExiste() {
         Long idInexistente = 9999L;
+        var request = new MovimentarPecaEstoqueRequest(5);
 
-        assertThatThrownBy(() -> useCase.execute(idInexistente, new MovimentarPecaEstoqueRequest(5)))
+        assertThatThrownBy(() -> useCase.execute(idInexistente, request))
                 .isInstanceOf(RuntimeException.class);
     }
 }

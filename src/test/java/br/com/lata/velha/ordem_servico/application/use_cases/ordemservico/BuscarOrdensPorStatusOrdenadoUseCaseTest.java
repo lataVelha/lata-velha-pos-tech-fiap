@@ -14,7 +14,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -89,12 +88,12 @@ class BuscarOrdensPorStatusOrdenadoUseCaseTest {
     @Test
     @DisplayName("deve passar page e size corretos para o gateway")
     void devePassarPageSizeCorreto() {
-        when(gateway.findOrderedByStatusPriority(eq(2), eq(5)))
+        when(gateway.findOrderedByStatusPriority(2, 5))
                 .thenReturn(paginatedResultOf(List.of(), 2, 5, 0L));
 
         useCase.execute(2, 5);
 
-        verify(gateway).findOrderedByStatusPriority(eq(2), eq(5));
+        verify(gateway).findOrderedByStatusPriority(2, 5);
     }
 
     @Test
@@ -156,24 +155,24 @@ class BuscarOrdensPorStatusOrdenadoUseCaseTest {
     @Test
     @DisplayName("deve chamar gateway com parâmetros corretos na página 1")
     void devePassarParametrosCorretosPagina1() {
-        when(gateway.findOrderedByStatusPriority(eq(1), eq(20)))
+        when(gateway.findOrderedByStatusPriority(1, 20))
                 .thenReturn(paginatedResultOf(List.of(), 1, 20, 50L));
 
         useCase.execute(1, 20);
 
-        verify(gateway).findOrderedByStatusPriority(eq(1), eq(20));
+        verify(gateway).findOrderedByStatusPriority(1, 20);
     }
 
     @Test
     @DisplayName("deve retornar resultado com página 0 e tamanho 10 por padrão")
     void deveRetornarComParametrosPadrao() {
-        when(gateway.findOrderedByStatusPriority(eq(0), eq(10)))
+        when(gateway.findOrderedByStatusPriority(0, 10))
                 .thenReturn(paginatedResultOf(List.of()));
 
         var result = useCase.execute(0, 10);
 
         assertThat(result.page()).isZero();
         assertThat(result.size()).isEqualTo(10);
-        verify(gateway).findOrderedByStatusPriority(eq(0), eq(10));
+        verify(gateway).findOrderedByStatusPriority(0, 10);
     }
 }

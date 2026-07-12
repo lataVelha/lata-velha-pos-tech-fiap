@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
@@ -23,7 +24,7 @@ import static org.mockito.Mockito.*;
 class IniciarDiagnosticoUseCaseTest {
 
     @Mock private IniciarDiagnosticoGateway gateway;
-    @Mock private NotificarOrdemServicoUseCase notificarUseCase;
+    @Mock private NotificarOrdemServicoService notificarService;
 
     private IniciarDiagnosticoUseCase useCase;
 
@@ -35,7 +36,7 @@ class IniciarDiagnosticoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new IniciarDiagnosticoUseCase(gateway, notificarUseCase);
+        useCase = new IniciarDiagnosticoUseCase(gateway, notificarService);
         mecanico = new Funcionario(MECANICO_ID, "Carlos Mecânico", null, null);
         userId = UserId.random();
     }
@@ -83,7 +84,7 @@ class IniciarDiagnosticoUseCaseTest {
 
         useCase.execute(new IniciarDiagnosticoUseCase.Input(OS_ID, userId));
 
-        verify(notificarUseCase).execute(os);
+        verify(notificarService).execute(os);
     }
 
     @Test
@@ -93,12 +94,13 @@ class IniciarDiagnosticoUseCaseTest {
         when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(os);
         when(gateway.getFuncionarioPorUserId(userId)).thenReturn(mecanico);
 
-        assertThatThrownBy(() -> useCase.execute(new IniciarDiagnosticoUseCase.Input(OS_ID, userId)))
+        var input = new IniciarDiagnosticoUseCase.Input(OS_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("RECEBIDA");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test
@@ -106,12 +108,13 @@ class IniciarDiagnosticoUseCaseTest {
     void devePropagarExcecaoQuandoOsNaoEncontrada() {
         when(gateway.getOrdemServicoPorId(OS_ID)).thenThrow(new RuntimeException("OS não encontrada"));
 
-        assertThatThrownBy(() -> useCase.execute(new IniciarDiagnosticoUseCase.Input(OS_ID, userId)))
+        var input = new IniciarDiagnosticoUseCase.Input(OS_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("OS não encontrada");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 
     @Test
@@ -120,11 +123,12 @@ class IniciarDiagnosticoUseCaseTest {
         when(gateway.getOrdemServicoPorId(OS_ID)).thenReturn(buildOs(StatusOrdemServico.RECEBIDA));
         when(gateway.getFuncionarioPorUserId(userId)).thenThrow(new RuntimeException("Funcionário não encontrado"));
 
-        assertThatThrownBy(() -> useCase.execute(new IniciarDiagnosticoUseCase.Input(OS_ID, userId)))
+        var input = new IniciarDiagnosticoUseCase.Input(OS_ID, userId);
+        assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Funcionário não encontrado");
 
         verify(gateway, never()).salvarOrdemServico(any());
-        verify(notificarUseCase, never()).execute(any());
+        verify(notificarService, never()).execute(any());
     }
 }

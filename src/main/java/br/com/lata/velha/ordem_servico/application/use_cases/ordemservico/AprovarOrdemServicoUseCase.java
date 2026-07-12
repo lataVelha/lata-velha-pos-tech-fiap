@@ -1,5 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarAdminEncomendaPecaService;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
@@ -16,15 +18,15 @@ import java.util.stream.Collectors;
 public class AprovarOrdemServicoUseCase {
 
     private final AprovarOrdemServicoGateway gateway;
-    private final NotificarOrdemServicoUseCase notificarUseCase;
-    private final NotificarAdminEncomendaPecaUseCase notificarAdminEncomendaUseCase;
+    private final NotificarOrdemServicoService notificarService;
+    private final NotificarAdminEncomendaPecaService notificarAdminEncomendaService;
 
     public AprovarOrdemServicoUseCase(AprovarOrdemServicoGateway gateway,
-                                      NotificarOrdemServicoUseCase notificarUseCase,
-                                      NotificarAdminEncomendaPecaUseCase notificarAdminEncomendaUseCase) {
+                                      NotificarOrdemServicoService notificarService,
+                                      NotificarAdminEncomendaPecaService notificarAdminEncomendaService) {
         this.gateway = gateway;
-        this.notificarUseCase = notificarUseCase;
-        this.notificarAdminEncomendaUseCase = notificarAdminEncomendaUseCase;
+        this.notificarService = notificarService;
+        this.notificarAdminEncomendaService = notificarAdminEncomendaService;
     }
 
     public OrdemServico execute(Input input) {
@@ -47,7 +49,7 @@ public class AprovarOrdemServicoUseCase {
                         alocacaoPeca.reservar(estoque);
 
                         if (alocacaoPeca.getQuantidadeEncomendada() != null && alocacaoPeca.getQuantidadeEncomendada() > 0) {
-                            notificarAdminEncomendaUseCase.execute(new NotificarAdminEncomendaPecaUseCase.Input(
+                            notificarAdminEncomendaService.execute(new NotificarAdminEncomendaPecaService.Input(
                                     ordemServico.getId(),
                                     execucaoServico.getId(),
                                     alocacaoPeca.getPecaId(),
@@ -64,7 +66,7 @@ public class AprovarOrdemServicoUseCase {
         });
 
         ordemServico.aprovar(funcionario.getId());
-        notificarUseCase.execute(ordemServico);
+        notificarService.execute(ordemServico);
 
         gateway.salvarEstoques(pecasEstoque.values());
         return gateway.salvarOrdemServico(ordemServico);

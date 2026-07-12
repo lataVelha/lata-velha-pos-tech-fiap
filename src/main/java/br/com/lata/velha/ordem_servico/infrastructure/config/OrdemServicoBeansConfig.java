@@ -4,7 +4,10 @@ import br.com.lata.velha.ordem_servico.application.controllers.ordemservico.Orde
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.application.presenters.ordemservico.*;
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
+import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.CriarProprietarioGateway;
+import br.com.lata.velha.ordem_servico.application.use_cases.veiculo.CriarVeiculoGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +23,8 @@ public class OrdemServicoBeansConfig {
 
     private final CriarOrdemServicoGateway criarGateway;
     private final CriarOrdemServicoPresenter criarPresenter;
+    private final CriarProprietarioGateway criarProprietarioGateway;
+    private final CriarVeiculoGateway criarVeiculoGateway;
     private final AdicionarServicoGateway adicionarGateway;
     private final AprovarOrdemServicoGateway aprovarGateway;
     private final AprovarOrdemServicoPresenter aprovarPresenter;
@@ -47,6 +52,8 @@ public class OrdemServicoBeansConfig {
                 templateProvider,
                 criarGateway,
                 criarPresenter,
+                criarProprietarioGateway,
+                criarVeiculoGateway,
                 adicionarGateway,
                 aprovarGateway,
                 aprovarPresenter,

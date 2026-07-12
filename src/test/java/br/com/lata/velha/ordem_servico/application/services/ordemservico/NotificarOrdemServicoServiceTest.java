@@ -1,4 +1,4 @@
-package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
+package br.com.lata.velha.ordem_servico.application.services.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
@@ -24,13 +24,13 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class NotificarOrdemServicoUseCaseTest {
+class NotificarOrdemServicoServiceTest {
 
     @Mock private NotificarOrdemServicoGateway gateway;
     @Mock private EmailProvider emailProvider;
     @Mock private EmailTemplateProvider templateProvider;
 
-    private NotificarOrdemServicoUseCase useCase;
+    private NotificarOrdemServicoService service;
 
     private static final Long OS_ID = 1L;
     private static final Long PROP_ID = 2L;
@@ -41,7 +41,7 @@ class NotificarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new NotificarOrdemServicoUseCase(gateway, emailProvider, templateProvider);
+        service = new NotificarOrdemServicoService(gateway, emailProvider, templateProvider);
         proprietario = new Proprietario(PROP_ID, "João Silva", "joao@example.com", null, null, null);
         veiculo = new Veiculo(VEICULO_ID, PROP_ID, null, "Honda", "Civic", 2022, "Prata");
 
@@ -68,7 +68,7 @@ class NotificarOrdemServicoUseCaseTest {
     @Test
     @DisplayName("deve enviar email com sucesso no caminho feliz")
     void deveEnviarEmailComSucesso() {
-        useCase.execute(buildOs(StatusOrdemServico.RECEBIDA));
+        service.execute(buildOs(StatusOrdemServico.RECEBIDA));
 
         verify(emailProvider).send(eq("joao@example.com"), anyString(), anyString());
         verify(templateProvider).render(eq("os-notificacao"), anyMap());
@@ -79,7 +79,7 @@ class NotificarOrdemServicoUseCaseTest {
     void deveNaoPropagateExcecaoQuandoEmailFalha() {
         doThrow(new RuntimeException("SMTP error")).when(emailProvider).send(any(), any(), any());
 
-        assertThatNoException().isThrownBy(() -> useCase.execute(buildOs(StatusOrdemServico.RECEBIDA)));
+        assertThatNoException().isThrownBy(() -> service.execute(buildOs(StatusOrdemServico.RECEBIDA)));
     }
 
     @Test
@@ -87,7 +87,7 @@ class NotificarOrdemServicoUseCaseTest {
     void deveNaoPropagateExcecaoQuandoTemplateFalha() {
         when(templateProvider.render(anyString(), anyMap())).thenThrow(new RuntimeException("Template error"));
 
-        assertThatNoException().isThrownBy(() -> useCase.execute(buildOs(StatusOrdemServico.RECEBIDA)));
+        assertThatNoException().isThrownBy(() -> service.execute(buildOs(StatusOrdemServico.RECEBIDA)));
         verify(emailProvider, never()).send(any(), any(), any());
     }
 
@@ -97,13 +97,14 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(buildOs(StatusOrdemServico.RECEBIDA));
+        service.execute(buildOs(StatusOrdemServico.RECEBIDA));
 
         verify(templateProvider).render(eq("os-notificacao"), captor.capture());
         var vars = captor.getValue();
-        assertThat(vars.get("nome")).isEqualTo("João Silva");
-        assertThat(vars.get("osNumero")).isEqualTo(OS_ID);
-        assertThat(vars.get("veiculo")).isEqualTo("Honda Civic");
+        assertThat(vars)
+                .containsEntry("nome", "João Silva")
+                .containsEntry("osNumero", OS_ID)
+                .containsEntry("veiculo", "Honda Civic");
     }
 
     @Test
@@ -112,7 +113,7 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(buildOs(StatusOrdemServico.RECEBIDA));
+        service.execute(buildOs(StatusOrdemServico.RECEBIDA));
 
         verify(templateProvider).render(eq("os-notificacao"), captor.capture());
         assertThat(captor.getValue()).containsKey("reclamacao");
@@ -124,7 +125,7 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(buildOs(StatusOrdemServico.EM_DIAGNOSTICO));
+        service.execute(buildOs(StatusOrdemServico.EM_DIAGNOSTICO));
 
         verify(templateProvider).render(anyString(), captor.capture());
         assertThat(captor.getValue()).containsKey("reclamacao");
@@ -136,7 +137,7 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(buildOs(StatusOrdemServico.AGUARDANDO_APROVACAO));
+        service.execute(buildOs(StatusOrdemServico.AGUARDANDO_APROVACAO));
 
         verify(templateProvider).render(anyString(), captor.capture());
         assertThat(captor.getValue()).containsKey("reclamacao");
@@ -148,7 +149,7 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(buildOs(StatusOrdemServico.APROVADA));
+        service.execute(buildOs(StatusOrdemServico.APROVADA));
 
         verify(templateProvider).render(anyString(), captor.capture());
         assertThat(captor.getValue()).doesNotContainKey("reclamacao");
@@ -165,12 +166,11 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(os);
+        service.execute(os);
 
         verify(templateProvider).render(anyString(), captor.capture());
         var vars = captor.getValue();
-        assertThat(vars).containsKey("servicos");
-        assertThat(vars).containsKey("valorTotal");
+        assertThat(vars).containsKeys("servicos", "valorTotal");
     }
 
     @Test
@@ -185,14 +185,11 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(os);
+        service.execute(os);
 
         verify(templateProvider).render(anyString(), captor.capture());
         var vars = captor.getValue();
-        assertThat(vars).containsKey("servicosAprovados");
-        assertThat(vars).containsKey("servicosRecusados");
-        assertThat(vars).containsKey("valorAprovado");
-        assertThat(vars).containsKey("valorRecusado");
+        assertThat(vars).containsKeys("servicosAprovados", "servicosRecusados", "valorAprovado", "valorRecusado");
     }
 
     @Test
@@ -206,7 +203,7 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(os);
+        service.execute(os);
 
         verify(templateProvider).render(anyString(), captor.capture());
         assertThat(captor.getValue()).containsKey("servicosAprovados");
@@ -223,13 +220,13 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(os);
+        service.execute(os);
 
         verify(templateProvider).render(anyString(), captor.capture());
         var vars = captor.getValue();
-        assertThat(vars).containsKey("servicosRecusados");
-        assertThat(vars).containsKey("valorRecusado");
-        assertThat(vars.get("reprovada")).isEqualTo(true);
+        assertThat(vars)
+                .containsKeys("servicosRecusados", "valorRecusado")
+                .containsEntry("reprovada", true);
     }
 
     @Test
@@ -245,7 +242,7 @@ class NotificarOrdemServicoUseCaseTest {
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
-        useCase.execute(os);
+        service.execute(os);
 
         verify(templateProvider).render(anyString(), captor.capture());
         @SuppressWarnings("unchecked")
@@ -260,7 +257,7 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(buildOs(StatusOrdemServico.EM_DIAGNOSTICO));
+        service.execute(buildOs(StatusOrdemServico.EM_DIAGNOSTICO));
 
         verify(templateProvider).render(anyString(), captor.capture());
         @SuppressWarnings("unchecked")
@@ -274,7 +271,7 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(buildOs(StatusOrdemServico.REPROVADA));
+        service.execute(buildOs(StatusOrdemServico.REPROVADA));
 
         verify(templateProvider).render(anyString(), captor.capture());
         @SuppressWarnings("unchecked")
@@ -288,15 +285,15 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(buildOs(StatusOrdemServico.EM_DIAGNOSTICO));
+        service.execute(buildOs(StatusOrdemServico.EM_DIAGNOSTICO));
 
         verify(templateProvider).render(anyString(), captor.capture());
         @SuppressWarnings("unchecked")
         var timeline = (List<Map<String, Object>>) captor.getValue().get("timeline");
 
-        assertThat(timeline.get(0).get("status")).isEqualTo("CONCLUIDO"); // RECEBIDA
-        assertThat(timeline.get(1).get("status")).isEqualTo("ATUAL");     // EM_DIAGNOSTICO
-        assertThat(timeline.get(2).get("status")).isEqualTo("PENDENTE");  // AGUARDANDO_APROVACAO
+        assertThat(timeline.get(0)).containsEntry("status", "CONCLUIDO"); // RECEBIDA
+        assertThat(timeline.get(1)).containsEntry("status", "ATUAL");     // EM_DIAGNOSTICO
+        assertThat(timeline.get(2)).containsEntry("status", "PENDENTE");  // AGUARDANDO_APROVACAO
     }
 
     @Test
@@ -305,13 +302,13 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(buildOs(StatusOrdemServico.REPROVADA));
+        service.execute(buildOs(StatusOrdemServico.REPROVADA));
 
         verify(templateProvider).render(anyString(), captor.capture());
         @SuppressWarnings("unchecked")
         var timeline = (List<Map<String, Object>>) captor.getValue().get("timeline");
 
-        assertThat(timeline.get(3).get("status")).isEqualTo("RECUSADO"); // REPROVADA step
+        assertThat(timeline.get(3)).containsEntry("status", "RECUSADO"); // REPROVADA step
     }
 
     @Test
@@ -320,13 +317,13 @@ class NotificarOrdemServicoUseCaseTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
 
-        useCase.execute(buildOs(StatusOrdemServico.RECEBIDA));
+        service.execute(buildOs(StatusOrdemServico.RECEBIDA));
 
         verify(templateProvider).render(anyString(), captor.capture());
         @SuppressWarnings("unchecked")
         var timeline = (List<Map<String, Object>>) captor.getValue().get("timeline");
 
-        assertThat(timeline.get(0).get("status")).isEqualTo("CONCLUIDO");
+        assertThat(timeline.get(0)).containsEntry("status", "CONCLUIDO");
     }
 
     @Test
@@ -346,7 +343,7 @@ class NotificarOrdemServicoUseCaseTest {
 
         for (var caso : casos) {
             ArgumentCaptor<String> subjectCaptor = ArgumentCaptor.forClass(String.class);
-            useCase.execute(buildOs(caso.status()));
+            service.execute(buildOs(caso.status()));
             verify(emailProvider, atLeastOnce()).send(any(), subjectCaptor.capture(), any());
             assertThat(subjectCaptor.getValue())
                     .as("Assunto para status %s", caso.status())

@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
+import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.*;
 class ReceberAprovacaoOrcamentoClienteUseCaseTest {
 
     @Mock private ReceberAprovacaoOrcamentoClienteGateway gateway;
+    @Mock private NotificarOrdemServicoService notificarService;
 
     private ReceberAprovacaoOrcamentoClienteUseCase useCase;
 
@@ -39,7 +41,7 @@ class ReceberAprovacaoOrcamentoClienteUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new ReceberAprovacaoOrcamentoClienteUseCase(gateway);
+        useCase = new ReceberAprovacaoOrcamentoClienteUseCase(gateway, notificarService);
     }
 
     private ExecucaoServico buildExecPendente(Long id) {
@@ -76,6 +78,7 @@ class ReceberAprovacaoOrcamentoClienteUseCaseTest {
         assertThat(exec1.getStatus()).isEqualTo(StatusExecucaoServico.APROVADO);
         assertThat(exec2.getStatus()).isEqualTo(StatusExecucaoServico.RECUSADO);
         assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.APROVADA);
+        verify(notificarService).execute(os);
     }
 
     @Test
@@ -97,6 +100,7 @@ class ReceberAprovacaoOrcamentoClienteUseCaseTest {
         useCase.execute(input);
 
         assertThat(os.getStatus()).isEqualTo(StatusOrdemServico.REPROVADA);
+        verify(notificarService).execute(os);
     }
 
     @Test

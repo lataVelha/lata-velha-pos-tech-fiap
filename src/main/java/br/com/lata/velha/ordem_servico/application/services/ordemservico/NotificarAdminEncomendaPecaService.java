@@ -1,4 +1,4 @@
-package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
+package br.com.lata.velha.ordem_servico.application.services.ordemservico;
 
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
@@ -9,15 +9,15 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NotificarAdminEncomendaPecaUseCase {
+public class NotificarAdminEncomendaPecaService {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificarAdminEncomendaPecaUseCase.class);
+    private static final Logger log = LoggerFactory.getLogger(NotificarAdminEncomendaPecaService.class);
 
     private final NotificarAdminEncomendaPecaGateway gateway;
     private final EmailProvider emailProvider;
     private final EmailTemplateProvider templateProvider;
 
-    public NotificarAdminEncomendaPecaUseCase(NotificarAdminEncomendaPecaGateway gateway,
+    public NotificarAdminEncomendaPecaService(NotificarAdminEncomendaPecaGateway gateway,
                                               EmailProvider emailProvider,
                                               EmailTemplateProvider templateProvider) {
         this.gateway = gateway;

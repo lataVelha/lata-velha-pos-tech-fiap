@@ -386,14 +386,15 @@ class OrdemServicoTest {
         }
 
         @Test
-        @DisplayName("deve lançar exceção quando OS não está EM_DIAGNOSTICO")
-        void deveLancarExcecaoQuandoOsNaoEstaEmDiagnostico() {
+        @DisplayName("deve adicionar serviço à lista quando OS está RECEBIDA")
+        void deveAdicionarServicoComSucessoQuandoOsEstaRecebida() {
             OrdemServico os = recebida();
             ExecucaoServico servico = execucaoServico(1L);
 
-            assertThatThrownBy(() -> os.adicionarServico(servico))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Não é possível adicionar serviço");
+            os.adicionarServico(servico);
+
+            assertThat(os.getExecucaoServicos()).hasSize(1);
+            assertThat(os.getExecucaoServicos().getFirst()).isEqualTo(servico);
         }
     }
 
@@ -547,7 +548,7 @@ class OrdemServicoTest {
             OrdemServico b = new OrdemServico(1L, 9L, 9L, "y", StatusOrdemServico.FINALIZADA,
                     null, null, null, null, null, 9L, null, new java.util.ArrayList<>());
 
-            assertThat(a.hashCode()).isEqualTo(b.hashCode());
+            assertThat(a).hasSameHashCodeAs(b);
         }
 
         @Test
