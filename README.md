@@ -35,7 +35,9 @@
 - [Objetivos e componentes](#fase-2--tech-challenge)
 - [Desenho da arquitetura AWS](./documentation/arquitetura-aws.svg)
 - [Fluxo de deploy (CI/CD)](./documentation/pipeline-cicd.svg)
-- [Provisionamento + deploy](./infra/README.md) — documentação completa no `infra/README.md`
+- [Deploy da aplicação](./terraform/README.md) — este repo só aplica os recursos da aplicação no cluster
+- Infraestrutura base (VPC/EKS/ECR/ALB): repo [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra)
+- Banco de dados (RDS): repo [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db)
 
 ---
 
@@ -74,7 +76,15 @@ Endpoints novos da fase:
 
 ### Provisionamento, deploy e operação
 
-Comandos Terraform, `apply.sh`, pipeline do GitHub Actions, custos e pré-requisitos locais estão em **[`infra/README.md`](./infra/README.md)**.
+A infraestrutura foi dividida em três repositórios, cada um com seu próprio state e pipeline de CI/CD:
+
+| Repo | O que provisiona |
+| --- | --- |
+| [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra) | VPC, EKS, ECR, ALB, Cluster Autoscaler |
+| [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db) | RDS PostgreSQL |
+| `app` (este repo) | Deployment/Service/ConfigMap/Secret/HPA/PDB da aplicação — comandos, `apply.sh` e pipeline em **[`terraform/README.md`](./terraform/README.md)** |
+
+Ordem de execução: `infra` → `infra-db` → `app`.
 
 ### Links da fase
 
@@ -306,9 +316,12 @@ Quando terminar, voltar em http://localhost:9000 e clicar no projeto **Lata-Velh
 
 ## Infraestrutura (Terraform + EKS)
 
-VPC, EKS, RDS, ECR, ALB e autoscaling provisionados na AWS com Terraform.
+VPC, EKS, RDS, ECR, ALB e autoscaling provisionados na AWS com Terraform, divididos entre os
+repos [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra) (base),
+[`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db) (banco) e este repo
+(deploy da aplicação).
 
-> Documentação completa: [`infra/README.md`](infra/README.md)
+> Documentação do deploy da aplicação: [`terraform/README.md`](terraform/README.md)
 
 ---
 
