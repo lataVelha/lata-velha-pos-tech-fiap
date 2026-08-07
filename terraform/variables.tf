@@ -34,13 +34,23 @@ variable "docker_image" {
 }
 
 variable "mail_username" {
-  description = "Email remetente (Gmail)"
+  description = "Email remetente (Gmail) — obrigatorio, nao pode ser vazio"
   type        = string
   sensitive   = true
+
+  validation {
+    condition     = length(trimspace(var.mail_username)) > 0
+    error_message = "mail_username nao pode ser vazio. Sem mail configurado o pod entra em CrashLoopBackOff (o startupProbe bate em /actuator/health, que falha se o SMTP nao autentica)."
+  }
 }
 
 variable "mail_password" {
-  description = "Senha de app do Gmail"
+  description = "Senha de app do Gmail — obrigatoria, nao pode ser vazia"
   type        = string
   sensitive   = true
+
+  validation {
+    condition     = length(trimspace(var.mail_password)) > 0
+    error_message = "mail_password nao pode ser vazio. Mesmo motivo do mail_username."
+  }
 }

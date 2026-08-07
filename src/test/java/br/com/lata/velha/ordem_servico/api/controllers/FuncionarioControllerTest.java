@@ -52,7 +52,7 @@ class FuncionarioControllerTest {
     @WithMockUser(roles = "ADMIN")
     @DisplayName("POST /funcionarios deve retornar 201 e o funcionario criado")
     void shouldReturn201OnCreate() throws Exception {
-        var request = new CadastrarFuncionarioRequest("Carlos Tecnico", "carlos@example.com", "Senha1@!", 1L);
+        var request = new CadastrarFuncionarioRequest("Carlos Tecnico", "carlos@example.com", "Senha1@!", 1L, "77788899941");
         var response = new FuncionarioResponse(1L, "Carlos Tecnico", "MECANICO", UUID.randomUUID());
         when(cleanController.cadastrar(any())).thenReturn(response);
         mockMvc.perform(post("/funcionarios")
@@ -68,7 +68,7 @@ class FuncionarioControllerTest {
     @WithMockUser(roles = "ADMIN")
     @DisplayName("POST /funcionarios com body invalido deve retornar 400")
     void shouldReturn400OnInvalidCreateRequest() throws Exception {
-        var invalid = new CadastrarFuncionarioRequest("", "", "", null);
+        var invalid = new CadastrarFuncionarioRequest("", "", "", null, "");
         mockMvc.perform(post("/funcionarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -79,7 +79,7 @@ class FuncionarioControllerTest {
     @WithMockUser(roles = "ADMIN")
     @DisplayName("POST /funcionarios com username duplicado deve retornar 409")
     void shouldReturn409OnDuplicateUsername() throws Exception {
-        var request = new CadastrarFuncionarioRequest("Carlos", "duplicado@example.com", "Senha1@!", 1L);
+        var request = new CadastrarFuncionarioRequest("Carlos", "duplicado@example.com", "Senha1@!", 1L, "88899900078");
         when(cleanController.cadastrar(any()))
                 .thenThrow(new ResourceAlreadyExistsException("Username ja cadastrado"));
         mockMvc.perform(post("/funcionarios")
@@ -180,7 +180,7 @@ class FuncionarioControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("POST /funcionarios com role USER deve retornar 403")
     void shouldReturn403ForUserRole() throws Exception {
-        var request = new CadastrarFuncionarioRequest("Carlos", "carlos@example.com", "Senha1@!", 1L);
+        var request = new CadastrarFuncionarioRequest("Carlos", "carlos@example.com", "Senha1@!", 1L, "99900011112");
         mockMvc.perform(post("/funcionarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

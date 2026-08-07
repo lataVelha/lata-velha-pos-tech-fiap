@@ -75,9 +75,9 @@ class AuthenticationServiceImplTest {
     @DisplayName("createUser deve criar usuário e retornar seu userId")
     void shouldCreateUserAndReturnUserId() {
         var role = new Role(RoleId.create(UUID.randomUUID()), "MECANICO");
-        var dto = new CreateAuthUserDto("novo@example.com", "Senha1@!", Set.of("MECANICO"));
+        var dto = new CreateAuthUserDto("novo@example.com", "Senha1@!", Set.of("MECANICO"), "44455566619");
         var credential = Credential.fromHash("hashed_password", passwordHasher);
-        var savedUser = User.create(Email.fromString("novo@example.com"), credential, Set.of(role));
+        var savedUser = User.create(Email.fromString("novo@example.com"), credential, Set.of(role), "44455566619");
 
         when(userRepository.existsByEmail(any())).thenReturn(false);
         when(roleRepository.getByNomes(Set.of("MECANICO"))).thenReturn(Set.of(role));
@@ -94,7 +94,7 @@ class AuthenticationServiceImplTest {
     @Test
     @DisplayName("createUser deve lançar ResourceAlreadyExistsException quando email já existe")
     void shouldThrowWhenEmailAlreadyExists() {
-        var dto = new CreateAuthUserDto("existente@example.com", "Senha1@!", Set.of("MECANICO"));
+        var dto = new CreateAuthUserDto("existente@example.com", "Senha1@!", Set.of("MECANICO"), "55566677720");
 
         when(userRepository.existsByEmail(any())).thenReturn(true);
 
@@ -106,9 +106,9 @@ class AuthenticationServiceImplTest {
     @DisplayName("createUser deve associar roles ao usuário criado")
     void shouldAssignRolesToCreatedUser() {
         var role = new Role(RoleId.create(UUID.randomUUID()), "MECANICO");
-        var dto = new CreateAuthUserDto("novo@example.com", "Senha1@!", Set.of("MECANICO"));
+        var dto = new CreateAuthUserDto("novo@example.com", "Senha1@!", Set.of("MECANICO"), "66677788830");
         var credential = Credential.fromHash("hashed_password", passwordHasher);
-        var savedUser = User.create(Email.fromString("novo@example.com"), credential, Set.of(role));
+        var savedUser = User.create(Email.fromString("novo@example.com"), credential, Set.of(role), "66677788830");
 
         when(userRepository.existsByEmail(any())).thenReturn(false);
         when(roleRepository.getByNomes(Set.of("MECANICO"))).thenReturn(Set.of(role));

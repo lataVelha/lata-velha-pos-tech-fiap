@@ -37,6 +37,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public boolean existsByCpf(String cpf) {
+        return jpaRepository.existsByCpf(cpf);
+    }
+
+    @Override
     public boolean isAtivoById(UserId id) {
         return getById(id).isAtivo();
     }

@@ -49,7 +49,7 @@ class UserRepositoryImplTest {
         rawUuid = UUID.randomUUID();
         userId = UserId.create(rawUuid);
         userEntity = new UserEntity(rawUuid, "joao", "joao@example.com", "hash", Set.of(), true,
-                LocalDateTime.now(), null);
+                LocalDateTime.now(), null, null);
         Credential credential = Credential.fromHash("hash", passwordHasher);
         var userData = new UserData(userId, "joao", Email.fromString("joao@example.com"), true);
         domainUser = new User(userData, credential, Set.of(), LocalDateTime.now(), null);
@@ -140,7 +140,7 @@ class UserRepositoryImplTest {
         @DisplayName("deve retornar false para usuário inativo")
         void shouldReturnFalseForInactiveUser() {
             UserEntity inactiveEntity = new UserEntity(rawUuid, "joao", "joao@example.com", "hash",
-                    Set.of(), false, LocalDateTime.now(), null);
+                    Set.of(), false, LocalDateTime.now(), null, null);
             when(jpaRepository.findById(rawUuid)).thenReturn(Optional.of(inactiveEntity));
 
             assertFalse(repository.isAtivoById(userId));

@@ -24,10 +24,10 @@ public class CadastrarFuncionarioUseCase {
 
     private UserId createUser(Input input) {
         var roles = authService.getRolesForCargo(input.cargoId());
-        var createUserDto = new CreateAuthUserDto(input.username(), input.senha(), roles);
+        var createUserDto = new CreateAuthUserDto(input.username(), input.senha(), roles, input.cpf());
         var userResponse = authService.createUser(createUserDto);
         return UserId.create(userResponse.userId());
     }
 
-    public record Input(String nome, String username, String senha, Long cargoId) {}
+    public record Input(String nome, String username, String senha, Long cargoId, String cpf) {}
 }

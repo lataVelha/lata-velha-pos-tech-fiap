@@ -8,6 +8,7 @@ public interface UserRepository {
     User getById(UserId id);
     User getByUsernameWithRoles(String username);
     boolean existsByEmail(Email email);
+    boolean existsByCpf(String cpf);
     boolean isAtivoById(UserId id);
     User save(User user);
 

@@ -67,7 +67,7 @@ class LoginControllerIT {
 
         em.flush();
 
-        var input = new CadastrarFuncionarioUseCase.Input("Funcionário Teste", USERNAME, SENHA, cargo.getId());
+        var input = new CadastrarFuncionarioUseCase.Input("Funcionário Teste", USERNAME, SENHA, cargo.getId(), "66778899042");
         new CadastrarFuncionarioUseCase(cadastrarGateway, authService).execute(input);
 
         em.flush();

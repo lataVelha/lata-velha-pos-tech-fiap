@@ -32,7 +32,7 @@ class CadastrarFuncionarioUseCaseTest {
     @Test
     @DisplayName("Deve cadastrar funcionário com sucesso")
     void deveCadastrarFuncionarioComSucesso() {
-        var input = new CadastrarFuncionarioUseCase.Input("Fulano", "fulano@example.com", "Senha123!", 1L);
+        var input = new CadastrarFuncionarioUseCase.Input("Fulano", "fulano@example.com", "Senha123!", 1L, "33445566739");
         var cargo = new Cargo(1L, "MECANICO", null);
         var userId = UserId.random();
         var savedDomain = new Funcionario(10L, "Fulano", cargo, userId);
@@ -56,7 +56,7 @@ class CadastrarFuncionarioUseCaseTest {
     @Test
     @DisplayName("Deve lançar ResourceAlreadyExistsException ao cadastrar email já existente")
     void deveLancarExcecaoQuandoEmailJaExiste() {
-        var input = new CadastrarFuncionarioUseCase.Input("Fulano", "fulano@example.com", "Senha123!", 1L);
+        var input = new CadastrarFuncionarioUseCase.Input("Fulano", "fulano@example.com", "Senha123!", 1L, "44556677840");
         var cargo = new Cargo(1L, "MECANICO", null);
 
         when(gateway.getCargoPorId(1L)).thenReturn(cargo);
@@ -71,7 +71,7 @@ class CadastrarFuncionarioUseCaseTest {
     @Test
     @DisplayName("Deve falhar ao tentar cadastrar funcionário com cargo inexistente")
     void deveFalharAoCriarFuncionarioComCargoInexistente() {
-        var input = new CadastrarFuncionarioUseCase.Input("Fulano", "fulano@example.com", "Senha123!", 99L);
+        var input = new CadastrarFuncionarioUseCase.Input("Fulano", "fulano@example.com", "Senha123!", 99L, "55667788950");
 
         when(gateway.getCargoPorId(99L)).thenThrow(CargoNotFoundException.fromId(99L));
 

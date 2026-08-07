@@ -39,10 +39,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if(userRepository.existsByEmail(email))
             throw new ResourceAlreadyExistsException("Usuário já existe com o email: " + email);
 
+        if(userRepository.existsByCpf(input.cpf()))
+            throw new ResourceAlreadyExistsException("Usuário já existe com o CPF: " + input.cpf());
+
         var roles = roleRepository.getByNomes(input.roles());
         var senha = Senha.fromString(input.senha());
         var credential = Credential.fromSenha(senha, passwordHasher);
-        User user = User.create(email, credential, roles);
+        User user = User.create(email, credential, roles, input.cpf());
 
         var saved = userRepository.save(user);
         return new CreateAuthUserResponseDto(saved.getId().getValue());

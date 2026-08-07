@@ -93,7 +93,7 @@ if ! $SKIP_TESTS; then
   done
 
   set +e
-  (cd "$PROJECT_ROOT" && mvn -B test \
+  (cd "$PROJECT_ROOT" && mvn -B clean test \
     -Dspring.datasource.url=jdbc:postgresql://localhost:5432/lata_velha \
     -Dspring.datasource.username=admin \
     -Dspring.datasource.password=admin123)

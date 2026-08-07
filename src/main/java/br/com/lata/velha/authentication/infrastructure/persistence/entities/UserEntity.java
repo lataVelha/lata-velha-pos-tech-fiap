@@ -52,6 +52,9 @@ public class UserEntity {
     @Column(name = "ULTIMO_LOGIN_DATE")
     private LocalDateTime ultimoLoginDate;
 
+    @Column(name = "CPF", nullable = false, unique = true)
+    private String cpf;
+
     public static UserEntity fromDomain(User user) {
         var roles = user.getRoles().stream()
                 .map(RoleEntity::fromDomain)
@@ -64,7 +67,8 @@ public class UserEntity {
                 roles,
                 user.isAtivo(),
                 user.getCriacaoDate(),
-                user.getUltimoLoginDate()
+                user.getUltimoLoginDate(),
+                user.getCpf()
         );
     }
 
@@ -78,7 +82,8 @@ public class UserEntity {
             Credential.fromHash(this.credential, passwordHasher),
             roleEntities,
             this.criacaoDate,
-            this.ultimoLoginDate
+            this.ultimoLoginDate,
+            this.cpf
         );
     }
 }

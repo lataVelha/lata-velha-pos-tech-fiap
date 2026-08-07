@@ -18,8 +18,13 @@ public final class User {
     private boolean ativo;
     private final LocalDateTime criacaoDate;
     private LocalDateTime ultimoLoginDate;
+    private final String cpf;
 
     public User(UserData userData, Credential credential, Set<Role> roles, LocalDateTime criacaoDate, LocalDateTime ultimoLoginDate) {
+        this(userData, credential, roles, criacaoDate, ultimoLoginDate, null);
+    }
+
+    public User(UserData userData, Credential credential, Set<Role> roles, LocalDateTime criacaoDate, LocalDateTime ultimoLoginDate, String cpf) {
         this.id = userData.id();
         this.username = userData.username();
         this.email = userData.email();
@@ -28,13 +33,20 @@ public final class User {
         this.roles = roles;
         this.criacaoDate = criacaoDate;
         this.ultimoLoginDate = ultimoLoginDate;
+        this.cpf = cpf;
     }
 
-    public static User create(Email email, Credential credential, Set<Role> roles) {
+    public static User create(Email email, Credential credential, Set<Role> roles, String cpf) {
+        validateCpf(cpf);
         var id = UserId.random();
         var username = email.toString();
         var userData = new UserData(id, username, email, true);
-        return new User(userData, credential, roles, LocalDateTime.now(), null);
+        return new User(userData, credential, roles, LocalDateTime.now(), null, cpf);
+    }
+
+    private static void validateCpf(String cpf) {
+        if (cpf == null || !cpf.matches("\\d{11}"))
+            throw new IllegalArgumentException("CPF do usuário é obrigatório e deve conter 11 dígitos numéricos");
     }
 
     public boolean login(String senha) {
@@ -89,6 +101,10 @@ public final class User {
 
     public boolean isAtivo() {
         return ativo;
+    }
+
+    public String getCpf() {
+        return cpf;
     }
     //endregion
 }
