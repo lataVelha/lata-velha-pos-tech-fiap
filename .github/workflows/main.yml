@@ -5,6 +5,27 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  # Reusavel: dá pra chamar de fora (ex: mono repo) com
+  # "uses: lataVelha/lata-velha-pos-tech-fiap/.github/workflows/main.yml@master".
+  # Pra isso funcionar, este repo precisa permitir acesso de fora em
+  # Settings > Actions > General > Access.
+  workflow_call:
+    inputs:
+      aws_region:
+        description: "Regiao AWS (default: var AWS_REGION deste repo)"
+        type: string
+        required: false
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: false
+      TF_MAIL_USERNAME:
+        required: true
+      TF_MAIL_PASSWORD:
+        required: true
 
 env:
   # Força actions JS a rodarem no Node 24 (algumas ainda pedem Node 20)
@@ -48,12 +69,15 @@ jobs:
   build:
     name: "CD · Build & push da imagem → ECR"
     needs: test
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: github.event_name == 'workflow_call' || (github.ref == 'refs/heads/master' && github.event_name == 'push')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     outputs:
       image: ${{ steps.meta.outputs.image }}
+
+    env:
+      REGION: ${{ inputs.aws_region || vars.AWS_REGION }}
 
     steps:
       - name: Checkout do código
@@ -65,7 +89,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ env.REGION }}
 
       - name: Autenticar no Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
@@ -115,6 +139,7 @@ jobs:
         working-directory: terraform
 
     env:
+      REGION: ${{ inputs.aws_region || vars.AWS_REGION }}
       TF_VAR_docker_image: ${{ needs.build.outputs.image }}
       TF_VAR_mail_username: ${{ secrets.TF_MAIL_USERNAME }}
       TF_VAR_mail_password: ${{ secrets.TF_MAIL_PASSWORD }}
@@ -129,7 +154,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ env.REGION }}
 
       - name: Instalar Terraform 1.10
         uses: hashicorp/setup-terraform@v3
@@ -140,7 +165,7 @@ jobs:
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "TF_VAR_state_bucket=lata-velha-tfstate-${ACCOUNT_ID}" >> $GITHUB_ENV
-          echo "TF_VAR_region=${{ vars.AWS_REGION }}" >> $GITHUB_ENV
+          echo "TF_VAR_region=${{ env.REGION }}" >> $GITHUB_ENV
           echo "TF_VAR_cluster_name=${CLUSTER_NAME}" >> $GITHUB_ENV
           echo "TF_VAR_cluster_endpoint=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.endpoint' --output text)" >> $GITHUB_ENV
           echo "TF_VAR_cluster_ca_data=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.certificateAuthority.data' --output text)" >> $GITHUB_ENV
@@ -149,7 +174,7 @@ jobs:
         run: |
           terraform init -reconfigure \
             -backend-config="bucket=${TF_VAR_state_bucket}" \
-            -backend-config="region=${{ vars.AWS_REGION }}"
+            -backend-config="region=${{ env.REGION }}"
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
@@ -166,6 +191,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
+    env:
+      REGION: ${{ inputs.aws_region || vars.AWS_REGION }}
+
     steps:
       - name: Autenticar na AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -173,7 +201,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ env.REGION }}
 
       - name: Instalar kubectl
         uses: azure/setup-kubectl@v4
@@ -181,7 +209,7 @@ jobs:
       - name: Configurar kubeconfig do cluster EKS
         run: |
           aws eks update-kubeconfig \
-            --region ${{ vars.AWS_REGION }} \
+            --region ${{ env.REGION }} \
             --name ${{ env.CLUSTER_NAME }}
 
       - name: Aguardar rollout do deployment
@@ -190,10 +218,18 @@ jobs:
             -n lata-velha \
             --timeout=5m
 
+      # O ALB é interno desde que o API Gateway (repo infra) passou a ser o
+      # único ponto de entrada — bater direto no DNS do ALB não funciona
+      # mais de fora da VPC. O smoke test usa o endpoint público do API
+      # Gateway em vez disso.
       - name: Smoke test — health check HTTP
         run: |
-          ALB_DNS=$(aws elbv2 describe-load-balancers --names "${ECR_REPO_NAME}-alb" --query 'LoadBalancers[0].DNSName' --output text)
-          URL="http://${ALB_DNS}/actuator/health"
+          API_URL=$(aws apigatewayv2 get-apis --query "Items[?Name=='${ECR_REPO_NAME}-app-api'].ApiEndpoint" --output text)
+          if [ -z "$API_URL" ]; then
+            echo "ERRO: API Gateway '${ECR_REPO_NAME}-app-api' não encontrado — o repo infra (addons) já rodou?"
+            exit 1
+          fi
+          URL="${API_URL}/actuator/health"
           echo "Testando $URL ..."
           for i in $(seq 1 10); do
             STATUS=$(curl -sf -o /dev/null -w "%{http_code}" "$URL" 2>/dev/null || echo "000")

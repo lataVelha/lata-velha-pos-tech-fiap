@@ -76,19 +76,27 @@ Endpoints novos da fase:
 
 ### Provisionamento, deploy e operação
 
-A infraestrutura foi dividida em três repositórios, cada um com seu próprio state e pipeline de CI/CD:
+A infraestrutura foi dividida em quatro repositórios, cada um com seu próprio state e pipeline de CI/CD:
 
 | Repo | O que provisiona |
 | --- | --- |
-| [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra) | VPC, EKS, ECR, ALB, Cluster Autoscaler |
+| [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra) | VPC, EKS, ECR, ALB **interno**, API Gateway (único ponto de entrada), Cluster Autoscaler |
 | [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db) | RDS PostgreSQL |
+| [`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda) | Login por CPF (`auth-cpf`) e a lambda authorizer, anexadas ao API Gateway do `infra` |
 | `app` (este repo) | Deployment/Service/ConfigMap/Secret/HPA/PDB da aplicação — comandos, `apply.sh` e pipeline em **[`terraform/README.md`](./terraform/README.md)** |
 
-Ordem de execução: `infra` → `infra-db` → `app`.
+Ordem de execução: `infra` (bootstrap) → `infra-db` → `lambda` → `infra` (addons) → **`app`**. O
+[`apply.sh`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-mono) da raiz do mono repo já
+encadeia essa ordem automaticamente.
+
+O ALB não é acessível diretamente (subnets privadas, sem IP público) — todo tráfego externo,
+incluindo o login por CPF, passa pelo **API Gateway** provisionado pelo `infra`. Ver
+`infra/README.md` para os detalhes da arquitetura (rotas públicas, lambda authorizer, etc).
 
 ### Links da fase
 
-- **Collection de APIs (Swagger local):** http://url-lb-aws/swagger-ui.html *(após `docker compose up`)*
+- **Collection de APIs (Swagger local, via `docker compose up`):** http://localhost:8080/swagger-ui.html
+- **Collection de APIs (AWS):** URL do API Gateway (`app_api_endpoint`, output do `infra` addons) + `/swagger-ui.html`
 - **Vídeo demonstrativo (≤15 min):**
 
 ---
@@ -258,6 +266,12 @@ O sistema usa JWT com RSA (chaves de 2048 bits). Basicamente: você faz login, r
 - `atendente@latavelha.com` / `Atend@123` — pode abrir OS, aprovar, entregar
 - `mecanico@latavelha.com` / `Mecan@123` — pode fazer diagnóstico e executar serviços
 
+**Login por CPF (via API Gateway, ambiente AWS):** além de `POST /auth/login` (email/senha),
+existe um segundo caminho de entrada — `POST /auth/cpf`, servido por uma lambda do repo
+[`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda), fora deste repo. Emite
+o mesmo tipo de token JWT (mesma chave RSA, mesmo `sub`/`scope`), a partir do CPF cadastrado na
+tabela `USERS`. Não substitui o login por senha — é uma porta de entrada alternativa.
+
 ## Testes
 
 Rode os testes com:
@@ -316,10 +330,11 @@ Quando terminar, voltar em http://localhost:9000 e clicar no projeto **Lata-Velh
 
 ## Infraestrutura (Terraform + EKS)
 
-VPC, EKS, RDS, ECR, ALB e autoscaling provisionados na AWS com Terraform, divididos entre os
-repos [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra) (base),
-[`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db) (banco) e este repo
-(deploy da aplicação).
+VPC, EKS, RDS, ECR, ALB interno, API Gateway e autoscaling provisionados na AWS com Terraform,
+divididos entre quatro repos: [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra)
+(base + API Gateway), [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db)
+(banco), [`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda) (login por CPF +
+authorizer) e este repo (deploy da aplicação).
 
 > Documentação do deploy da aplicação: [`terraform/README.md`](terraform/README.md)
 

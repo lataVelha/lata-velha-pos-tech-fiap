@@ -4,10 +4,15 @@ Terraform que aplica só os recursos Kubernetes da aplicação (`Namespace`, `Co
 `Deployment`, `Service`, `HPA`, `PDB` — módulo `modules/app`, manifests em `../k8s`) no cluster
 EKS já provisionado.
 
-Este repo **não** provisiona VPC/EKS/ECR/ALB/autoscaler (repo
-[`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra)) nem o banco de dados RDS
-(repo [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db)). Ambos
-precisam ter rodado antes deste deploy.
+Este repo **não** provisiona VPC/EKS/ECR/ALB/API Gateway/autoscaler (repo
+[`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra)), nem o banco de dados RDS
+(repo [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db)), nem a
+autenticação por CPF/lambda authorizer (repo
+[`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda)). Os três precisam ter
+rodado antes deste deploy — ordem completa do pipeline: `infra` (bootstrap) → `infra-db` →
+`lambda` → `infra` (addons) → **`app`** (este repo, por último). O ALB provisionado pelo `infra`
+é **interno**: a URL pública de verdade é o API Gateway (`app_api_endpoint`, output do `infra`
+addons), não o DNS do ALB.
 
 ## Sumário
 
@@ -88,7 +93,12 @@ terraform destroy   # para remover os recursos da aplicação
 ## CI/CD (GitHub Actions)
 
 `.github/workflows/main.yml`, em push para `master`: testes → build/push da imagem no ECR →
-`terraform apply` (este diretório) → verificação (rollout + smoke test em `/actuator/health`).
+`terraform apply` (este diretório) → verificação (rollout + smoke test em `/actuator/health`,
+resolvido via API Gateway, não mais o DNS do ALB).
+
+Este repo também expõe seu `main.yml` como **workflow reusável** (`on: workflow_call`) — é assim
+que o `apply.sh` da raiz do mono repo (via GitHub Actions) dispara o apply deste repo por
+último no pipeline, sem duplicar a lógica de build/deploy.
 
 ### Secrets/vars necessários no repositório
 

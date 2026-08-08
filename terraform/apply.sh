@@ -19,7 +19,14 @@
 #   cp terraform.tfvars.example terraform.tfvars
 #   # Edite com suas credenciais de e-mail
 
-set -euo pipefail
+set -Eeuo pipefail
+
+# --------------------------- saída no terminal ------------------------------
+if [[ -t 1 ]]; then
+  C_BLUE=$'\033[1;34m'; C_GREEN=$'\033[1;32m'; C_YELLOW=$'\033[1;33m'; C_RED=$'\033[1;31m'; C_DIM=$'\033[2m'; C_RESET=$'\033[0m'
+else
+  C_BLUE=''; C_GREEN=''; C_YELLOW=''; C_RED=''; C_DIM=''; C_RESET=''
+fi
 
 AUTO=""
 SKIP_TESTS=false
@@ -31,7 +38,7 @@ while [[ $# -gt 0 ]]; do
     --skip-tests|--skip-test) SKIP_TESTS=true ;;
     --destroy)                DESTROY=true ;;
     *)
-      echo "Flag desconhecida: $1"
+      echo "${C_RED}Flag desconhecida: $1${C_RESET}"
       echo "Uso: ./apply.sh [--auto] [--skip-test] [--destroy]"
       exit 1
       ;;
@@ -44,6 +51,15 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 CLUSTER_NAME="lata-velha-eks"
 ECR_REPO_NAME="lata-velha"
+
+echo "${C_BLUE}════════════════════════════════════════════════════════════${C_RESET}"
+if $DESTROY; then
+  echo "${C_YELLOW}  APP — Destruindo Deployment/Service/ConfigMap/Secret/HPA/PDB${C_RESET}"
+else
+  echo "  APP — Deploy da aplicação"
+  echo "${C_DIM}  (pipeline local, igual ao GitHub CI/CD)${C_RESET}"
+fi
+echo "${C_BLUE}════════════════════════════════════════════════════════════${C_RESET}"
 
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 BUCKET="lata-velha-tfstate-${ACCOUNT_ID}"
@@ -64,21 +80,18 @@ tf_init() {
 
 if $DESTROY; then
   echo ""
-  echo "==> Destruindo recursos da aplicação (Deployment/Service/ConfigMap/Secret/HPA/PDB)..."
+  echo "${C_BLUE}==> Destruindo recursos da aplicação (Deployment/Service/ConfigMap/Secret/HPA/PDB)...${C_RESET}"
   tf_init
   terraform -chdir="$SCRIPT_DIR" destroy $AUTO
+  echo ""
+  echo "${C_GREEN}✓ Recursos da aplicação destruídos.${C_RESET}"
   exit 0
 fi
-
-echo ""
-echo "========================================"
-echo "  PIPELINE LOCAL — igual ao GitHub CI/CD"
-echo "========================================"
 
 # [1/4] Testes
 if ! $SKIP_TESTS; then
   echo ""
-  echo "==> [1/4] Testes — subindo PostgreSQL efêmero..."
+  echo "${C_BLUE}==> [1/4] Testes${C_RESET} ${C_DIM}— subindo PostgreSQL efêmero...${C_RESET}"
   docker rm -f lata-velha-test-db 2>/dev/null || true
   docker run --rm -d \
     --name lata-velha-test-db \
@@ -100,56 +113,63 @@ if ! $SKIP_TESTS; then
   TEST_EXIT=$?
   set -e
 
-  docker stop lata-velha-test-db
+  docker stop lata-velha-test-db > /dev/null
 
   if [[ $TEST_EXIT -ne 0 ]]; then
     echo ""
-    echo "ERRO: Testes falharam. Deploy cancelado."
+    echo "${C_RED}✗ [1/4] Testes falharam (código $TEST_EXIT). Deploy cancelado.${C_RESET}"
     exit $TEST_EXIT
   fi
-  echo "    Testes concluídos com sucesso."
+  echo "${C_GREEN}✓ [1/4] Testes concluídos com sucesso.${C_RESET}"
 else
   echo ""
-  echo "==> [1/4] Testes — pulando (--skip-test)"
+  echo "${C_YELLOW}==> [1/4] Testes — pulando (--skip-test)${C_RESET}"
 fi
 
 # [2/4] Docker
 echo ""
-echo "==> [2/4] Docker — build e push da imagem"
+echo "${C_BLUE}==> [2/4] Docker${C_RESET} ${C_DIM}— build e push da imagem${C_RESET}"
 ECR_URL=$(aws ecr describe-repositories --repository-names "$ECR_REPO_NAME" --region "$REGION" --query 'repositories[0].repositoryUri' --output text)
 GIT_SHA=$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo "local")
 IMAGE="${ECR_URL}:${GIT_SHA}"
 
 aws ecr get-login-password --region "$REGION" \
-  | docker login --username AWS --password-stdin "$ECR_URL"
+  | docker login --username AWS --password-stdin "$ECR_URL" > /dev/null
 
 docker build --platform linux/amd64 -t "$IMAGE" "$PROJECT_ROOT"
 docker push "$IMAGE"
-echo "    Imagem: $IMAGE"
+echo "${C_GREEN}✓ [2/4] Imagem publicada:${C_RESET} $IMAGE"
 
 # [3/4] Deploy
 echo ""
-echo "==> [3/4] Deploy — Deployment + Service + HPA + PDB"
+echo "${C_BLUE}==> [3/4] Deploy${C_RESET} ${C_DIM}— Deployment + Service + HPA + PDB${C_RESET}"
 export TF_VAR_docker_image="$IMAGE"
 tf_init
 terraform -chdir="$SCRIPT_DIR" apply $AUTO
+echo "${C_GREEN}✓ [3/4] Deploy aplicado.${C_RESET}"
 
 # [4/4] Verificar
 echo ""
-echo "==> [4/4] Verificar — aguardando rollout dos pods..."
-aws eks update-kubeconfig --region "$REGION" --name "$CLUSTER_NAME" 2>/dev/null
+echo "${C_BLUE}==> [4/4] Verificar${C_RESET} ${C_DIM}— aguardando rollout dos pods...${C_RESET}"
+aws eks update-kubeconfig --region "$REGION" --name "$CLUSTER_NAME" > /dev/null 2>&1
 
 if command -v kubectl &>/dev/null; then
   kubectl rollout status deployment/lata-velha-api \
     -n lata-velha \
     --timeout=5m
-  echo "    Rollout concluído com sucesso."
+  echo "${C_GREEN}✓ [4/4] Rollout concluído com sucesso.${C_RESET}"
 else
-  echo "    kubectl não encontrado — verifique manualmente:"
-  echo "    kubectl rollout status deployment/lata-velha-api -n lata-velha"
+  echo "${C_YELLOW}  kubectl não encontrado — verifique manualmente:${C_RESET}"
+  echo "  kubectl rollout status deployment/lata-velha-api -n lata-velha"
 fi
 
 echo ""
-echo "==> Pipeline concluído."
-ALB_DNS=$(aws elbv2 describe-load-balancers --names "${ECR_REPO_NAME}-alb" --region "$REGION" --query 'LoadBalancers[0].DNSName' --output text 2>/dev/null || echo "")
-[[ -n "$ALB_DNS" ]] && echo "    URL: http://${ALB_DNS}"
+echo "${C_GREEN}✓ APP concluído.${C_RESET}"
+# O ALB é interno desde que o API Gateway (repo infra) virou o único ponto
+# de entrada — a URL pública de verdade é a do API Gateway, não o DNS do ALB.
+API_URL=$(aws apigatewayv2 get-apis --region "$REGION" --query "Items[?Name=='${ECR_REPO_NAME}-app-api'].ApiEndpoint" --output text 2>/dev/null || echo "")
+if [[ -n "$API_URL" ]]; then
+  echo "  URL: $API_URL"
+else
+  echo "${C_DIM}  (API Gateway '${ECR_REPO_NAME}-app-api' não encontrado — o infra addons já rodou?)${C_RESET}"
+fi

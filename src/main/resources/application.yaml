@@ -31,6 +31,15 @@ spring:
             required: true
     default-encoding: UTF-8
 
+# O API Gateway fala https com o cliente mas http com o ALB interno (VPC
+# Link + HTTP_PROXY) — sem isso, o Spring so enxerga a conexao http vinda do
+# ALB e gera URLs http:// (Swagger "Try it out" quebra com erro de CORS/
+# "Failed to fetch", porque o dominio execute-api.amazonaws.com so serve
+# https). O API Gateway ja envia X-Forwarded-Proto: https; isso so faz o
+# Spring confiar nesse header pra montar as URLs certas.
+server:
+  forward-headers-strategy: framework
+
 jwt:
   public:
     key: classpath:app.pub
