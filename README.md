@@ -78,12 +78,12 @@ Endpoints novos da fase:
 
 A infraestrutura foi dividida em quatro repositórios, cada um com seu próprio state e pipeline de CI/CD:
 
-| Repo | O que provisiona |
-| --- | --- |
-| [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra) | VPC, EKS, ECR, ALB **interno**, API Gateway (único ponto de entrada), Cluster Autoscaler |
-| [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db) | RDS PostgreSQL |
-| [`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda) | Login por CPF (`auth-cpf`) e a lambda authorizer, anexadas ao API Gateway do `infra` |
-| `app` (este repo) | Deployment/Service/ConfigMap/Secret/HPA/PDB da aplicação — comandos, `apply.sh` e pipeline em **[`terraform/README.md`](./terraform/README.md)** |
+| Repo                                                                         | O que provisiona                                                                                                                                 |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra)       | VPC, EKS, ECR, ALB **interno**, API Gateway (único ponto de entrada), Cluster Autoscaler                                                         |
+| [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db) | RDS PostgreSQL                                                                                                                                   |
+| [`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda)     | Login por CPF (`auth-cpf`) e a lambda authorizer, anexadas ao API Gateway do `infra`                                                             |
+| `app` (este repo)                                                            | Deployment/Service/ConfigMap/Secret/HPA/PDB da aplicação — comandos, `apply.sh` e pipeline em **[`terraform/README.md`](./terraform/README.md)** |
 
 Ordem de execução: `infra` (bootstrap) → `infra-db` → `lambda` → `infra` (addons) → **`app`**. O
 [`apply.sh`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-mono) da raiz do mono repo já
@@ -130,28 +130,31 @@ O código é dividido em 3 contextos bem separados:
 </p>
 
 **Authentication**
+
 - Só cuida de login e gerar token JWT
 - Basicamente: usuário entra com email/senha e recebe um token que é válido por 1 hora
 - Fica em `authentication/`, totalmente isolado do restante do código
 
 **Ordem de Serviço**
+
 - Aqui roda o core business da oficina: proprietários, veículos, serviços, peças, ordens de serviço
 - Uma OS passa por diferentes estados quando criada: recebida → diagnóstico → aguardando aprovação → aprovada → execução → finalizada → entregue
 - Se o proprietário recusar todos os serviços identificados, a Ordem de Serviço é reprovada, liberando a retirada do veículo
 - Fica tudo em `ordem_servico/`
 
 **Shared**
+
 - Código que qualquer contexto precisa: exceções, validadores, tipos básicos que se repetem
 
 ### Notificações por E-mail
 
 O sistema dispara e-mails em 3 momentos do fluxo:
 
-| Evento | Destinatário | Template |
-|--------|-------------|----------|
-| Mudança de status da OS (7 transições) | Proprietário do veículo | `os-notificacao.html` |
-| Cadastro de novo proprietário | Proprietário | `proprietario-cadastro.html` |
-| Aprovação de OS com peça em falta no estoque | Todos os admins | `peca-encomenda.html` |
+| Evento                                       | Destinatário            | Template                     |
+| -------------------------------------------- | ----------------------- | ---------------------------- |
+| Mudança de status da OS (7 transições)       | Proprietário do veículo | `os-notificacao.html`        |
+| Cadastro de novo proprietário                | Proprietário            | `proprietario-cadastro.html` |
+| Aprovação de OS com peça em falta no estoque | Todos os admins         | `peca-encomenda.html`        |
 
 A implementação segue **Ports & Adapters**: a camada `domain` não conhece SMTP, e a `application` depende apenas das interfaces `EmailProvider` e `EmailTemplateProvider`. O adapter `GmailEmailProvider` (SMTP via `JavaMailSender`) é `@Async` — falha no envio **nunca quebra a request HTTP**.
 
@@ -177,17 +180,21 @@ SPRING_MAIL_PASSWORD=xxxx xxxx xxxx xxxx   # Senha de App do Google
 ### Infraestrutura
 
 O arquivo principal traz PostgreSQL + aplicação:
+
 ```bash
 docker compose up --build -d
 ```
 
 Se necessário acesso ao banco com PgAdmin e SonarQube, rode:
+
 ```bash
 docker compose -f docker/docker-compose-dev.yml up -d
 ```
+
 (PgAdmin fica em http://localhost:5050, email `admin@admin.com` / senha `admin123`)
 
 Verificar se está tudo rodando:
+
 ```bash
 docker ps
 ```
@@ -197,6 +204,7 @@ docker ps
 Abra o Swagger em http://localhost:8080/swagger-ui.html
 
 Pra acessar os endpoints protegidos, é necessário fazer login primeiro:
+
 1. Procure a seção **Authentication**
 2. Clique em `POST /auth/login`
 3. Passe `admin@latavelha.com` como login e `Admin@123` como senha
@@ -206,12 +214,15 @@ Pra acessar os endpoints protegidos, é necessário fazer login primeiro:
 7. Pronto, todos os endpoints autenticados funcionam
 
 Para parar tudo:
+
 ```bash
 docker compose down -v
 ```
+
 (o `-v` limpa os volumes, apagando dados do banco e SonarQube)
 
 E pgAdmin e Sonar:
+
 ```bash
 docker compose -f docker/docker-compose-dev.yml down -v
 ```
@@ -221,22 +232,26 @@ docker compose -f docker/docker-compose-dev.yml down -v
 ## Configurações por Contexto
 
 **Desenvolvimento local:**
+
 - Banco: PostgreSQL em localhost:5432
 - App: http://localhost:8080
 - Sem profile especial — pega a `application.yaml` default
 
 **Via Docker:**
+
 - App roda num container Docker
 - Seta `ENVIRONMENT=docker` automaticamente
 - Banco fica em `postgres:5432` (nome do hostname no Docker)
 - App na porta 8080, SonarQube na 9000
 
 **Durante testes:**
+
 - BD em memória (H2)
 - Profile `test` ativa automaticamente
 - Migrations desligadas (schema é criado fresh cada vez)
 
 **Credenciais padrão (de desenvolvimento):**
+
 - Host BD: `localhost` (ou `postgres` se Docker)
 - Porta: 5432
 - Database: `lata_velha`
@@ -256,30 +271,36 @@ Use `PATCH /recurso/{id}/desativar` pra inativar e `PATCH /recurso/{id}/reativar
 O sistema usa JWT com RSA (chaves de 2048 bits). Basicamente: você faz login, recebe um token, envia o token em toda requisição protegida.
 
 **Detalhes do token:**
+
 - Válido por 1 hora (3600 segundos)
 - Assinado com chave privada RSA (em `app.key`)
 - Quando o servidor vê o token, valida com a chave pública (em `app.pub`)
 - Header esperado: `Authorization: Bearer <token>`
 
 **Usuários de teste (só desenvolvimento):**
+
 - `admin@latavelha.com` / `Admin@123` — acesso total
 - `atendente@latavelha.com` / `Atend@123` — pode abrir OS, aprovar, entregar
 - `mecanico@latavelha.com` / `Mecan@123` — pode fazer diagnóstico e executar serviços
 
 **Login por CPF (via API Gateway, ambiente AWS):** além de `POST /auth/login` (email/senha),
 existe um segundo caminho de entrada — `POST /auth/cpf`, servido por uma lambda do repo
-[`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda), fora deste repo. Emite
-o mesmo tipo de token JWT (mesma chave RSA, mesmo `sub`/`scope`), a partir do CPF cadastrado na
-tabela `USERS`. Não substitui o login por senha — é uma porta de entrada alternativa.
+[`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda), fora deste repo. Exige
+CPF **e** senha (`{ "cpf": "...", "password": "..." }`) — a mesma senha do login por email,
+conferida contra o mesmo hash BCrypt (`USERS.CREDENTIAL`). Emite o mesmo tipo de token JWT (mesma
+chave RSA, mesmo `sub`/`scope`), só trocando o identificador (CPF em vez de email). É só outro
+meio de fazer login — a equipe decidiu manter os dois no app.
 
 ## Testes
 
 Rode os testes com:
+
 ```bash
 mvn clean test
 ```
 
 Pra ver cobertura (JaCoCo):
+
 ```bash
 mvn clean verify
 ```
@@ -287,16 +308,19 @@ mvn clean verify
 Gera um relatório em `target/site/jacoco/index.html`. Para abrir:
 
 **Linux/WSL:**
+
 ```bash
 xdg-open target/site/jacoco/index.html
 ```
 
 **macOS:**
+
 ```bash
 open target/site/jacoco/index.html
 ```
 
 **Windows:**
+
 ```bash
 start target\site\jacoco\index.html
 ```
@@ -314,12 +338,14 @@ Executado com o docker-compose principal:
 Abre http://localhost:9000. Login padrão é `admin` / `admin` (vai pedir pra trocar na primeira vez).
 
 Antes de rodar a análise, precisa gerar um token:
+
 1. Avatar (canto direito em cima) → My Account
 2. Ir em Security → Generate Tokens
 3. Criar um token chamado `lata-velha`
 4. Copiar o token
 
 Executar:
+
 ```bash
 mvn clean test sonar:sonar -Dsonar.token=SEU_TOKEN_AQUI
 ```
@@ -342,23 +368,23 @@ authorizer) e este repo (deploy da aplicação).
 
 ## Tecnologias
 
-| Tecnologia           | Versão  | Uso                            |
-| -------------------- | ------- | ------------------------------ |
-| Java                 | 21      | Linguagem principal            |
-| Spring Boot          | 3.2.5   | Framework web e DI             |
-| Spring Security      | via 3.2 | Autenticação JWT com RSA       |
-| Spring Data JPA      | via 3.2 | Persistência + Hibernate       |
-| PostgreSQL           | 15      | Banco de dados relacional      |
-| Flyway               | via 3.2 | Versionamento de migrations    |
-| Springdoc OpenAPI    | 2.6.0   | Documentação interativa (Swagger) |
-| JUnit 5              | via 3.2 | Testes unitários               |
-| Mockito              | via 3.2 | Mocks em testes                |
-| H2 Database          | test    | BD em memória para testes      |
-| JaCoCo               | 0.8.12  | Cobertura de testes            |
-| SonarQube            | Community | Análise estática de código     |
-| Docker Compose       | 3.8     | Orquestração de containers     |
-| Terraform            | >= 1.6  | Infraestrutura como código (AWS) |
-| AWS EKS              | 1.36    | Cluster Kubernetes gerenciado  |
-| Lombok               | 1.18.32 | Redução de boilerplate         |
-| Spring Mail          | via 3.2 | Envio de emails (Gmail SMTP)   |
-| Thymeleaf            | via 3.2 | Templates de email             |
+| Tecnologia        | Versão    | Uso                               |
+| ----------------- | --------- | --------------------------------- |
+| Java              | 21        | Linguagem principal               |
+| Spring Boot       | 3.2.5     | Framework web e DI                |
+| Spring Security   | via 3.2   | Autenticação JWT com RSA          |
+| Spring Data JPA   | via 3.2   | Persistência + Hibernate          |
+| PostgreSQL        | 15        | Banco de dados relacional         |
+| Flyway            | via 3.2   | Versionamento de migrations       |
+| Springdoc OpenAPI | 2.6.0     | Documentação interativa (Swagger) |
+| JUnit 5           | via 3.2   | Testes unitários                  |
+| Mockito           | via 3.2   | Mocks em testes                   |
+| H2 Database       | test      | BD em memória para testes         |
+| JaCoCo            | 0.8.12    | Cobertura de testes               |
+| SonarQube         | Community | Análise estática de código        |
+| Docker Compose    | 3.8       | Orquestração de containers        |
+| Terraform         | >= 1.6    | Infraestrutura como código (AWS)  |
+| AWS EKS           | 1.36      | Cluster Kubernetes gerenciado     |
+| Lombok            | 1.18.32   | Redução de boilerplate            |
+| Spring Mail       | via 3.2   | Envio de emails (Gmail SMTP)      |
+| Thymeleaf         | via 3.2   | Templates de email                |
