@@ -52,8 +52,15 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # Em PR, precisa checkar o código da PR (não o master) — nos outros
+      # eventos (push/workflow_call), o checkout padrão do actions/checkout
+      # resolveria pro repo CHAMADOR quando invocado via uses: cross-repo
+      # (ex: mono), por isso fixamos repo+ref explicitamente fora do PR.
       - name: Checkout do código
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || 'lataVelha/lata-velha-pos-tech-fiap' }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'master' }}
 
       - name: Configurar Java 21 (Corretto)
         uses: actions/setup-java@v4
@@ -88,6 +95,9 @@ jobs:
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
+        with:
+          repository: lataVelha/lata-velha-pos-tech-fiap
+          ref: master
 
       - name: Autenticar na AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -153,6 +163,9 @@ jobs:
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
+        with:
+          repository: lataVelha/lata-velha-pos-tech-fiap
+          ref: master
 
       - name: Autenticar na AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -277,6 +290,9 @@ jobs:
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
+        with:
+          repository: lataVelha/lata-velha-pos-tech-fiap
+          ref: master
 
       - name: Autenticar na AWS
         uses: aws-actions/configure-aws-credentials@v4
