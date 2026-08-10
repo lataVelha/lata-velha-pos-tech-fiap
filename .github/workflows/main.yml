@@ -15,6 +15,11 @@ on:
         description: "Regiao AWS (default: var AWS_REGION deste repo)"
         type: string
         required: false
+      destroy:
+        description: "Destruir os recursos da aplicacao em vez de aplicar"
+        type: boolean
+        required: false
+        default: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -42,6 +47,7 @@ jobs:
   # ============================================================
   test:
     name: "CI · Testes automatizados"
+    if: inputs.destroy != true
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
@@ -69,7 +75,7 @@ jobs:
   build:
     name: "CD · Build & push da imagem → ECR"
     needs: test
-    if: github.event_name == 'workflow_call' || (github.ref == 'refs/heads/master' && github.event_name == 'push')
+    if: inputs.destroy != true && (github.event_name == 'workflow_call' || (github.ref == 'refs/heads/master' && github.event_name == 'push'))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
@@ -242,3 +248,63 @@ jobs:
           done
           echo "ERRO: aplicação não respondeu com 200 após 10 tentativas"
           exit 1
+
+  # ============================================================
+  # CD · DESTROY DA APLICAÇÃO
+  # Remove Deployment/Service/ConfigMap/Secret/HPA/PDB — equivalente ao
+  # "./apply.sh --destroy" local (terraform/apply.sh). Não builda nem
+  # testa nada, só destrói. Só roda quando chamado com destroy=true.
+  # ============================================================
+  destroy:
+    name: "CD · Destruir recursos da aplicação"
+    if: inputs.destroy == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    # Mesmo grupo de concorrência do tf-deploy — nunca aplicar e destruir
+    # em paralelo.
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    env:
+      REGION: ${{ inputs.aws_region || vars.AWS_REGION }}
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Autenticar na AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Instalar Terraform 1.10
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.x"
+
+      - name: Resolver bucket de estado e dados do cluster EKS
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "TF_VAR_state_bucket=lata-velha-tfstate-${ACCOUNT_ID}" >> $GITHUB_ENV
+          echo "TF_VAR_region=${{ env.REGION }}" >> $GITHUB_ENV
+          echo "TF_VAR_cluster_name=${CLUSTER_NAME}" >> $GITHUB_ENV
+          echo "TF_VAR_cluster_endpoint=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.endpoint' --output text)" >> $GITHUB_ENV
+          echo "TF_VAR_cluster_ca_data=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.certificateAuthority.data' --output text)" >> $GITHUB_ENV
+
+      - name: Terraform Init
+        run: |
+          terraform init -reconfigure \
+            -backend-config="bucket=${TF_VAR_state_bucket}" \
+            -backend-config="region=${{ env.REGION }}"
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
