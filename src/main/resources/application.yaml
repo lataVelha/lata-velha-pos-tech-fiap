@@ -75,6 +75,17 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+    # Segundo item so documenta o POST /auth/cpf (servido por uma lambda
+    # separada, repo lambda — nao existe controller Java pra ele). A propria
+    # lambda auth-cpf serve o OpenAPI em GET /auth/cpf-openapi.json (repo
+    # lambda, handlers/auth_cpf_handler.py + infra/terraform/modules/
+    # app-gateway) — nenhum arquivo aqui no app, nenhuma mudanca no
+    # SecurityConfig, e ja cai em /auth/** (rota publica).
+    urls:
+      - name: App
+        url: /v3/api-docs
+      - name: Auth CPF (Lambda)
+        url: /auth/cpf-openapi.json
   api-docs:
     enabled: true
     path: /v3/api-docs
