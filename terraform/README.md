@@ -4,15 +4,22 @@ Terraform que aplica só os recursos Kubernetes da aplicação (`Namespace`, `Co
 `Deployment`, `Service`, `HPA`, `PDB` — módulo `modules/app`, manifests em `../k8s`) no cluster
 EKS já provisionado.
 
-Este repo **não** provisiona VPC/EKS/ECR/ALB/API Gateway/autoscaler (repo
+Este repo **não** provisiona VPC/EKS/ECR/ALB/autoscaler (repo
 [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra)), nem o banco de dados RDS
 (repo [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db)), nem a
 autenticação por CPF/lambda authorizer (repo
 [`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda)). Os três precisam ter
-rodado antes deste deploy — ordem completa do pipeline: `infra` (bootstrap) → `infra-db` →
-`lambda` → `infra` (addons) → **`app`** (este repo, por último). O ALB provisionado pelo `infra`
-é **interno**: a URL pública de verdade é o API Gateway (`app_api_endpoint`, output do `infra`
-addons), não o DNS do ALB.
+rodado antes deste deploy — ordem completa do pipeline: `infra` (bootstrap) → `infra` (addons)
+→ `infra-db` → `lambda` → **`app`** (este repo, por último).
+
+O que este repo **sim** provisiona, além do deploy k8s da aplicação: a integração
+`HTTP_PROXY`/`VPC_LINK` com o ALB interno, e as rotas públicas/protegidas do API Gateway
+(`aws_apigatewayv2_integration`/`route`, em `main.tf`) — o "casco" do Gateway (API + VPC Link +
+Stage) já vem pronto do `infra` (addons), sem nenhuma rota; este repo lê `app_api_id`/
+`alb_listener_arn`/`vpc_link_id` de lá via `terraform_remote_state`, e `jwt_authorizer_id` do
+repo `lambda` (pras rotas protegidas). O ALB é **interno**: a URL pública de verdade é o API
+Gateway (`app_api_endpoint`, output deste repo agora — repassado do `infra` addons), não o DNS
+do ALB.
 
 ## Sumário
 
@@ -34,6 +41,10 @@ addons), não o DNS do ALB.
   build da imagem (antes do `terraform apply`).
 - **Banco de dados** (`rds_endpoint`, `db_name`, `db_username`, `db_password`): lidos via
   `terraform_remote_state` do state do `infra-db` (`main.tf`), no mesmo bucket S3.
+- **API Gateway** (`app_api_id`, `app_api_execution_arn`, `alb_listener_arn`, `vpc_link_id`):
+  lidos via `terraform_remote_state` do state do `infra` (addons).
+- **Authorizer** (`jwt_authorizer_id`): lido via `terraform_remote_state` do state do `lambda`
+  — usado nas rotas protegidas (`authorization_type = "CUSTOM"`).
 
 ## Execução local
 
@@ -92,13 +103,15 @@ terraform destroy   # para remover os recursos da aplicação
 
 ## CI/CD (GitHub Actions)
 
-`.github/workflows/main.yml`, em push para `master`: testes → build/push da imagem no ECR →
-`terraform apply` (este diretório) → verificação (rollout + smoke test em `/actuator/health`,
-resolvido via API Gateway, não mais o DNS do ALB).
+`.github/workflows/main.yml`: em PR/push só roda os testes Maven. O deploy de verdade (testes →
+build/push da imagem no ECR → `terraform apply` → verificação, rollout + smoke test em
+`/actuator/health` via API Gateway) só roda via **disparo manual** (`workflow_dispatch`) ou
+quando chamado pelo mono repo.
 
-Este repo também expõe seu `main.yml` como **workflow reusável** (`on: workflow_call`) — é assim
-que o `apply.sh` da raiz do mono repo (via GitHub Actions) dispara o apply deste repo por
-último no pipeline, sem duplicar a lógica de build/deploy.
+Este repo também expõe seu `main.yml` como **workflow reusável** (`on: workflow_call`, aceita
+um input `destroy` pra desfazer) — é assim que o mono repo dispara o apply deste repo por
+último no pipeline (`uses: lataVelha/lata-velha-pos-tech-fiap/.github/workflows/main.yml@master`),
+sem duplicar a lógica de build/deploy.
 
 ### Secrets/vars necessários no repositório
 
@@ -107,6 +120,6 @@ que o `apply.sh` da raiz do mono repo (via GitHub Actions) dispara o apply deste
 | `AWS_ACCESS_KEY_ID` | secret | Credencial AWS |
 | `AWS_SECRET_ACCESS_KEY` | secret | Credencial AWS |
 | `AWS_SESSION_TOKEN` | secret | Necessário no AWS Academy |
-| `AWS_REGION` | var | Região AWS (ex: `us-east-1`) |
+| `AWS_REGION` | var (opcional) | Região AWS — se não cadastrar, usa `us-east-1` como default |
 | `TF_MAIL_USERNAME` | secret | Conta Gmail remetente |
 | `TF_MAIL_PASSWORD` | secret | [Senha de app do Gmail](https://myaccount.google.com/apppasswords) |

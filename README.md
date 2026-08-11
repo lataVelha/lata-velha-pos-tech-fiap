@@ -80,14 +80,16 @@ A infraestrutura foi dividida em quatro repositórios, cada um com seu próprio 
 
 | Repo                                                                         | O que provisiona                                                                                                                                 |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra)       | VPC, EKS, ECR, ALB **interno**, API Gateway (único ponto de entrada), Cluster Autoscaler                                                         |
+| [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra)       | VPC, EKS, ECR, ALB **interno**, "casco" do API Gateway (único ponto de entrada, sem rotas), Cluster Autoscaler                                   |
 | [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db) | RDS PostgreSQL                                                                                                                                   |
-| [`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda)     | Login por CPF (`auth-cpf`) e a lambda authorizer, anexadas ao API Gateway do `infra`                                                             |
-| `app` (este repo)                                                            | Deployment/Service/ConfigMap/Secret/HPA/PDB da aplicação — comandos, `apply.sh` e pipeline em **[`terraform/README.md`](./terraform/README.md)** |
+| [`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda)     | Login por CPF (`auth-cpf`) e a lambda authorizer — anexa a própria rota/authorizer no API Gateway do `infra`                                     |
+| `app` (este repo)                                                            | Deployment/Service/ConfigMap/Secret/HPA/PDB da aplicação + anexa a integração com o ALB e as rotas públicas/protegidas no API Gateway do `infra` — comandos, `apply.sh` e pipeline em **[`terraform/README.md`](./terraform/README.md)** |
 
-Ordem de execução: `infra` (bootstrap) → `infra-db` → `lambda` → `infra` (addons) → **`app`**. O
-[`apply.sh`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-mono) da raiz do mono repo já
-encadeia essa ordem automaticamente.
+Ordem de execução: `infra` (bootstrap) → `infra` (addons) → `infra-db` → `lambda` →
+**`app`**. O [`apply.sh`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-mono) da raiz
+do mono repo já encadeia essa ordem automaticamente. `addons` roda logo após o `bootstrap`
+(não depende de `lambda` nem de `app` — só cria a API vazia; quem anexa rota é cada um desses
+dois repos, via `terraform_remote_state`).
 
 O ALB não é acessível diretamente (subnets privadas, sem IP público) — todo tráfego externo,
 incluindo o login por CPF, passa pelo **API Gateway** provisionado pelo `infra`. Ver
