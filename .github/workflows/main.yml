@@ -5,10 +5,15 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
-  # Push só roda a CI (testes) — o deploy de verdade (build+push da imagem,
-  # terraform apply) só roda via disparo manual (Run workflow) ou chamado
-  # pelo mono. Isso evita aplicar infra real sem querer a cada commit.
+  # Push pra master builda/aplica de verdade (build+push da imagem, terraform
+  # apply). workflow_dispatch existe pra permitir disparo manual (com
+  # destroy=true, por exemplo) fora de um push.
   workflow_dispatch:
+    inputs:
+      destroy:
+        description: "Destruir os recursos da aplicação em vez de aplicar"
+        type: boolean
+        default: false
   # Reusavel: dá pra chamar de fora (ex: mono repo) com
   # "uses: lataVelha/lata-velha-pos-tech-fiap/.github/workflows/main.yml@master".
   # Pra isso funcionar, este repo precisa permitir acesso de fora em
@@ -86,7 +91,7 @@ jobs:
   build:
     name: "CD · Build & push da imagem → ECR"
     needs: test
-    if: inputs.destroy != true && (github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch')
+    if: inputs.destroy != true && (github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch' || (github.ref == 'refs/heads/master' && github.event_name == 'push'))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 

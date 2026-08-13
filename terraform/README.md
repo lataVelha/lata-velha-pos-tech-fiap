@@ -1,29 +1,18 @@
 # Deploy da aplicação
 
-Terraform que aplica só os recursos Kubernetes da aplicação (`Namespace`, `ConfigMap`, `Secret`,
+Terraform que aplica os recursos Kubernetes da aplicação (`Namespace`, `ConfigMap`, `Secret`,
 `Deployment`, `Service`, `HPA`, `PDB` — módulo `modules/app`, manifests em `../k8s`) no cluster
-EKS já provisionado.
+EKS já provisionado, e anexa este serviço ao API Gateway compartilhado: a integração
+`HTTP_PROXY`/`VPC_LINK` com o ALB interno, e as rotas públicas/protegidas
+(`aws_apigatewayv2_integration`/`route`, em `main.tf`).
 
-Este repo **não** provisiona VPC/EKS/ECR/ALB/autoscaler (repo
-[`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra)), nem o banco de dados RDS
-(repo [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db)), nem a
-autenticação por CPF/lambda authorizer (repo
-[`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda)). Os três precisam ter
-rodado antes deste deploy — ordem completa do pipeline: `infra` (bootstrap) → `infra` (addons)
-→ `infra-db` → `lambda` → **`app`** (este repo, por último).
-
-O que este repo **sim** provisiona, além do deploy k8s da aplicação: a integração
-`HTTP_PROXY`/`VPC_LINK` com o ALB interno, e as rotas públicas/protegidas do API Gateway
-(`aws_apigatewayv2_integration`/`route`, em `main.tf`) — o "casco" do Gateway (API + VPC Link +
-Stage) já vem pronto do `infra` (addons), sem nenhuma rota; este repo lê `app_api_id`/
-`alb_listener_arn`/`vpc_link_id` de lá via `terraform_remote_state`, e `jwt_authorizer_id` do
-repo `lambda` (pras rotas protegidas). O ALB é **interno**: a URL pública de verdade é o API
-Gateway (`app_api_endpoint`, output deste repo agora — repassado do `infra` addons), não o DNS
-do ALB.
+Não provisiona VPC/EKS/ECR/ALB/RDS/lambdas — lê o que precisa via `terraform_remote_state`
+(ver [Dependências](#dependências)). O ALB é **interno**: a URL pública de verdade é o API
+Gateway (`app_api_endpoint`), não o DNS do ALB.
 
 ## Sumário
 
-- [Como os dados de conexão chegam aqui](#como-os-dados-de-conexão-chegam-aqui)
+- [Dependências](#dependências)
 - [Execução local](#execução-local)
   - [Com o script (`apply.sh`)](#com-o-script-applysh)
   - [Manualmente (sem o script)](#manualmente-sem-o-script)
@@ -32,19 +21,18 @@ do ALB.
 
 ---
 
-## Como os dados de conexão chegam aqui
+## Dependências
 
-- **Cluster EKS** (`cluster_endpoint`, `cluster_ca_data`, `cluster_name`): resolvidos via
-  `aws eks describe-cluster --name lata-velha-eks` — não lemos o Terraform state do repo `infra`,
-  só o nome fixo do cluster.
-- **Repositório ECR** (`lata-velha`): resolvido via `aws ecr describe-repositories` no passo de
-  build da imagem (antes do `terraform apply`).
-- **Banco de dados** (`rds_endpoint`, `db_name`, `db_username`, `db_password`): lidos via
-  `terraform_remote_state` do state do `infra-db` (`main.tf`), no mesmo bucket S3.
+- **Cluster EKS** (`cluster_endpoint`, `cluster_ca_data`, `cluster_name`) e **ECR**
+  (`lata-velha`), do repo [`infra`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra):
+  resolvidos via AWS CLI (`describe-cluster`/`describe-repositories`), não via Terraform state.
 - **API Gateway** (`app_api_id`, `app_api_execution_arn`, `alb_listener_arn`, `vpc_link_id`):
-  lidos via `terraform_remote_state` do state do `infra` (addons).
-- **Authorizer** (`jwt_authorizer_id`): lido via `terraform_remote_state` do state do `lambda`
-  — usado nas rotas protegidas (`authorization_type = "CUSTOM"`).
+  via `terraform_remote_state` do state do `infra` (addons).
+- **Banco de dados** (`rds_endpoint`, `db_name`, `db_username`, `db_password`): via
+  `terraform_remote_state` do repo [`infra-db`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-infra-db).
+- **Authorizer** (`jwt_authorizer_id`): via `terraform_remote_state` do repo
+  [`lambda`](https://github.com/lataVelha/lata-velha-pos-tech-fiap-lambda) — usado nas rotas
+  protegidas (`authorization_type = "CUSTOM"`).
 
 ## Execução local
 
@@ -103,15 +91,13 @@ terraform destroy   # para remover os recursos da aplicação
 
 ## CI/CD (GitHub Actions)
 
-`.github/workflows/main.yml`: em PR/push só roda os testes Maven. O deploy de verdade (testes →
-build/push da imagem no ECR → `terraform apply` → verificação, rollout + smoke test em
-`/actuator/health` via API Gateway) só roda via **disparo manual** (`workflow_dispatch`) ou
-quando chamado pelo mono repo.
+`.github/workflows/main.yml`, em push para `master`: testes → build/push da imagem no ECR →
+`terraform apply` (este diretório) → verificação (rollout + smoke test em `/actuator/health`,
+via API Gateway). `workflow_dispatch` permite disparar manualmente fora de um push, com a
+opção `destroy` pra desfazer.
 
-Este repo também expõe seu `main.yml` como **workflow reusável** (`on: workflow_call`, aceita
-um input `destroy` pra desfazer) — é assim que o mono repo dispara o apply deste repo por
-último no pipeline (`uses: lataVelha/lata-velha-pos-tech-fiap/.github/workflows/main.yml@master`),
-sem duplicar a lógica de build/deploy.
+Expõe `main.yml` como **workflow reusável** (`on: workflow_call`, aceita um input `destroy`
+pra desfazer).
 
 ### Secrets/vars necessários no repositório
 
