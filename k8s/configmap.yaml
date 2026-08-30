@@ -4,7 +4,7 @@ metadata:
   name: lata-velha-config
   namespace: lata-velha
 data:
-  ENVIRONMENT: ""
+  ENVIRONMENT: "prod"
   SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
   SPRING_FLYWAY_ENABLED: "true"
   SPRING_MAIL_HOST: "smtp.gmail.com"
