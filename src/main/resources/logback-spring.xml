@@ -7,10 +7,10 @@
                      converterClass="br.com.lata.velha.shared.infrasctructure.logging.LevelHighlightConverter"/>
 
     <property name="CONSOLE_LOG_PATTERN"
-              value="%levelHl %clr([%X{correlationId:-N/A}]){faint} %clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){faint} %clr(%C{0}.%M){cyan} %clr(:){faint} %m%n%wEx"/>
+              value="%levelHl %clr([%X{traceId:-N/A}]){faint} %clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){faint} %clr(%C{0}.%M){cyan} %clr(:){faint} %m%n%wEx"/>
 
     <property name="FILE_LOG_PATTERN"
-              value="%-5level [%X{correlationId:-N/A}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %C{0}.%M : %m%n%wEx"/>
+              value="%-5level [%X{traceId:-N/A}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %C{0}.%M : %m%n%wEx"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -45,9 +45,9 @@
             <file>/var/lata-velha/logs/app.log.json</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
                 <fileNamePattern>/var/lata-velha/logs/app.%d{yyyy-MM-dd}.%i.log.json</fileNamePattern>
-                <maxFileSize>100MB</maxFileSize>
-                <maxHistory>7</maxHistory>
-                <totalSizeCap>1GB</totalSizeCap>
+                <maxFileSize>${LOG_MAX_FILE_SIZE:-100MB}</maxFileSize>
+                <maxHistory>${LOG_MAX_HISTORY:-7}</maxHistory>
+                <totalSizeCap>${LOG_TOTAL_SIZE_CAP:-1GB}</totalSizeCap>
             </rollingPolicy>
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
                 <customFields>{"service":"lata-velha-api"}</customFields>

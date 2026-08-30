@@ -14,7 +14,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class LevelHighlightConverterTest {
 
-    private static final String ESC = "";
+    private static final String ESC = "\u001B";
     private static final String RESET = ESC + "[0;39m";
 
     @Mock

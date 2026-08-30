@@ -50,6 +50,9 @@ jwt:
   expires-in: ${JWT_EXPIRES_IN:3600}
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
   endpoints:
     web:
       exposure:

@@ -1,6 +1,5 @@
 package br.com.lata.velha.authentication.infrastructure.security.config;
 
-import br.com.lata.velha.shared.infrasctructure.web.CorrelationIdFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +10,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.session.DisableEncodeUrlFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -19,7 +17,6 @@ import org.springframework.security.web.session.DisableEncodeUrlFilter;
 public class SecurityConfig {
     private final JwtDecoder jwtDecoder;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
-    private final CorrelationIdFilter correlationIdFilter;
     private static final String ADMIN = "ADMIN";
     private static final String USER = "USER";
     private static final String MECANICO = "MECANICO";
@@ -28,8 +25,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-
-                .addFilterBefore(correlationIdFilter, DisableEncodeUrlFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
                         // público

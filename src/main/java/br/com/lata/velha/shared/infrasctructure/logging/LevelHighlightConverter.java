@@ -6,7 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 
 public class LevelHighlightConverter extends ClassicConverter {
 
-    private static final String ESC = "";
+    private static final String ESC = "\u001B";
     private static final String RESET = ESC + "[0;39m";
 
     @Override
