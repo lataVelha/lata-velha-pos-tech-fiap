@@ -3,11 +3,13 @@
 
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <conversionRule conversionWord="levelHl"
-                     converterClass="br.com.lata.velha.shared.infrasctructure.logging.LevelHighlightConverter"/>
+    <conversionRule conversionWord="levelColorStart"
+                     converterClass="br.com.lata.velha.shared.infrasctructure.logging.LevelColorStartConverter"/>
+    <conversionRule conversionWord="levelColorEnd"
+                     converterClass="br.com.lata.velha.shared.infrasctructure.logging.LevelColorEndConverter"/>
 
     <property name="CONSOLE_LOG_PATTERN"
-              value="%levelHl %clr([%X{traceId:-N/A}]){faint} %clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){faint} %clr(%C{0}.%M){cyan} %clr(:){faint} %m%n%wEx"/>
+              value="%levelColorStart%-5level [%X{traceId:-N/A}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %C{0}.%M : %m%n%wEx%levelColorEnd"/>
 
     <property name="FILE_LOG_PATTERN"
               value="%-5level [%X{traceId:-N/A}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %C{0}.%M : %m%n%wEx"/>
@@ -24,9 +26,9 @@
 
     <springProfile name="dev">
         <appender name="FILE_DEV" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>./app.log</file>
+            <file>./log/app.log</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-                <fileNamePattern>./app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <fileNamePattern>./log/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
                 <maxFileSize>20MB</maxFileSize>
                 <maxHistory>7</maxHistory>
             </rollingPolicy>

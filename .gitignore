@@ -63,4 +63,4 @@ __pycache__/
 temp/
 
 ### Logging ###
-app*.log
+/log/
