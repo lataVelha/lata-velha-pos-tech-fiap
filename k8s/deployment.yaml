@@ -53,8 +53,6 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
-            - name: logs
-              mountPath: /var/lata-velha/logs
           resources:
             requests:
               cpu: 250m
@@ -89,6 +87,4 @@ spec:
       terminationGracePeriodSeconds: 60
       volumes:
         - name: tmp
-          emptyDir: {}
-        - name: logs
           emptyDir: {}

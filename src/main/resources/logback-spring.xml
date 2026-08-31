@@ -14,15 +14,17 @@
     <property name="FILE_LOG_PATTERN"
               value="%-5level [%X{traceId:-N/A}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %C{0}.%M : %m%n%wEx"/>
 
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
-        </encoder>
-    </appender>
+    <springProfile name="!prod">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            </encoder>
+        </appender>
 
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-    </root>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
 
     <springProfile name="dev">
         <appender name="FILE_DEV" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -43,14 +45,7 @@
     </springProfile>
 
     <springProfile name="prod">
-        <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>/var/lata-velha/logs/app.log.json</file>
-            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-                <fileNamePattern>/var/lata-velha/logs/app.%d{yyyy-MM-dd}.%i.log.json</fileNamePattern>
-                <maxFileSize>${LOG_MAX_FILE_SIZE:-100MB}</maxFileSize>
-                <maxHistory>${LOG_MAX_HISTORY:-7}</maxHistory>
-                <totalSizeCap>${LOG_TOTAL_SIZE_CAP:-1GB}</totalSizeCap>
-            </rollingPolicy>
+        <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
                 <customFields>{"service":"lata-velha-api"}</customFields>
                 <includeCallerData>true</includeCallerData>
@@ -58,7 +53,7 @@
         </appender>
 
         <root level="INFO">
-            <appender-ref ref="FILE_JSON"/>
+            <appender-ref ref="CONSOLE_JSON"/>
         </root>
     </springProfile>
 
