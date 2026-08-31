@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaEntity;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PecaRepositoryImpl implements PecaRepository {
     private final PecaJpaRepository jpaRepository;
+    private final Logger logger;
 
     @Override
     public Peca save(Peca peca) {
@@ -28,7 +30,10 @@ public class PecaRepositoryImpl implements PecaRepository {
     public Peca getActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(PecaEntity::toDomain)
-                .orElseThrow(() -> new IllegalArgumentException("Peça não encontrada"));
+                .orElseThrow(() -> {
+                    logger.logWarn("Peça ativa não encontrada - pecaId={}", id);
+                    return new IllegalArgumentException("Peça não encontrada");
+                });
     }
 
     @Override

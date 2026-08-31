@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ class NotificarOrdemServicoServiceTest {
     @Mock private NotificarOrdemServicoGateway gateway;
     @Mock private EmailProvider emailProvider;
     @Mock private EmailTemplateProvider templateProvider;
+    @Mock private Logger logger;
 
     private NotificarOrdemServicoService service;
 
@@ -41,7 +43,7 @@ class NotificarOrdemServicoServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new NotificarOrdemServicoService(gateway, emailProvider, templateProvider);
+        service = new NotificarOrdemServicoService(gateway, emailProvider, templateProvider, logger);
         proprietario = new Proprietario(PROP_ID, "João Silva", "joao@example.com", null, null, null);
         veiculo = new Veiculo(VEICULO_ID, PROP_ID, null, "Honda", "Civic", 2022, "Prata");
 

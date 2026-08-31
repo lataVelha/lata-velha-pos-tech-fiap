@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarServico
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarServicoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ServicoNotFoundException;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +49,9 @@ class ServicoControllerTest {
 
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockBean
+    private Logger logger;
 
     private ServicoResponse buildResponse() {
         return new ServicoResponse(1L, "Troca de Oleo", "Troca de oleo e filtro");

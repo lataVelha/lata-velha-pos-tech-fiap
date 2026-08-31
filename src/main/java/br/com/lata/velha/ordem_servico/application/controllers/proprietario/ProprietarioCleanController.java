@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.application.presenters.proprietario.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 
 public class ProprietarioCleanController {
@@ -33,6 +34,8 @@ public class ProprietarioCleanController {
     private final EmailProvider emailProvider;
     private final EmailTemplateProvider templateProvider;
 
+    private final Logger logger;
+
     public ProprietarioCleanController(CriarProprietarioGateway criarGateway,
                                        CriarProprietarioPresenter criarPresenter,
                                        AtualizarProprietarioGateway atualizarGateway,
@@ -47,7 +50,8 @@ public class ProprietarioCleanController {
                                        ReativarProprietarioGateway reativarGateway,
                                        ReativarProprietarioPresenter reativarPresenter,
                                        EmailProvider emailProvider,
-                                       EmailTemplateProvider templateProvider) {
+                                       EmailTemplateProvider templateProvider,
+                                       Logger logger) {
         this.criarGateway = criarGateway;
         this.criarPresenter = criarPresenter;
         this.atualizarGateway = atualizarGateway;
@@ -63,34 +67,55 @@ public class ProprietarioCleanController {
         this.reativarPresenter = reativarPresenter;
         this.emailProvider = emailProvider;
         this.templateProvider = templateProvider;
+        this.logger = logger;
     }
 
     public ProprietarioResponse criar(ProprietarioRequest request) {
-        var notificar = new NotificarCadastroProprietarioUseCase(emailProvider, templateProvider);
-        return criarPresenter.present(new CriarProprietarioUseCase(criarGateway, notificar).execute(request));
+        logger.logInfo("Iniciando criação de proprietário");
+        var notificar = new NotificarCadastroProprietarioUseCase(emailProvider, templateProvider, logger);
+        var proprietario = new CriarProprietarioUseCase(criarGateway, notificar, logger).execute(request);
+        logger.logInfo("Criação de proprietário concluída com sucesso - proprietarioId={}", proprietario.getId());
+        return criarPresenter.present(proprietario);
     }
 
     public ProprietarioResponse atualizar(Long id, ProprietarioRequest request) {
-        return atualizarPresenter.present(new AtualizarProprietarioUseCase(atualizarGateway).execute(id, request));
+        logger.logInfo("Iniciando atualização de proprietário - proprietarioId={}", id);
+        var proprietario = new AtualizarProprietarioUseCase(atualizarGateway, logger).execute(id, request);
+        logger.logInfo("Atualização de proprietário concluída com sucesso - proprietarioId={}", id);
+        return atualizarPresenter.present(proprietario);
     }
 
     public ProprietarioResponse buscarPorId(Long id) {
-        return buscarPorIdPresenter.present(new BuscarProprietarioPorIdUseCase(buscarPorIdGateway).execute(id));
+        logger.logInfo("Iniciando busca de proprietário por id - proprietarioId={}", id);
+        var proprietario = new BuscarProprietarioPorIdUseCase(buscarPorIdGateway, logger).execute(id);
+        logger.logInfo("Busca de proprietário por id concluída com sucesso - proprietarioId={}", id);
+        return buscarPorIdPresenter.present(proprietario);
     }
 
     public ProprietarioResponse buscarPorDocumento(String documento) {
-        return buscarPorDocumentoPresenter.present(new BuscarProprietarioPorDocumentoUseCase(buscarPorDocumentoGateway).execute(documento));
+        logger.logInfo("Iniciando busca de proprietário por documento");
+        var proprietario = new BuscarProprietarioPorDocumentoUseCase(buscarPorDocumentoGateway, logger).execute(documento);
+        logger.logInfo("Busca de proprietário por documento concluída com sucesso - proprietarioId={}", proprietario.getId());
+        return buscarPorDocumentoPresenter.present(proprietario);
     }
 
     public PaginatedResult<ProprietarioResponse> listar(int page, int size) {
-        return listarPresenter.present(new ListarProprietariosUseCase(listarGateway).execute(page, size));
+        logger.logInfo("Iniciando listagem de proprietários - page={}, size={}", page, size);
+        var result = new ListarProprietariosUseCase(listarGateway, logger).execute(page, size);
+        logger.logInfo("Listagem de proprietários concluída com sucesso - totalElements={}", result.totalElements());
+        return listarPresenter.present(result);
     }
 
     public void desativar(Long id) {
-        new DesativarProprietarioUseCase(desativarGateway).execute(id);
+        logger.logInfo("Iniciando desativação de proprietário - proprietarioId={}", id);
+        new DesativarProprietarioUseCase(desativarGateway, logger).execute(id);
+        logger.logInfo("Desativação de proprietário concluída com sucesso - proprietarioId={}", id);
     }
 
     public ProprietarioResponse reativar(Long id) {
-        return reativarPresenter.present(new ReativarProprietarioUseCase(reativarGateway).execute(id));
+        logger.logInfo("Iniciando reativação de proprietário - proprietarioId={}", id);
+        var proprietario = new ReativarProprietarioUseCase(reativarGateway, logger).execute(id);
+        logger.logInfo("Reativação de proprietário concluída com sucesso - proprietarioId={}", id);
+        return reativarPresenter.present(proprietario);
     }
 }

@@ -1,21 +1,21 @@
 package br.com.lata.velha.ordem_servico.infrastructure.email;
 
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
+import br.com.lata.velha.shared.application.logging.Logger;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GmailEmailProvider implements EmailProvider {
 
     private final JavaMailSender mailSender;
+    private final Logger logger;
 
     @Async
     @Override
@@ -30,6 +30,8 @@ public class GmailEmailProvider implements EmailProvider {
 
             mailSender.send(message);
         } catch (MessagingException e) {
+            logger.logWarn("Falha ao montar/enviar e-mail via Gmail SMTP - assunto='{}', causa={}. Destinatário não receberá esta notificação.",
+                    subject, e.getClass().getSimpleName());
             throw new RuntimeException("Falha ao enviar email", e);
         }
     }

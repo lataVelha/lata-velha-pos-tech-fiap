@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.gateways.authentication.Authe
 import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioGateway;
 import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioUseCase;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
+import br.com.lata.velha.shared.application.logging.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -52,6 +53,9 @@ class LoginControllerIT {
     @Autowired
     private EntityManager em;
 
+    @Autowired
+    private Logger logger;
+
     private static final String USERNAME = "funcionario@example.com";
     private static final String SENHA = "Senha1@!";
 
@@ -68,7 +72,7 @@ class LoginControllerIT {
         em.flush();
 
         var input = new CadastrarFuncionarioUseCase.Input("Funcionário Teste", USERNAME, SENHA, cargo.getId(), "66778899042");
-        new CadastrarFuncionarioUseCase(cadastrarGateway, authService).execute(input);
+        new CadastrarFuncionarioUseCase(cadastrarGateway, authService, logger).execute(input);
 
         em.flush();
     }

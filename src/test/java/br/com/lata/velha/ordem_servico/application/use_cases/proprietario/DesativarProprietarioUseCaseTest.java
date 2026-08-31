@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
 import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,9 @@ class DesativarProprietarioUseCaseTest {
     @Mock
     private DesativarProprietarioGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("deve desativar proprietário (soft delete)")
     void shouldDeactivateProprietario() {
@@ -28,7 +32,7 @@ class DesativarProprietarioUseCaseTest {
         when(gateway.getProprietarioPorId(1L)).thenReturn(proprietario);
         when(gateway.salvarProprietario(proprietario)).thenReturn(proprietario);
 
-        DesativarProprietarioUseCase useCase = new DesativarProprietarioUseCase(gateway);
+        DesativarProprietarioUseCase useCase = new DesativarProprietarioUseCase(gateway, logger);
         useCase.execute(1L);
 
         assertFalse(proprietario.isAtivo());

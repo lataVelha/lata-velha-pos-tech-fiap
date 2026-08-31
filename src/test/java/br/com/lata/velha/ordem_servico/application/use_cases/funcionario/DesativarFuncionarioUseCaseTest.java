@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.Cargo;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.FuncionarioNotFoundException;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,9 @@ class DesativarFuncionarioUseCaseTest {
     @Mock
     private DesativarFuncionarioGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("Deve desativar funcionario ativo com sucesso")
     void deveDesativarFuncionarioAtivoComSucesso() {
@@ -27,7 +31,7 @@ class DesativarFuncionarioUseCaseTest {
 
         when(gateway.getFuncionarioById(1L)).thenReturn(funcionario);
 
-        new DesativarFuncionarioUseCase(gateway).execute(1L);
+        new DesativarFuncionarioUseCase(gateway, logger).execute(1L);
 
         verify(gateway).desativarUsuario(userId);
     }
@@ -38,7 +42,7 @@ class DesativarFuncionarioUseCaseTest {
         when(gateway.getFuncionarioById(99L))
                 .thenThrow(FuncionarioNotFoundException.fromId(99L));
 
-        var useCase = new DesativarFuncionarioUseCase(gateway);
+        var useCase = new DesativarFuncionarioUseCase(gateway, logger);
         assertThrows(FuncionarioNotFoundException.class, () -> useCase.execute(99L));
         verify(gateway, never()).desativarUsuario(any());
     }
@@ -51,7 +55,7 @@ class DesativarFuncionarioUseCaseTest {
 
         when(gateway.getFuncionarioById(2L)).thenReturn(funcionario);
 
-        new DesativarFuncionarioUseCase(gateway).execute(2L);
+        new DesativarFuncionarioUseCase(gateway, logger).execute(2L);
 
         verify(gateway).getFuncionarioById(2L);
         verify(gateway).desativarUsuario(userId);

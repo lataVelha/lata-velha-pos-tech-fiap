@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
+import br.com.lata.velha.shared.application.logging.Logger;
 
 import java.util.HashSet;
 import java.util.List;
@@ -16,14 +17,19 @@ public class ReceberAprovacaoOrcamentoClienteUseCase {
 
     private final ReceberAprovacaoOrcamentoClienteGateway gateway;
     private final NotificarOrdemServicoService notificarService;
+    private final Logger logger;
 
     public ReceberAprovacaoOrcamentoClienteUseCase(ReceberAprovacaoOrcamentoClienteGateway gateway,
-                                                    NotificarOrdemServicoService notificarService) {
+                                                    NotificarOrdemServicoService notificarService,
+                                                    Logger logger) {
         this.gateway = gateway;
         this.notificarService = notificarService;
+        this.logger = logger;
     }
 
     public OrdemServico execute(Input input) {
+        logger.logInfo("Recebendo aprovação de orçamento do cliente - osId={}, quantidadeServicos={}",
+                input.osId(), input.servicos().size());
         var ordemServico = gateway.getOrdemServicoComServicosEPecas(input.osId());
         validateServicos(ordemServico, input.servicos());
 
@@ -33,12 +39,16 @@ public class ReceberAprovacaoOrcamentoClienteUseCase {
         ordemServico.getExecucaoServicos().forEach(execucaoServico -> {
             var novoStatus = statusPorId.get(execucaoServico.getId());
             if (novoStatus == StatusExecucaoServico.APROVADO) {
+                logger.logInfo("Cliente aprovou execução de serviço - osId={}, execucaoServicoId={}",
+                        ordemServico.getId(), execucaoServico.getId());
                 execucaoServico.getPecas().forEach(alocacaoPeca -> {
                     var estoque = pecasEstoque.get(alocacaoPeca.getPecaId());
                     alocacaoPeca.reservar(estoque);
                 });
                 execucaoServico.aprovar(null);
             } else {
+                logger.logInfo("Cliente recusou execução de serviço - osId={}, execucaoServicoId={}",
+                        ordemServico.getId(), execucaoServico.getId());
                 execucaoServico.recusar(null);
             }
         });
@@ -46,6 +56,7 @@ public class ReceberAprovacaoOrcamentoClienteUseCase {
         boolean todosRecusados = ordemServico.getExecucaoServicos().stream()
                 .allMatch(ExecucaoServico::isRecusado);
         if (todosRecusados) {
+            logger.logInfo("Todos os serviços foram recusados, reprovando ordem de serviço - osId={}", ordemServico.getId());
             ordemServico.reprovar(null);
         } else {
             ordemServico.aprovar(null);
@@ -53,8 +64,11 @@ public class ReceberAprovacaoOrcamentoClienteUseCase {
 
         notificarService.execute(ordemServico);
 
+        logger.logInfo("Salvando estoques reservados e OS - osId={}", ordemServico.getId());
         gateway.salvarEstoques(pecasEstoque.values());
-        return gateway.salvarOrdemServico(ordemServico);
+        var saved = gateway.salvarOrdemServico(ordemServico);
+        logger.logInfo("Recebimento de aprovação de orçamento concluído com sucesso - osId={}, status={}", saved.getId(), saved.getStatus());
+        return saved;
     }
 
     private Map<Long, PecaEstoque> getStockMap(List<ExecucaoServico> execucaoServicos) {
@@ -65,8 +79,10 @@ public class ReceberAprovacaoOrcamentoClienteUseCase {
                 .collect(Collectors.toMap(PecaEstoque::getPecaId, p -> p));
         var idsInvalidos = new HashSet<>(pecaIds);
         idsInvalidos.removeAll(estoqueMap.keySet());
-        if (!idsInvalidos.isEmpty())
+        if (!idsInvalidos.isEmpty()) {
+            logger.logWarn("Recebimento de aprovação rejeitado: peças sem registro de estoque - pecaIds={}", idsInvalidos);
             throw new IllegalArgumentException("Peças sem registro de estoque: " + idsInvalidos);
+        }
         return estoqueMap;
     }
 
@@ -77,8 +93,11 @@ public class ReceberAprovacaoOrcamentoClienteUseCase {
         var idsInvalidos = servicos.stream()
                 .filter(s -> !registeredIds.contains(s.execucaoServicoId()))
                 .toList();
-        if (!idsInvalidos.isEmpty())
+        if (!idsInvalidos.isEmpty()) {
+            logger.logWarn("Recebimento de aprovação rejeitado: serviços não pertencem à OS - osId={}, execucaoServicoIds={}",
+                    ordemServico.getId(), idsInvalidos);
             throw new IllegalArgumentException("Serviços não pertencem à OS " + ordemServico.getId() + ": " + idsInvalidos);
+        }
     }
 
     public record Input(Long osId, List<ServicoAprovacao> servicos) {

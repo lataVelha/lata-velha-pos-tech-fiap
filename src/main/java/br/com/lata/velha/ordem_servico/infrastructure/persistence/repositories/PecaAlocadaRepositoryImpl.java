@@ -1,6 +1,7 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaAlocadaEntity;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaAlocadaRepository;
@@ -14,6 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
     private final PecaAlocadaJpaRepository jpaRepository;
+    private final Logger logger;
 
     @Override
     public PecaAlocada save(PecaAlocada pecaAlocada) {
@@ -37,7 +39,10 @@ public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
     public PecaAlocada findById(Long id) {
         return jpaRepository.findById(id)
                 .map(PecaAlocadaEntity::toDomain)
-                .orElseThrow(() -> new IllegalArgumentException("Peça alocada não encontrada"));
+                .orElseThrow(() -> {
+                    logger.logWarn("Peça alocada não encontrada - pecaAlocadaId={}", id);
+                    return new IllegalArgumentException("Peça alocada não encontrada");
+                });
     }
 
     @Override
@@ -69,6 +74,9 @@ public class PecaAlocadaRepositoryImpl implements PecaAlocadaRepository {
     public PecaAlocada findByPecaIdAndServicoOsId(Long pecaId, Long servicoOsId) {
         return  jpaRepository.findByPecaIdAndExecucaoServicoId(pecaId,servicoOsId)
                 .map(PecaAlocadaEntity::toDomain)
-                .orElseThrow(() -> new IllegalArgumentException("Peça alocada não encontrada"));
+                .orElseThrow(() -> {
+                    logger.logWarn("Peça alocada não encontrada - pecaId={}, servicoOsId={}", pecaId, servicoOsId);
+                    return new IllegalArgumentException("Peça alocada não encontrada");
+                });
     }
 }

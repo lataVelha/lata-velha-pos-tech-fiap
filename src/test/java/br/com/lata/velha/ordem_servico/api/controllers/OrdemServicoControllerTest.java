@@ -13,6 +13,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.response.*;
 import br.com.lata.velha.ordem_servico.application.presenters.ordemservico.ReceberAprovacaoOrcamentoClientePresenter;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -59,6 +60,9 @@ class OrdemServicoControllerTest {
 
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockBean
+    private Logger logger;
 
     private OrdemServicoResponse buildOrdemResponse() {
         return new OrdemServicoResponse(

@@ -8,6 +8,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 
 import java.util.HashSet;
@@ -20,16 +21,21 @@ public class AprovarOrdemServicoUseCase {
     private final AprovarOrdemServicoGateway gateway;
     private final NotificarOrdemServicoService notificarService;
     private final NotificarAdminEncomendaPecaService notificarAdminEncomendaService;
+    private final Logger logger;
 
     public AprovarOrdemServicoUseCase(AprovarOrdemServicoGateway gateway,
                                       NotificarOrdemServicoService notificarService,
-                                      NotificarAdminEncomendaPecaService notificarAdminEncomendaService) {
+                                      NotificarAdminEncomendaPecaService notificarAdminEncomendaService,
+                                      Logger logger) {
         this.gateway = gateway;
         this.notificarService = notificarService;
         this.notificarAdminEncomendaService = notificarAdminEncomendaService;
+        this.logger = logger;
     }
 
     public OrdemServico execute(Input input) {
+        logger.logInfo("Iniciando aprovação de ordem de serviço - osId={}, quantidadeServicos={}",
+                input.idOs(), input.servicos().size());
         var ordemServico = gateway.getOrdemServicoComServicosEPecas(input.idOs());
         var funcionario = gateway.getFuncionarioPorUserId(input.userId());
 
@@ -44,11 +50,15 @@ public class AprovarOrdemServicoUseCase {
 
             switch (novoStatus) {
                 case APROVADO -> {
+                    logger.logInfo("Aprovando execução de serviço - osId={}, execucaoServicoId={}",
+                            ordemServico.getId(), execucaoServico.getId());
                     execucaoServico.getPecas().forEach(alocacaoPeca -> {
                         var estoque = pecasEstoque.get(alocacaoPeca.getPecaId());
                         alocacaoPeca.reservar(estoque);
 
                         if (alocacaoPeca.getQuantidadeEncomendada() != null && alocacaoPeca.getQuantidadeEncomendada() > 0) {
+                            logger.logInfo("Peça com estoque insuficiente, encomendando - pecaId={}, quantidadeEncomendada={}",
+                                    alocacaoPeca.getPecaId(), alocacaoPeca.getQuantidadeEncomendada());
                             notificarAdminEncomendaService.execute(new NotificarAdminEncomendaPecaService.Input(
                                     ordemServico.getId(),
                                     execucaoServico.getId(),
@@ -60,8 +70,16 @@ public class AprovarOrdemServicoUseCase {
                     });
                     execucaoServico.aprovar(funcionario.getId());
                 }
-                case RECUSADO -> execucaoServico.recusar(funcionario.getId());
-                default -> throw new IllegalArgumentException("Status não suportado: " + novoStatus);
+                case RECUSADO -> {
+                    logger.logInfo("Recusando execução de serviço - osId={}, execucaoServicoId={}",
+                            ordemServico.getId(), execucaoServico.getId());
+                    execucaoServico.recusar(funcionario.getId());
+                }
+                default -> {
+                    logger.logWarn("Aprovação de OS rejeitada: status de execução não suportado - osId={}, execucaoServicoId={}, status={}",
+                            ordemServico.getId(), execucaoServico.getId(), novoStatus);
+                    throw new IllegalArgumentException("Status não suportado: " + novoStatus);
+                }
             }
         });
 
@@ -69,7 +87,9 @@ public class AprovarOrdemServicoUseCase {
         notificarService.execute(ordemServico);
 
         gateway.salvarEstoques(pecasEstoque.values());
-        return gateway.salvarOrdemServico(ordemServico);
+        var saved = gateway.salvarOrdemServico(ordemServico);
+        logger.logInfo("Aprovação de ordem de serviço concluída com sucesso - osId={}, status={}", saved.getId(), saved.getStatus());
+        return saved;
     }
 
     private Map<Long, PecaEstoque> getStockMap(List<ExecucaoServico> execucaoServicos) {
@@ -80,8 +100,10 @@ public class AprovarOrdemServicoUseCase {
                 .collect(Collectors.toMap(PecaEstoque::getPecaId, p -> p));
         var idsInvalidos = new HashSet<>(pecaIds);
         idsInvalidos.removeAll(estoqueMap.keySet());
-        if (!idsInvalidos.isEmpty())
+        if (!idsInvalidos.isEmpty()) {
+            logger.logWarn("Aprovação de OS rejeitada: peças sem registro de estoque - pecaIds={}", idsInvalidos);
             throw new IllegalArgumentException("Peças não encontradas com Ids: " + idsInvalidos);
+        }
         return estoqueMap;
     }
 
@@ -92,8 +114,11 @@ public class AprovarOrdemServicoUseCase {
         var idsInvalidos = servicos.stream()
                 .filter(servico -> !registeredIds.contains(servico.execucaoServicoId()))
                 .toList();
-        if (!idsInvalidos.isEmpty())
+        if (!idsInvalidos.isEmpty()) {
+            logger.logWarn("Aprovação de OS rejeitada: serviços não pertencem à OS - osId={}, execucaoServicoIds={}",
+                    ordemServico.getId(), idsInvalidos);
             throw new IllegalArgumentException("Serviços não pertencem à OS " + ordemServico.getId() + ": " + idsInvalidos);
+        }
     }
 
     private Map<Long, String> getServicoNomeMap(List<ExecucaoServico> execucoes) {
@@ -102,8 +127,11 @@ public class AprovarOrdemServicoUseCase {
                 .collect(Collectors.toSet());
         var servicos = gateway.getServicosAtivosPorIds(servicosIds).stream()
                 .collect(Collectors.toMap(Servico::getId, Servico::getNome));
-        if (servicosIds.size() != servicos.size())
+        if (servicosIds.size() != servicos.size()) {
+            logger.logWarn("Aprovação de OS rejeitada: serviços não encontrados ou inativos - servicoIdsSolicitados={}, servicoIdsEncontrados={}",
+                    servicosIds, servicos.keySet());
             throw new IllegalArgumentException("Alguns serviços solicitados não foram encontrados ou estão inativos");
+        }
         return servicos;
     }
 

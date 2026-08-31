@@ -4,6 +4,7 @@ import br.com.lata.velha.authentication.domain.entities.Role;
 import br.com.lata.velha.authentication.domain.exceptions.not_found_exceptions.RoleNotFoundException;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.RoleEntity;
 import br.com.lata.velha.authentication.infrastructure.persistence.jpa.RoleJpaRepository;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,9 @@ class RoleRepositoryImplTest {
 
     @Mock
     private RoleJpaRepository jpaRepository;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private RoleRepositoryImpl repository;

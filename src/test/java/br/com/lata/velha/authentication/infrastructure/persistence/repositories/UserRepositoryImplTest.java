@@ -7,6 +7,7 @@ import br.com.lata.velha.authentication.domain.value_objects.Credential;
 import br.com.lata.velha.authentication.domain.value_objects.UserData;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.UserEntity;
 import br.com.lata.velha.authentication.infrastructure.persistence.jpa.UserJpaRepository;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.Email;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,9 @@ class UserRepositoryImplTest {
 
     @Mock
     private PasswordHasher passwordHasher;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private UserRepositoryImpl repository;

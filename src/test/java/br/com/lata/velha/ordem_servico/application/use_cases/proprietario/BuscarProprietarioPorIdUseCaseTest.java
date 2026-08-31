@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
 import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,9 @@ class BuscarProprietarioPorIdUseCaseTest {
     @Mock
     private BuscarProprietarioPorIdGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("deve buscar proprietário por id")
     void shouldFindById() {
@@ -27,7 +31,7 @@ class BuscarProprietarioPorIdUseCaseTest {
 
         when(gateway.getProprietarioPorId(1L)).thenReturn(domain);
 
-        BuscarProprietarioPorIdUseCase useCase = new BuscarProprietarioPorIdUseCase(gateway);
+        BuscarProprietarioPorIdUseCase useCase = new BuscarProprietarioPorIdUseCase(gateway, logger);
         Proprietario result = useCase.execute(1L);
 
         assertThat(result).isNotNull();

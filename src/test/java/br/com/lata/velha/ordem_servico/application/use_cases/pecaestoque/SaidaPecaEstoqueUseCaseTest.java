@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque;
 import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEstoqueRequest;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.PecaNotFoundException;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -19,6 +20,9 @@ class SaidaPecaEstoqueUseCaseTest {
     @Mock
     private SaidaPecaEstoqueGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     void deveBaixarEstoqueComSucesso() {
         PecaEstoque estoque = new PecaEstoque(1L, 10, 10);
@@ -27,7 +31,7 @@ class SaidaPecaEstoqueUseCaseTest {
         when(gateway.getEstoquePorPecaId(1L)).thenReturn(estoque);
         when(gateway.salvarEstoque(any(PecaEstoque.class))).thenAnswer(i -> i.getArgument(0));
 
-        SaidaPecaEstoqueUseCase useCase = new SaidaPecaEstoqueUseCase(gateway);
+        SaidaPecaEstoqueUseCase useCase = new SaidaPecaEstoqueUseCase(gateway, logger);
         PecaEstoque response = useCase.execute(1L, request);
 
         assertThat(response.getQuantidadeArmazenada()).isEqualTo(7);
@@ -40,7 +44,7 @@ class SaidaPecaEstoqueUseCaseTest {
 
         when(gateway.getEstoquePorPecaId(1L)).thenReturn(estoque);
 
-        SaidaPecaEstoqueUseCase useCase = new SaidaPecaEstoqueUseCase(gateway);
+        SaidaPecaEstoqueUseCase useCase = new SaidaPecaEstoqueUseCase(gateway, logger);
 
         assertThatThrownBy(() -> useCase.execute(1L, request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -53,7 +57,7 @@ class SaidaPecaEstoqueUseCaseTest {
 
         when(gateway.getPecaAtivaPorId(1L)).thenThrow(PecaNotFoundException.fromId(1L));
 
-        SaidaPecaEstoqueUseCase useCase = new SaidaPecaEstoqueUseCase(gateway);
+        SaidaPecaEstoqueUseCase useCase = new SaidaPecaEstoqueUseCase(gateway, logger);
 
         assertThatThrownBy(() -> useCase.execute(1L, request))
                 .isInstanceOf(PecaNotFoundException.class);

@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.application.gateways.authentication.Authe
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.CargoNotFoundException;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -43,12 +44,15 @@ class CadastrarFuncionarioUseCaseIT {
     @Autowired
     private EntityManager em;
 
+    @Autowired
+    private Logger logger;
+
     private CadastrarFuncionarioUseCase useCase;
     private Long cargoId;
 
     @BeforeEach
     void setUp() {
-        useCase = new CadastrarFuncionarioUseCase(gateway, authService);
+        useCase = new CadastrarFuncionarioUseCase(gateway, authService, logger);
 
         RoleEntity role = new RoleEntity(null, "MECANICO");
         em.persist(role);

@@ -3,47 +3,50 @@ package br.com.lata.velha.ordem_servico.application.services.ordemservico;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.lata.velha.shared.application.logging.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class NotificarAdminEncomendaPecaService {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificarAdminEncomendaPecaService.class);
-
     private final NotificarAdminEncomendaPecaGateway gateway;
     private final EmailProvider emailProvider;
     private final EmailTemplateProvider templateProvider;
+    private final Logger logger;
 
     public NotificarAdminEncomendaPecaService(NotificarAdminEncomendaPecaGateway gateway,
                                               EmailProvider emailProvider,
-                                              EmailTemplateProvider templateProvider) {
+                                              EmailTemplateProvider templateProvider,
+                                              Logger logger) {
         this.gateway = gateway;
         this.emailProvider = emailProvider;
         this.templateProvider = templateProvider;
+        this.logger = logger;
     }
 
     public record Input(Long osId, Long servicoId, Long pecaId, Integer quantidade, String servicoNome) {}
 
     public void execute(Input input) {
+        logger.logInfo("Notificando admins sobre encomenda de peça - osId={}, pecaId={}, quantidade={}",
+                input.osId(), input.pecaId(), input.quantidade());
+
         Peca peca;
         try {
             var pecaOpt = gateway.findPecaPorId(input.pecaId());
             if (pecaOpt.isEmpty()) {
-                log.warn("Peça {} não encontrada ao tentar notificar encomenda", input.pecaId());
+                logger.logWarn("Peça não encontrada ao tentar notificar encomenda - pecaId={}", input.pecaId());
                 return;
             }
             peca = pecaOpt.get();
         } catch (Exception e) {
-            log.warn("Peça {} não encontrada ao tentar notificar encomenda", input.pecaId());
+            logger.logError("Falha ao verificar peça para notificação de encomenda - pecaId=" + input.pecaId(), e);
             return;
         }
 
         var admins = gateway.getFuncionariosAdmin();
         if (admins.isEmpty()) {
-            log.warn("Nenhum admin encontrado para notificar encomenda de peça");
+            logger.logWarn("Nenhum admin encontrado para notificar encomenda de peça - osId={}", input.osId());
             return;
         }
 
@@ -53,7 +56,7 @@ public class NotificarAdminEncomendaPecaService {
                 var html = templateProvider.render("peca-encomenda", buildVariables(admin.getNome(), input, peca));
                 emailProvider.send(email, "Encomenda de Peça — OS Nº " + input.osId(), html);
             } catch (Exception e) {
-                log.error("Falha ao notificar admin {} sobre encomenda de peça", admin.getNome(), e);
+                logger.logError("Falha ao notificar admin sobre encomenda de peça - osId=" + input.osId() + ", adminUserId=" + admin.getUserId(), e);
             }
         });
     }

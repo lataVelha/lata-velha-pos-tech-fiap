@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +30,7 @@ class CriarOrdemServicoUseCaseTest {
 
     @Mock private CriarOrdemServicoGateway gateway;
     @Mock private NotificarOrdemServicoService notificarService;
+    @Mock private Logger logger;
 
     private CriarOrdemServicoUseCase useCase;
 
@@ -42,7 +44,7 @@ class CriarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new CriarOrdemServicoUseCase(gateway, notificarService);
+        useCase = new CriarOrdemServicoUseCase(gateway, notificarService, logger);
 
         userId = UserId.random();
 

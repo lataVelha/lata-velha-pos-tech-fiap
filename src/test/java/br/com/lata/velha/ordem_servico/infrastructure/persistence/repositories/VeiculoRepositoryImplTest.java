@@ -11,6 +11,7 @@ import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.Propri
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.VeiculoPersistenceMapper;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
+import br.com.lata.velha.shared.infrasctructure.logging.Slf4jLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({VeiculoRepositoryImpl.class, VeiculoPersistenceMapper.class,
-        ProprietarioRepositoryImpl.class, ProprietarioPersistenceMapper.class})
+        ProprietarioRepositoryImpl.class, ProprietarioPersistenceMapper.class, Slf4jLogger.class})
 class VeiculoRepositoryImplTest {
 
     @Autowired
