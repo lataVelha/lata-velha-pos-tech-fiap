@@ -89,8 +89,8 @@ e desregistra nodes automaticamente conforme o cluster escala.
 | ------------------------ | ----------------------------------------------------------------- |
 | Namespace                | `lata-velha`                                                      |
 | Secret `aws-credentials` | Credenciais AWS para o Cluster Autoscaler (kube-system)           |
-| ConfigMap                | Variáveis não-sensíveis da aplicação                              |
-| Secret                   | Credenciais do banco e e-mail (base64 via Terraform)              |
+| ConfigMap                | Variáveis não-sensíveis da aplicação (inclui endpoints OTLP/US5) |
+| Secret                   | Credenciais do banco, e-mail e Datadog API key (base64 via TF)   |
 | Deployment               | 2 réplicas, probes liveness/readiness/startup, `readOnlyRootFilesystem`, anti-affinity |
 | Service                  | NodePort 30080 → 8080                                             |
 | HPA                      | Autoscaling por CPU (60%) entre 2 e 6 réplicas                    |
@@ -236,6 +236,7 @@ Algumas boas práticas foram **deliberadamente deixadas de fora** porque o Learn
 | `docker_image`          | `placeholder` | Imagem ECR (definida automaticamente pelo pipeline)              |
 | `mail_username`         | —             | Email remetente Gmail (**obrigatório**)                          |
 | `mail_password`         | —             | App password do Gmail (**obrigatório**)                          |
+| `dd_api_key`            | —             | Datadog API key para OTLP ingest (**obrigatório**)               |
 | `state_bucket`          | —             | Injetado pelo pipeline — não colocar no tfvars                   |
 | `cluster_endpoint`      | —             | Injetado pelo pipeline — não colocar no tfvars                   |
 | `cluster_ca_data`       | —             | Injetado pelo pipeline — não colocar no tfvars                   |
@@ -286,6 +287,7 @@ O pipeline CI/CD (`.github/workflows/main.yml`) roda automaticamente em todo pus
 | `TF_DB_USERNAME`        | `lata_velha_user`     | padrão ou personalize                                               |
 | `TF_MAIL_USERNAME`      | `seu@gmail.com`       | sua conta Gmail                                                     |
 | `TF_MAIL_PASSWORD`      | `xxxx xxxx xxxx xxxx` | [Senha de App do Google](https://myaccount.google.com/apppasswords) |
+| `TF_DD_API_KEY`         | `dda1...`             | Datadog → Organization Settings → API Keys                          |
 
 #### Variables
 
@@ -383,6 +385,7 @@ Edite `deploy/terraform.tfvars`:
 ```hcl
 mail_username = "seu@gmail.com"
 mail_password = "xxxx xxxx xxxx xxxx"   # Senha de App do Gmail
+dd_api_key    = "dda1..."                 # Datadog API key
 ```
 
 > **Nunca commite os arquivos `terraform.tfvars`** — já estão no `.gitignore`.

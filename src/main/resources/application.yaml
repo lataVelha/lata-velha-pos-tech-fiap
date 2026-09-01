@@ -2,7 +2,7 @@ spring:
   application:
     name: Lata-Velha
   profiles:
-    active: ${ENVIRONMENT:}
+    active: ${ENVIRONMENT:local}
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/lata_velha}
@@ -44,7 +44,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,info,env
   endpoint:
     health:
       probes:
@@ -69,3 +69,32 @@ thymeleaf:
   suffix: .html
   mode: HTML
   encoding: UTF-8
+
+otel:
+  service:
+    name: ${OTEL_SERVICE_NAME:${spring.application.name}}
+  resource:
+    attributes:
+      deployment.environment.name: ${DEPLOYMENT_ENVIRONMENT_NAME:local}
+      service.version: ${SERVICE_VERSION:0.0.1}
+  exporter:
+    otlp:
+      enabled: ${OTEL_EXPORTER_OTLP_ENABLED:true}
+      protocol: ${OTEL_EXPORTER_OTLP_PROTOCOL:http/protobuf}
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:https://otlp.us5.datadoghq.com}
+      traces:
+        endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:https://otlp.us5.datadoghq.com/v1/traces}
+      metrics:
+        endpoint: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:https://otlp.us5.datadoghq.com/v1/metrics}
+        temporality-preference: ${OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE:delta}
+      logs:
+        endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:https://otlp.us5.datadoghq.com/v1/logs}
+      headers:
+        dd-api-key: ${DD_API_KEY:}
+        dd-otel-span-mapping: '{"span_name_as_resource_name": true}'
+        dd-otel-metric-config: '{"resource_attributes_as_tags": true}'
+  instrumentation:
+    logback-appender:
+      enabled: true
+      experimental:
+        capture-mdc-attributes: '*'

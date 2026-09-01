@@ -74,6 +74,7 @@ module "app" {
   db_password   = local.bootstrap.db_password
   mail_username = var.mail_username
   mail_password = var.mail_password
+  dd_api_key    = var.dd_api_key
 
   depends_on = [module.alb]
 }

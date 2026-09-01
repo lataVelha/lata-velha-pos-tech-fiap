@@ -18,6 +18,7 @@ resource "kubectl_manifest" "secret_db" {
     db_password_b64   = base64encode(var.db_password)
     mail_username_b64 = base64encode(var.mail_username)
     mail_password_b64 = base64encode(var.mail_password)
+    dd_api_key_b64    = base64encode(var.dd_api_key)
   })
   sensitive_fields = ["data"]
   depends_on       = [kubectl_manifest.namespace]

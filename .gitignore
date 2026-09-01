@@ -62,3 +62,6 @@ __pycache__/
 *.so
 .Python
 temp/
+
+### Local profiles (may contain secrets) ###
+src/main/resources/application-local.yaml

@@ -18,6 +18,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<lombok.version>1.18.38</lombok.version>
+		<opentelemetry-instrumentation.version>2.11.0</opentelemetry-instrumentation.version>
 
 		<!-- SonarQube -->
 		<sonar.projectKey>lata-velha</sonar.projectKey>
@@ -52,6 +53,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!-- OpenTelemetry (traces, metrics e logs correlacionados para Datadog) -->
+		<dependency>
+			<groupId>io.opentelemetry.instrumentation</groupId>
+			<artifactId>opentelemetry-spring-boot-starter</artifactId>
 		</dependency>
 
 		<!-- JPA -->
@@ -164,6 +171,18 @@
 
 	</dependencies>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.opentelemetry.instrumentation</groupId>
+				<artifactId>opentelemetry-instrumentation-bom</artifactId>
+				<version>${opentelemetry-instrumentation.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<build>
 		<finalName>app</finalName>
 		<plugins>
@@ -186,6 +205,10 @@
 						<include>**/*IT.java</include>
 					</includes>
 					<argLine>-Dnet.bytebuddy.experimental=true</argLine>
+					<systemPropertyVariables>
+						<otel.exporter.otlp.enabled>false</otel.exporter.otlp.enabled>
+						<otel.instrumentation.logback-appender.enabled>false</otel.instrumentation.logback-appender.enabled>
+					</systemPropertyVariables>
 				</configuration>
 			</plugin>
 

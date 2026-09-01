@@ -57,6 +57,12 @@ variable "mail_password" {
   sensitive   = true
 }
 
+variable "dd_api_key" {
+  description = "Datadog API key para OTLP ingest"
+  type        = string
+  sensitive   = true
+}
+
 # Credenciais AWS para o Cluster Autoscaler no AWS Academy.
 # O AWS Academy nao permite IRSA — injetadas via kubernetes_secret.
 # Passadas via TF_VAR_ no apply.sh e no GitHub Actions — nunca no tfvars.
