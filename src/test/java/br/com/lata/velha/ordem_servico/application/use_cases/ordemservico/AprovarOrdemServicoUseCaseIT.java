@@ -12,6 +12,7 @@ import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -46,6 +47,7 @@ class AprovarOrdemServicoUseCaseIT {
     @Autowired private NotificarOrdemServicoGateway notificarGateway;
     @Autowired private NotificarAdminEncomendaPecaGateway notificarAdminGateway;
     @Autowired private EntityManager em;
+    @Autowired private Logger logger;
 
     @MockBean private EmailProvider emailProvider;
     @MockBean private EmailTemplateProvider emailTemplateProvider;
@@ -60,9 +62,9 @@ class AprovarOrdemServicoUseCaseIT {
 
     @BeforeEach
     void setUp() {
-        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider);
-        var notificarAdminService = new NotificarAdminEncomendaPecaService(notificarAdminGateway, emailProvider, emailTemplateProvider);
-        useCase = new AprovarOrdemServicoUseCase(aprovarGateway, notificarService, notificarAdminService);
+        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider, logger);
+        var notificarAdminService = new NotificarAdminEncomendaPecaService(notificarAdminGateway, emailProvider, emailTemplateProvider, logger);
+        useCase = new AprovarOrdemServicoUseCase(aprovarGateway, notificarService, notificarAdminService, logger);
 
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);

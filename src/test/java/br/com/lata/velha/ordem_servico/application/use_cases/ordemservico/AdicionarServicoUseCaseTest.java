@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.*;
 class AdicionarServicoUseCaseTest {
 
     @Mock private AdicionarServicoGateway gateway;
+    @Mock private Logger logger;
 
     private AdicionarServicoUseCase useCase;
 
@@ -40,7 +42,7 @@ class AdicionarServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new AdicionarServicoUseCase(gateway);
+        useCase = new AdicionarServicoUseCase(gateway, logger);
         os = new OrdemServico(OS_ID, 1L, 2L, "Barulho ao frear",
                 StatusOrdemServico.EM_DIAGNOSTICO, LocalDateTime.now(), null, null, null, null,
                 1L, null, new ArrayList<>());

@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,11 +25,14 @@ class BuscarOrdemServicoUseCaseTest {
     @Mock
     private BuscarOrdemServicoGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     private BuscarOrdemServicoUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new BuscarOrdemServicoUseCase(gateway);
+        useCase = new BuscarOrdemServicoUseCase(gateway, logger);
     }
 
     private OrdemServicoProjection buildProjection(Long id, String status) {

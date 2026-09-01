@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
 import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,9 @@ class BuscarProprietarioPorDocumentoUseCaseTest {
     @Mock
     private BuscarProprietarioPorDocumentoGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("deve buscar proprietário por documento")
     void shouldFindByDocumento() {
@@ -27,7 +31,7 @@ class BuscarProprietarioPorDocumentoUseCaseTest {
 
         when(gateway.getProprietarioPorDocumento("52998224725")).thenReturn(domain);
 
-        BuscarProprietarioPorDocumentoUseCase useCase = new BuscarProprietarioPorDocumentoUseCase(gateway);
+        BuscarProprietarioPorDocumentoUseCase useCase = new BuscarProprietarioPorDocumentoUseCase(gateway, logger);
         Proprietario result = useCase.execute("529.982.247-25");
 
         assertThat(result).isNotNull();
@@ -43,7 +47,7 @@ class BuscarProprietarioPorDocumentoUseCaseTest {
 
         when(gateway.getProprietarioPorDocumento("52998224725")).thenReturn(domain);
 
-        BuscarProprietarioPorDocumentoUseCase useCase = new BuscarProprietarioPorDocumentoUseCase(gateway);
+        BuscarProprietarioPorDocumentoUseCase useCase = new BuscarProprietarioPorDocumentoUseCase(gateway, logger);
         useCase.execute("52998224725");
 
         verify(gateway).getProprietarioPorDocumento("52998224725");

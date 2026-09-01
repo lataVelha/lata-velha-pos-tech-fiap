@@ -4,6 +4,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ServicoNotFoundException;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ServicoEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.ServicoPersistenceMapper;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,9 @@ class ServicoRepositoryImplTest {
 
     @Mock
     private ServicoPersistenceMapper mapper;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private ServicoRepositoryImpl repository;

@@ -1,6 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,13 +20,16 @@ class DesativarServicoUseCaseTest {
     @Mock
     private DesativarServicoGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("Deve desativar serviço ativo com sucesso")
     void deveDesativarServicoAtivoComSucesso() {
         var servico = new Servico(1L, "Balanceamento", "Balanceamento das rodas", true);
         when(gateway.getServicoPorId(1L)).thenReturn(servico);
 
-        DesativarServicoUseCase useCase = new DesativarServicoUseCase(gateway);
+        DesativarServicoUseCase useCase = new DesativarServicoUseCase(gateway, logger);
         useCase.execute(1L);
 
         assertFalse(servico.isAtivo());
@@ -38,7 +42,7 @@ class DesativarServicoUseCaseTest {
         var servico = new Servico(1L, "Balanceamento", "Balanceamento das rodas", false);
         when(gateway.getServicoPorId(1L)).thenReturn(servico);
 
-        DesativarServicoUseCase useCase = new DesativarServicoUseCase(gateway);
+        DesativarServicoUseCase useCase = new DesativarServicoUseCase(gateway, logger);
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(1L));
         verify(gateway, never()).salvarServico(servico);

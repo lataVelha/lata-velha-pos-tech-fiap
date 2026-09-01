@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.veiculo;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,9 @@ class ReativarVeiculoUseCaseTest {
     @Mock
     private ReativarVeiculoGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("deve reativar veículo inativo")
     void shouldReactivateVeiculo() {
@@ -27,7 +31,7 @@ class ReativarVeiculoUseCaseTest {
         when(gateway.getVeiculoInativoPorId(1L)).thenReturn(veiculo);
         when(gateway.salvarVeiculo(veiculo)).thenReturn(veiculo);
 
-        ReativarVeiculoUseCase useCase = new ReativarVeiculoUseCase(gateway);
+        ReativarVeiculoUseCase useCase = new ReativarVeiculoUseCase(gateway, logger);
         var result = useCase.execute(1L);
 
         assertThat(veiculo.isAtivo()).isTrue();

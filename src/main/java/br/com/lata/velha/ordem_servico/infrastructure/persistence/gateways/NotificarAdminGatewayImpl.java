@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.domain.repositories.FuncionarioRepository;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaRepository;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,12 +21,14 @@ public class NotificarAdminGatewayImpl implements NotificarAdminEncomendaPecaGat
     private final FuncionarioRepository funcionarioRepository;
     private final PecaRepository pecaRepository;
     private final UserRepository userRepository;
+    private final Logger logger;
 
     @Override
     public Optional<Peca> findPecaPorId(Long id) {
         try {
             return Optional.of(pecaRepository.getActiveById(id));
         } catch (Exception e) {
+            logger.logError("Falha ao buscar peça para notificação de encomenda - pecaId=" + id, e);
             return Optional.empty();
         }
     }

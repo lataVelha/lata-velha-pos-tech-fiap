@@ -1,6 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 
 import br.com.lata.velha.ordem_servico.domain.entities.TempoMedioExecucaoPorServico;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,11 +25,14 @@ class BuscarTempoMedioExecucaoServicosFinalizadosUseCaseTest {
     @Mock
     private BuscarTempoMedioExecucaoGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     private BuscarTempoMedioExecucaoServicosFinalizadosUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new BuscarTempoMedioExecucaoServicosFinalizadosUseCase(gateway);
+        useCase = new BuscarTempoMedioExecucaoServicosFinalizadosUseCase(gateway, logger);
     }
 
     @Test

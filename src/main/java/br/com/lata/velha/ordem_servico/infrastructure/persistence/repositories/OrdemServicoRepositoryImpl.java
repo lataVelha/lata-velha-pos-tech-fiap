@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.Or
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.OrdemServicoEntity;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,7 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
 
     private final OrdemServicoJpaRepository jpaRepository;
     private final ExecucaoServicoJpaRepository execucaoServicoJpaRepository;
+    private final Logger logger;
 
     @Override
     public OrdemServico save(OrdemServico ordemServico) {
@@ -31,13 +33,19 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
     public OrdemServico getById(Long id) {
         return jpaRepository.findById(id)
                 .map(OrdemServicoEntity::toDomain)
-                .orElseThrow(() -> OrdemServicoNotFoundException.fromId(id));
+                .orElseThrow(() -> {
+                    logger.logWarn("Ordem de serviço não encontrada - osId={}", id);
+                    return OrdemServicoNotFoundException.fromId(id);
+                });
     }
 
     @Override
     public OrdemServico getByIdWithExecucoesAndPecas(Long id) {
         var entity = jpaRepository.findById(id)
-                .orElseThrow(() -> OrdemServicoNotFoundException.fromId(id));
+                .orElseThrow(() -> {
+                    logger.logWarn("Ordem de serviço não encontrada - osId={}", id);
+                    return OrdemServicoNotFoundException.fromId(id);
+                });
         var execucoes = execucaoServicoJpaRepository.findWithPecasByOsId(id);
         return entity.toDomain(execucoes);
     }

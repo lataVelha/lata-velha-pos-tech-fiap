@@ -1,5 +1,6 @@
 package br.com.lata.velha.authentication.infrastructure.security;
 
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,11 +26,14 @@ class JwtTokenProviderTest {
     @Mock
     private JwtEncoder jwtEncoder;
 
+    @Mock
+    private Logger logger;
+
     private JwtTokenProvider tokenProvider;
 
     @BeforeEach
     void setUp() {
-        tokenProvider = new JwtTokenProvider(jwtEncoder, "lata-velha", 3600L);
+        tokenProvider = new JwtTokenProvider(jwtEncoder, "lata-velha", 3600L, logger);
     }
 
     private Jwt stubEncoder(String tokenValue) {

@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaEntity;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,9 @@ class PecaRepositoryImplTest {
 
     @Mock
     private PecaJpaRepository jpaRepository;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private PecaRepositoryImpl repository;

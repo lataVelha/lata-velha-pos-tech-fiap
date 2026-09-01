@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.controllers.peca.PecaCleanCon
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarPecaRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarPecaRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaResponse;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +49,9 @@ class PecaControllerTest {
 
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockBean
+    private Logger logger;
 
     private PecaResponse buildResponse() {
         return new PecaResponse(1L, "Pastilha de Freio", "Pastilha traseira", new BigDecimal("45.90"), true);

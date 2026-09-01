@@ -4,6 +4,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequ
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
 import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,9 @@ class AtualizarProprietarioUseCaseTest {
     @Mock
     private AtualizarProprietarioGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("deve atualizar proprietário com sucesso")
     void shouldUpdateProprietario() {
@@ -33,7 +37,7 @@ class AtualizarProprietarioUseCaseTest {
         when(gateway.getProprietarioPorId(1L)).thenReturn(existing);
         when(gateway.salvarProprietario(existing)).thenReturn(saved);
 
-        AtualizarProprietarioUseCase useCase = new AtualizarProprietarioUseCase(gateway);
+        AtualizarProprietarioUseCase useCase = new AtualizarProprietarioUseCase(gateway, logger);
         Proprietario result = useCase.execute(1L, request);
 
         assertThat(result).isNotNull();

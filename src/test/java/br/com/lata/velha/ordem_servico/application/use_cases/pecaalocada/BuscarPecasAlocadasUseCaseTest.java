@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada;
 
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +23,9 @@ class BuscarPecasAlocadasUseCaseTest {
     @Mock
     private BuscarPecasAlocadasGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     void deveBuscarPecasDeUmServicoComSucesso() {
         PecaAlocada peca1 = new PecaAlocada(1L, 2L, 99L, BigDecimal.ZERO, 2, 0, 0, 0, StatusPecaAlocada.PENDENTE, LocalDateTime.now());
@@ -33,7 +37,7 @@ class BuscarPecasAlocadasUseCaseTest {
 
         when(gateway.findByExecucaoServicoId(99L, 0, 10)).thenReturn(paginatedResult);
 
-        BuscarPecasAlocadasUseCase useCase = new BuscarPecasAlocadasUseCase(gateway);
+        BuscarPecasAlocadasUseCase useCase = new BuscarPecasAlocadasUseCase(gateway, logger);
         PaginatedResult<PecaAlocada> response = useCase.execute(99L, 0, 10);
 
         assertThat(response).isNotNull();

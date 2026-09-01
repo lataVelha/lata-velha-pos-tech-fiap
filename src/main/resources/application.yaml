@@ -2,7 +2,7 @@ spring:
   application:
     name: Lata-Velha
   profiles:
-    active: ${ENVIRONMENT:}
+    active: ${ENVIRONMENT:dev}
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/lata_velha}
@@ -50,6 +50,9 @@ jwt:
   expires-in: ${JWT_EXPIRES_IN:3600}
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
   endpoints:
     web:
       exposure:

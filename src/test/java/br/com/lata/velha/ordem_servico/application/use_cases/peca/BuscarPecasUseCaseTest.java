@@ -1,5 +1,6 @@
 package br.com.lata.velha.ordem_servico.application.use_cases.peca;
 
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +22,9 @@ class BuscarPecasUseCaseTest {
 
     @Mock
     private BuscarPecasGateway gateway;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private BuscarPecasUseCase useCase;

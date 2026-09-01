@@ -1,9 +1,11 @@
 package br.com.lata.velha.authentication.infrastructure.security.config;
 
+import br.com.lata.velha.shared.application.logging.Logger;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +20,10 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
 @Configuration
+@RequiredArgsConstructor
 public class JwtConfig {
+
+    private final Logger logger;
 
     @Value("${jwt.public.key}")
     private RSAPublicKey publicKey;
@@ -28,11 +33,13 @@ public class JwtConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
+        logger.logInfo("Configurando JwtDecoder");
         return NimbusJwtDecoder.withPublicKey(publicKey).build();
     }
 
     @Bean
     public JwtEncoder jwtEncoder() {
+        logger.logInfo("Configurando JwtEncoder");
         JWK jwk = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
                 .build();
@@ -42,6 +49,7 @@ public class JwtConfig {
 
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        logger.logInfo("Configurando JwtAuthenticationConverter");
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
         grantedAuthoritiesConverter.setAuthoritiesClaimName("scope");

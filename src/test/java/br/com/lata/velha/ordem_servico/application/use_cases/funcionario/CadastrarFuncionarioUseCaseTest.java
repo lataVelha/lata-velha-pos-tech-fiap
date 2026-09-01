@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.gateways.authentication.dtos.
 import br.com.lata.velha.ordem_servico.domain.entities.Cargo;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.CargoNotFoundException;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +30,9 @@ class CadastrarFuncionarioUseCaseTest {
     @Mock
     private AuthenticationService authService;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("Deve cadastrar funcionário com sucesso")
     void deveCadastrarFuncionarioComSucesso() {
@@ -42,7 +46,7 @@ class CadastrarFuncionarioUseCaseTest {
         when(authService.getRolesForCargo(1L)).thenReturn(Set.of());
         when(authService.createUser(any())).thenReturn(new CreateAuthUserResponseDto(userId.getValue()));
 
-        var useCase = new CadastrarFuncionarioUseCase(gateway, authService);
+        var useCase = new CadastrarFuncionarioUseCase(gateway, authService, logger);
         var result = useCase.execute(input);
 
         assertThat(result).isNotNull();
@@ -63,7 +67,7 @@ class CadastrarFuncionarioUseCaseTest {
         when(authService.getRolesForCargo(1L)).thenReturn(Set.of());
         when(authService.createUser(any())).thenThrow(new ResourceAlreadyExistsException(""));
 
-        var useCase = new CadastrarFuncionarioUseCase(gateway, authService);
+        var useCase = new CadastrarFuncionarioUseCase(gateway, authService, logger);
         assertThrows(ResourceAlreadyExistsException.class, () -> useCase.execute(input));
         verify(gateway, never()).salvarFuncionario(any());
     }
@@ -75,7 +79,7 @@ class CadastrarFuncionarioUseCaseTest {
 
         when(gateway.getCargoPorId(99L)).thenThrow(CargoNotFoundException.fromId(99L));
 
-        var useCase = new CadastrarFuncionarioUseCase(gateway, authService);
+        var useCase = new CadastrarFuncionarioUseCase(gateway, authService, logger);
         assertThrows(CargoNotFoundException.class, () -> useCase.execute(input));
         verify(gateway, never()).salvarFuncionario(any(Funcionario.class));
     }

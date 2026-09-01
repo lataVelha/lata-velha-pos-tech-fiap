@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.infrastructure.config;
 import br.com.lata.velha.ordem_servico.application.controllers.veiculo.VeiculoCleanController;
 import br.com.lata.velha.ordem_servico.application.presenters.veiculo.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.veiculo.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class VeiculoBeansConfig {
 
+    private final Logger logger;
     private final CriarVeiculoGateway criarGateway;
     private final CriarVeiculoPresenter criarPresenter;
     private final AtualizarVeiculoGateway atualizarGateway;
@@ -27,6 +29,7 @@ public class VeiculoBeansConfig {
 
     @Bean
     public VeiculoCleanController veiculoCleanController() {
+        logger.logInfo("Configurando VeiculoCleanController");
         return new VeiculoCleanController(
                 criarGateway,
                 criarPresenter,
@@ -40,6 +43,7 @@ public class VeiculoBeansConfig {
                 listarPorProprietarioPresenter,
                 desativarGateway,
                 reativarGateway,
-                reativarPresenter);
+                reativarPresenter,
+                logger);
     }
 }

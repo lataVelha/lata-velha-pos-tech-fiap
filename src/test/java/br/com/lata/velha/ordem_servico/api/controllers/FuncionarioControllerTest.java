@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarFuncion
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarFuncionarioRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.FuncionarioResponse;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.FuncionarioNotFoundException;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -47,6 +48,9 @@ class FuncionarioControllerTest {
 
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockBean
+    private Logger logger;
 
     @Test
     @WithMockUser(roles = "ADMIN")

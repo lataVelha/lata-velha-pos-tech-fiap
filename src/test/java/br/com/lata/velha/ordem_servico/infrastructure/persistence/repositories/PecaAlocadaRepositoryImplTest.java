@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaAlocadaEntity;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,9 @@ class PecaAlocadaRepositoryImplTest {
 
     @Mock
     private PecaAlocadaJpaRepository jpaRepository;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private PecaAlocadaRepositoryImpl repository;

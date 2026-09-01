@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +40,7 @@ class AdicionarServicoUseCaseIT {
 
     @Autowired private AdicionarServicoGateway gateway;
     @Autowired private EntityManager em;
+    @Autowired private Logger logger;
 
     @MockBean private EmailProvider emailProvider;
     @MockBean private EmailTemplateProvider emailTemplateProvider;
@@ -52,7 +54,7 @@ class AdicionarServicoUseCaseIT {
 
     @BeforeEach
     void setUp() {
-        useCase = new AdicionarServicoUseCase(gateway);
+        useCase = new AdicionarServicoUseCase(gateway, logger);
 
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);

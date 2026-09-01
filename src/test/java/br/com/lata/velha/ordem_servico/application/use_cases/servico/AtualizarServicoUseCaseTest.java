@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarServicoRequest;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,9 @@ class AtualizarServicoUseCaseTest {
     @Mock
     private AtualizarServicoGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("Deve atualizar serviço com sucesso")
     void deveAtualizarServicoComSucesso() {
@@ -30,7 +34,7 @@ class AtualizarServicoUseCaseTest {
         when(gateway.getServicoPorId(1L)).thenReturn(servico);
         when(gateway.salvarServico(servico)).thenReturn(servico);
 
-        var useCase = new AtualizarServicoUseCase(gateway);
+        var useCase = new AtualizarServicoUseCase(gateway, logger);
         var result = useCase.execute(1L, request);
 
         assertThat(servico.getNome()).isEqualTo("Alinhamento 3D");
@@ -45,7 +49,7 @@ class AtualizarServicoUseCaseTest {
         var request = new AtualizarServicoRequest("Nome", "Descrição");
         when(gateway.getServicoPorId(99L)).thenThrow(new IllegalArgumentException("Serviço não encontrado"));
 
-        var useCase = new AtualizarServicoUseCase(gateway);
+        var useCase = new AtualizarServicoUseCase(gateway, logger);
         assertThatThrownBy(() -> useCase.execute(99L, request))
                 .isInstanceOf(IllegalArgumentException.class);
         verify(gateway, never()).salvarServico(any());

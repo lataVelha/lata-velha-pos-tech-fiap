@@ -8,6 +8,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ class ReceberAprovacaoOrcamentoClienteUseCaseTest {
 
     @Mock private ReceberAprovacaoOrcamentoClienteGateway gateway;
     @Mock private NotificarOrdemServicoService notificarService;
+    @Mock private Logger logger;
 
     private ReceberAprovacaoOrcamentoClienteUseCase useCase;
 
@@ -41,7 +43,7 @@ class ReceberAprovacaoOrcamentoClienteUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new ReceberAprovacaoOrcamentoClienteUseCase(gateway, notificarService);
+        useCase = new ReceberAprovacaoOrcamentoClienteUseCase(gateway, notificarService, logger);
     }
 
     private ExecucaoServico buildExecPendente(Long id) {

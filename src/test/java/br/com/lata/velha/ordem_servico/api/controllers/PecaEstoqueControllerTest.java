@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.controllers.pecaestoque.PecaE
 import br.com.lata.velha.ordem_servico.application.dtos.request.AjustarPecaEstoqueRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.request.MovimentarPecaEstoqueRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaEstoqueResponse;
+import br.com.lata.velha.shared.application.logging.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,9 @@ class PecaEstoqueControllerTest {
 
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockBean
+    private Logger logger;
 
     private PecaEstoqueResponse buildResponse(int quantidade) {
         return new PecaEstoqueResponse(1L, quantidade, quantidade);

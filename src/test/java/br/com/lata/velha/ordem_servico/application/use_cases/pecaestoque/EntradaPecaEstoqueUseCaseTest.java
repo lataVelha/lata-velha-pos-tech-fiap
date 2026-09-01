@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.PecaNotFoundException;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +31,9 @@ class EntradaPecaEstoqueUseCaseTest {
     @Mock
     private EntradaPecaEstoqueGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     private static final Long PECA_ID = 1L;
     private static final Long EXECUCAO_ID = 99L;
 
@@ -42,7 +46,7 @@ class EntradaPecaEstoqueUseCaseTest {
         when(gateway.getPecasAlocadasPendentes(PECA_ID)).thenReturn(List.of());
         when(gateway.salvarEstoque(any())).thenAnswer(i -> i.getArgument(0));
 
-        EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway);
+        EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway, logger);
         PecaEstoque response = useCase.execute(PECA_ID, new MovimentarPecaEstoqueRequest(5));
 
         assertThat(response.getQuantidadeArmazenada()).isEqualTo(15);
@@ -59,7 +63,7 @@ class EntradaPecaEstoqueUseCaseTest {
         when(gateway.getPecasAlocadasPendentes(PECA_ID)).thenReturn(List.of());
         when(gateway.salvarEstoque(any())).thenAnswer(i -> i.getArgument(0));
 
-        EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway);
+        EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway, logger);
         PecaEstoque response = useCase.execute(PECA_ID, new MovimentarPecaEstoqueRequest(5));
 
         assertThat(response.getQuantidadeArmazenada()).isEqualTo(5);
@@ -81,7 +85,7 @@ class EntradaPecaEstoqueUseCaseTest {
         when(gateway.getExecucaoServicoPorId(EXECUCAO_ID)).thenReturn(execucao);
         when(gateway.salvarEstoque(any())).thenAnswer(i -> i.getArgument(0));
 
-        EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway);
+        EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway, logger);
         PecaEstoque response = useCase.execute(PECA_ID, new MovimentarPecaEstoqueRequest(10));
 
         assertThat(response.getQuantidadeDisponivel()).isEqualTo(6);
@@ -98,7 +102,7 @@ class EntradaPecaEstoqueUseCaseTest {
         when(gateway.getPecasAlocadasPendentes(PECA_ID)).thenReturn(List.of());
         when(gateway.salvarEstoque(any())).thenAnswer(i -> i.getArgument(0));
 
-        EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway);
+        EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway, logger);
         useCase.execute(PECA_ID, new MovimentarPecaEstoqueRequest(10));
 
         verify(gateway, never()).getExecucaoServicoPorId(any());
@@ -110,7 +114,7 @@ class EntradaPecaEstoqueUseCaseTest {
         when(gateway.getPecaAtivaPorId(99L)).thenThrow(PecaNotFoundException.fromId(99L));
         var request = new MovimentarPecaEstoqueRequest(5);
         
-        EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway);
+        EntradaPecaEstoqueUseCase useCase = new EntradaPecaEstoqueUseCase(gateway, logger);
 
         assertThatThrownBy(() -> useCase.execute(99L, request))
                 .isInstanceOf(PecaNotFoundException.class);

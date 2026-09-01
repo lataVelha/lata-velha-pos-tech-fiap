@@ -9,6 +9,7 @@ import br.com.lata.velha.authentication.domain.value_objects.Credential;
 import br.com.lata.velha.ordem_servico.application.gateways.authentication.dtos.CreateAuthUserDto;
 import br.com.lata.velha.ordem_servico.domain.entities.Cargo;
 import br.com.lata.velha.ordem_servico.domain.repositories.CargoRepository;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.value_objects.Email;
 import br.com.lata.velha.shared.domain.value_objects.RoleId;
@@ -41,6 +42,9 @@ class AuthenticationServiceImplTest {
 
     @Mock
     private CargoRepository cargoRepository;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private AuthenticationServiceImpl service;

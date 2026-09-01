@@ -4,6 +4,7 @@ import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
 import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +23,9 @@ class ListarProprietariosUseCaseTest {
     @Mock
     private ListarProprietariosGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("deve listar proprietários paginado")
     void shouldListPaginated() {
@@ -31,7 +35,7 @@ class ListarProprietariosUseCaseTest {
 
         when(gateway.findAll(0, 10)).thenReturn(paginatedResult);
 
-        var useCase = new ListarProprietariosUseCase(gateway);
+        var useCase = new ListarProprietariosUseCase(gateway, logger);
         PaginatedResult<Proprietario> result = useCase.execute(0, 10);
 
         assertThat(result).isNotNull();

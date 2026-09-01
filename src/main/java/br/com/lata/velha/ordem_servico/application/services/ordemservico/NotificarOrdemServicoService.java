@@ -9,8 +9,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Servico;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.lata.velha.shared.application.logging.Logger;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -22,11 +21,10 @@ import java.util.stream.Collectors;
 
 public class NotificarOrdemServicoService {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificarOrdemServicoService.class);
-
     private final NotificarOrdemServicoGateway gateway;
     private final EmailProvider emailProvider;
     private final EmailTemplateProvider templateProvider;
+    private final Logger logger;
 
     private static final String VALOR = "valor";
     private static final String RECEBIDA = "Recebida";
@@ -43,13 +41,16 @@ public class NotificarOrdemServicoService {
 
     public NotificarOrdemServicoService(NotificarOrdemServicoGateway gateway,
                                         EmailProvider emailProvider,
-                                        EmailTemplateProvider templateProvider) {
+                                        EmailTemplateProvider templateProvider,
+                                        Logger logger) {
         this.gateway = gateway;
         this.emailProvider = emailProvider;
         this.templateProvider = templateProvider;
+        this.logger = logger;
     }
 
     public void execute(OrdemServico os) {
+        logger.logInfo("Notificando proprietário sobre OS - osId={}, status={}", os.getId(), os.getStatus());
         try {
             Proprietario proprietario = gateway.getProprietarioPorId(os.getProprietarioId());
             Veiculo veiculo = gateway.getVeiculoPorId(os.getVeiculoId());
@@ -59,8 +60,9 @@ public class NotificarOrdemServicoService {
 
             String html = templateProvider.render("os-notificacao", variables);
             emailProvider.send(proprietario.getEmail(), assunto, html);
+            logger.logInfo("E-mail de notificação de OS enviado - osId={}", os.getId());
         } catch (Exception e) {
-            log.error("Falha ao enviar email para OS: {} status: {}", os.getId(), os.getStatus(), e);
+            logger.logError("Falha ao enviar e-mail de notificação de status de OS - osId=" + os.getId() + ", status=" + os.getStatus(), e);
         }
     }
 

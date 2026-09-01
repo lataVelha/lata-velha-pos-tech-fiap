@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarServicoRequest;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,9 @@ class CadastrarServicoUseCaseTest {
     @Mock
     private CadastrarServicoGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("Deve cadastrar serviço com sucesso")
     void deveCadastrarServicoComSucesso() {
@@ -27,7 +31,7 @@ class CadastrarServicoUseCaseTest {
 
         when(gateway.salvarServico(any())).thenReturn(savedDomain);
 
-        var useCase = new CadastrarServicoUseCase(gateway);
+        var useCase = new CadastrarServicoUseCase(gateway, logger);
         var result = useCase.execute(request);
 
         assertThat(result).isNotNull();

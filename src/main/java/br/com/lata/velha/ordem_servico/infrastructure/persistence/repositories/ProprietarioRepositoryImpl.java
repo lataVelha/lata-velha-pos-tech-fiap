@@ -4,6 +4,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.repositories.ProprietarioRepository;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.ProprietarioPersistenceMapper;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class ProprietarioRepositoryImpl implements ProprietarioRepository {
 
     private final ProprietarioJpaRepository jpaRepository;
     private final ProprietarioPersistenceMapper mapper;
+    private final Logger logger;
 
     @Override
     public Proprietario save(Proprietario proprietario) {
@@ -33,21 +35,30 @@ public class ProprietarioRepositoryImpl implements ProprietarioRepository {
     public Proprietario getActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> ProprietarioNotFoundException.fromId(id));
+                .orElseThrow(() -> {
+                    logger.logWarn("Proprietário ativo não encontrado - proprietarioId={}", id);
+                    return ProprietarioNotFoundException.fromId(id);
+                });
     }
 
     @Override
     public Proprietario findActiveByDocumento(String documento) {
         return jpaRepository.findByDocumentoAndAtivoTrue(documento)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> ProprietarioNotFoundException.fromDocumento(documento));
+                .orElseThrow(() -> {
+                    logger.logWarn("Proprietário ativo não encontrado pelo documento informado");
+                    return ProprietarioNotFoundException.fromDocumento(documento);
+                });
     }
 
     @Override
     public Proprietario findInactiveById(Long id) {
         return jpaRepository.findByIdAndAtivoFalse(id)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> ProprietarioNotFoundException.fromId(id));
+                .orElseThrow(() -> {
+                    logger.logWarn("Proprietário inativo não encontrado - proprietarioId={}", id);
+                    return ProprietarioNotFoundException.fromId(id);
+                });
     }
 
     @Override
@@ -75,6 +86,7 @@ public class ProprietarioRepositoryImpl implements ProprietarioRepository {
 
     private void validateDocumentoAvailability(String documento) {
         if (jpaRepository.existsByDocumento(documento)) {
+            logger.logWarn("Cadastro de proprietário rejeitado: documento já cadastrado");
             throw new ResourceAlreadyExistsException(
                     "Já existe um proprietário cadastrado com este documento");
         }

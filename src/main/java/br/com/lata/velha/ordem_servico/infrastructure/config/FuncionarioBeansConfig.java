@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.application.presenters.funcionario.Atuali
 import br.com.lata.velha.ordem_servico.application.presenters.funcionario.BuscarFuncionarioPorIdPresenter;
 import br.com.lata.velha.ordem_servico.application.presenters.funcionario.CadastrarFuncionarioPresenter;
 import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class FuncionarioBeansConfig {
 
+    private final Logger logger;
     private final CadastrarFuncionarioGateway cadastrarGateway;
     private final AuthenticationService authService;
     private final CadastrarFuncionarioPresenter cadastrarPresenter;
@@ -25,6 +27,7 @@ public class FuncionarioBeansConfig {
 
     @Bean
     public FuncionarioCleanController funcionarioCleanController() {
+        logger.logInfo("Configurando FuncionarioCleanController");
         return new FuncionarioCleanController(
                 cadastrarGateway,
                 authService,
@@ -33,6 +36,7 @@ public class FuncionarioBeansConfig {
                 atualizarPresenter,
                 buscarGateway,
                 buscarPresenter,
-                desativarGateway);
+                desativarGateway,
+                logger);
     }
 }

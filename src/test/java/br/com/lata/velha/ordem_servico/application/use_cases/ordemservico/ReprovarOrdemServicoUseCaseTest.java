@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +31,7 @@ class ReprovarOrdemServicoUseCaseTest {
 
     @Mock private ReprovarOrdemServicoGateway gateway;
     @Mock private NotificarOrdemServicoService notificarService;
+    @Mock private Logger logger;
 
     private ReprovarOrdemServicoUseCase useCase;
 
@@ -41,7 +43,7 @@ class ReprovarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new ReprovarOrdemServicoUseCase(gateway, notificarService);
+        useCase = new ReprovarOrdemServicoUseCase(gateway, notificarService, logger);
         atendente = new Funcionario(ATENDENTE_ID, "Ana Atendente", null, null);
         userId = UserId.random();
     }

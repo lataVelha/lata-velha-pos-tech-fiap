@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarPecaReq
 import br.com.lata.velha.ordem_servico.application.dtos.response.PecaResponse;
 import br.com.lata.velha.ordem_servico.application.presenters.peca.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.peca.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 
 public class PecaCleanController {
@@ -23,6 +24,8 @@ public class PecaCleanController {
 
     private final DesativarPecaGateway desativarGateway;
 
+    private final Logger logger;
+
     public PecaCleanController(CadastrarPecaGateway cadastrarGateway,
                                CadastrarPecaPresenter cadastrarPresenter,
                                AtualizarPecaGateway atualizarGateway,
@@ -31,7 +34,8 @@ public class PecaCleanController {
                                BuscarPecaPorIdPresenter buscarPorIdPresenter,
                                BuscarPecasGateway buscarTodosGateway,
                                BuscarPecasPresenter buscarTodosPresenter,
-                               DesativarPecaGateway desativarGateway) {
+                               DesativarPecaGateway desativarGateway,
+                               Logger logger) {
         this.cadastrarGateway = cadastrarGateway;
         this.cadastrarPresenter = cadastrarPresenter;
         this.atualizarGateway = atualizarGateway;
@@ -41,25 +45,40 @@ public class PecaCleanController {
         this.buscarTodosGateway = buscarTodosGateway;
         this.buscarTodosPresenter = buscarTodosPresenter;
         this.desativarGateway = desativarGateway;
+        this.logger = logger;
     }
 
     public PecaResponse cadastrar(CadastrarPecaRequest request) {
-        return cadastrarPresenter.present(new CadastrarPecaUseCase(cadastrarGateway).execute(request));
+        logger.logInfo("Iniciando cadastro de peça");
+        var peca = new CadastrarPecaUseCase(cadastrarGateway, logger).execute(request);
+        logger.logInfo("Cadastro de peça concluído com sucesso - pecaId={}", peca.getId());
+        return cadastrarPresenter.present(peca);
     }
 
     public PecaResponse atualizar(Long id, AtualizarPecaRequest request) {
-        return atualizarPresenter.present(new AtualizarPecaUseCase(atualizarGateway).execute(id, request));
+        logger.logInfo("Iniciando atualização de peça - pecaId={}", id);
+        var peca = new AtualizarPecaUseCase(atualizarGateway, logger).execute(id, request);
+        logger.logInfo("Atualização de peça concluída com sucesso - pecaId={}", id);
+        return atualizarPresenter.present(peca);
     }
 
     public PecaResponse buscarPorId(Long id) {
-        return buscarPorIdPresenter.present(new BuscarPecaPorIdUseCase(buscarPorIdGateway).execute(id));
+        logger.logInfo("Iniciando busca de peça por id - pecaId={}", id);
+        var peca = new BuscarPecaPorIdUseCase(buscarPorIdGateway, logger).execute(id);
+        logger.logInfo("Busca de peça por id concluída com sucesso - pecaId={}", id);
+        return buscarPorIdPresenter.present(peca);
     }
 
     public PaginatedResult<PecaResponse> buscarTodos(int page, int size) {
-        return buscarTodosPresenter.present(new BuscarPecasUseCase(buscarTodosGateway).execute(page, size));
+        logger.logInfo("Iniciando busca de peças - page={}, size={}", page, size);
+        var result = new BuscarPecasUseCase(buscarTodosGateway, logger).execute(page, size);
+        logger.logInfo("Busca de peças concluída com sucesso - totalElements={}", result.totalElements());
+        return buscarTodosPresenter.present(result);
     }
 
     public void desativar(Long id) {
-        new DesativarPecaUseCase(desativarGateway).execute(id);
+        logger.logInfo("Iniciando desativação de peça - pecaId={}", id);
+        new DesativarPecaUseCase(desativarGateway, logger).execute(id);
+        logger.logInfo("Desativação de peça concluída com sucesso - pecaId={}", id);
     }
 }

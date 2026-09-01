@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.Se
 import br.com.lata.velha.ordem_servico.domain.repositories.ServicoRepository;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ServicoEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.ServicoPersistenceMapper;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class ServicoRepositoryImpl implements ServicoRepository {
     private final ServicoJpaRepository jpaRepository;
     private final ServicoPersistenceMapper mapper;
+    private final Logger logger;
 
     @Override
     public Servico save(Servico servico) {
@@ -30,7 +32,10 @@ public class ServicoRepositoryImpl implements ServicoRepository {
     public Servico getActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> ServicoNotFoundException.fromId(id));
+                .orElseThrow(() -> {
+                    logger.logWarn("Serviço ativo não encontrado - servicoId={}", id);
+                    return ServicoNotFoundException.fromId(id);
+                });
     }
 
     @Override
