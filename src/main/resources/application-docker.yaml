@@ -6,3 +6,11 @@ spring:
     url: jdbc:postgresql://postgres:5432/lata_velha
     username: admin
     password: admin123
+
+otel:
+  exporter:
+    otlp:
+      enabled: false
+  instrumentation:
+    logback-appender:
+      enabled: false
