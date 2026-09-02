@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.AtualizarFuncion
 import br.com.lata.velha.ordem_servico.domain.entities.Cargo;
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.FuncionarioNotFoundException;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,9 @@ class AtualizarFuncionarioUseCaseTest {
     @Mock
     private AtualizarFuncionarioGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("Deve atualizar funcionário com sucesso")
     void shouldUpdateFuncionarioSuccessfully() {
@@ -35,7 +39,7 @@ class AtualizarFuncionarioUseCaseTest {
         when(gateway.getCargoPorId(2L)).thenReturn(cargoNovo);
         when(gateway.salvarFuncionario(funcionario)).thenReturn(funcionario);
 
-        var useCase = new AtualizarFuncionarioUseCase(gateway);
+        var useCase = new AtualizarFuncionarioUseCase(gateway, logger);
         var result = useCase.execute(request.toUpdateUseCaseInput(1L));
 
         assertEquals("Novo Nome", funcionario.getNome());
@@ -57,7 +61,7 @@ class AtualizarFuncionarioUseCaseTest {
         when(gateway.isUsuarioAtivo(userId)).thenReturn(true);
         when(gateway.getCargoPorId(99L)).thenThrow(new IllegalArgumentException("Cargo não encontrado"));
 
-        var useCase = new AtualizarFuncionarioUseCase(gateway);
+        var useCase = new AtualizarFuncionarioUseCase(gateway, logger);
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(input));
         verify(gateway, never()).salvarFuncionario(funcionario);
     }
@@ -73,7 +77,7 @@ class AtualizarFuncionarioUseCaseTest {
         when(gateway.getFuncionarioById(1L)).thenReturn(funcionario);
         when(gateway.isUsuarioAtivo(userId)).thenReturn(false);
 
-        var useCase = new AtualizarFuncionarioUseCase(gateway);
+        var useCase = new AtualizarFuncionarioUseCase(gateway, logger);
         assertThrows(InactiveUserException.class, () -> useCase.execute(input));
         verify(gateway, never()).getCargoPorId(any());
         verify(gateway, never()).salvarFuncionario(any());
@@ -87,7 +91,7 @@ class AtualizarFuncionarioUseCaseTest {
 
         when(gateway.getFuncionarioById(99L)).thenThrow(FuncionarioNotFoundException.fromId(99L));
 
-        var useCase = new AtualizarFuncionarioUseCase(gateway);
+        var useCase = new AtualizarFuncionarioUseCase(gateway, logger);
         assertThrows(FuncionarioNotFoundException.class, () -> useCase.execute(input));
         verify(gateway, never()).isUsuarioAtivo(any());
         verify(gateway, never()).salvarFuncionario(any());

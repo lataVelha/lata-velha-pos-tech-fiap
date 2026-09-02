@@ -2,7 +2,7 @@ spring:
   application:
     name: Lata-Velha
   profiles:
-    active: ${ENVIRONMENT:local}
+    active: ${ENVIRONMENT:dev}
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/lata_velha}
@@ -31,6 +31,15 @@ spring:
             required: true
     default-encoding: UTF-8
 
+# O API Gateway fala https com o cliente mas http com o ALB interno (VPC
+# Link + HTTP_PROXY) — sem isso, o Spring so enxerga a conexao http vinda do
+# ALB e gera URLs http:// (Swagger "Try it out" quebra com erro de CORS/
+# "Failed to fetch", porque o dominio execute-api.amazonaws.com so serve
+# https). O API Gateway ja envia X-Forwarded-Proto: https; isso so faz o
+# Spring confiar nesse header pra montar as URLs certas.
+server:
+  forward-headers-strategy: framework
+
 jwt:
   public:
     key: classpath:app.pub
@@ -41,6 +50,9 @@ jwt:
   expires-in: ${JWT_EXPIRES_IN:3600}
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
   endpoints:
     web:
       exposure:
@@ -55,11 +67,28 @@ management:
       enabled: true
     readinessstate:
       enabled: true
+    # Email e best-effort (SPRING_MAIL_USERNAME/PASSWORD podem vir vazios —
+    # ver application.yaml acima). Sem isso, o startupProbe (que bate em
+    # /actuator/health, o agregado) nunca fica saudavel quando o mail nao
+    # esta configurado, e o pod entra em CrashLoopBackOff.
+    mail:
+      enabled: false
 
 springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+    # Segundo item so documenta o POST /auth/cpf (servido por uma lambda
+    # separada, repo lambda — nao existe controller Java pra ele). A propria
+    # lambda auth-cpf serve o OpenAPI em GET /auth/cpf-openapi.json (repo
+    # lambda, handlers/auth_cpf_handler.py + infra/terraform/modules/
+    # app-gateway) — nenhum arquivo aqui no app, nenhuma mudanca no
+    # SecurityConfig, e ja cai em /auth/** (rota publica).
+    urls:
+      - name: App
+        url: /v3/api-docs
+      - name: Auth CPF (Lambda)
+        url: /auth/cpf-openapi.json
   api-docs:
     enabled: true
     path: /v3/api-docs

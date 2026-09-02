@@ -13,6 +13,7 @@ import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.Ordem
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ProprietarioEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.VeiculoEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.gateways.OrdemServicoGatewayImpl;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -49,6 +50,7 @@ class CriarOrdemServicoUseCaseIT {
     @Autowired private CriarOrdemServicoGateway criarGateway;
     @Autowired private NotificarOrdemServicoGateway notificarGateway;
     @Autowired private EntityManager em;
+    @Autowired private Logger logger;
 
     @MockBean private EmailProvider emailProvider;
     @MockBean private EmailTemplateProvider emailTemplateProvider;
@@ -69,8 +71,8 @@ class CriarOrdemServicoUseCaseIT {
             return proj;
         }).when(gatewayImpl).getOrdemServicoProjectionById(anyLong());
 
-        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider);
-        useCase = new CriarOrdemServicoUseCase(criarGateway, notificarService);
+        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider, logger);
+        useCase = new CriarOrdemServicoUseCase(criarGateway, notificarService, logger);
 
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);

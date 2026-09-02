@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.peca;
 
 import br.com.lata.velha.ordem_servico.application.dtos.request.CadastrarPecaRequest;
 import br.com.lata.velha.ordem_servico.domain.entities.Peca;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,9 @@ class CadastrarPecaUseCaseTest {
 
     @Mock
     private CadastrarPecaGateway gateway;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private CadastrarPecaUseCase useCase;

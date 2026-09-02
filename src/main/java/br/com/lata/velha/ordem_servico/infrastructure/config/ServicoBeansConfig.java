@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.infrastructure.config;
 import br.com.lata.velha.ordem_servico.application.controllers.servico.ServicoCleanController;
 import br.com.lata.velha.ordem_servico.application.presenters.servico.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.servico.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class ServicoBeansConfig {
 
+    private final Logger logger;
     private final CadastrarServicoGateway cadastrarGateway;
     private final CadastrarServicoPresenter cadastrarPresenter;
     private final AtualizarServicoGateway atualizarGateway;
@@ -23,6 +25,7 @@ public class ServicoBeansConfig {
 
     @Bean
     public ServicoCleanController servicoCleanController() {
+        logger.logInfo("Configurando ServicoCleanController");
         return new ServicoCleanController(
                 cadastrarGateway,
                 cadastrarPresenter,
@@ -32,6 +35,7 @@ public class ServicoBeansConfig {
                 buscarPorIdPresenter,
                 buscarTodosGateway,
                 buscarTodosPresenter,
-                desativarGateway);
+                desativarGateway,
+                logger);
     }
 }

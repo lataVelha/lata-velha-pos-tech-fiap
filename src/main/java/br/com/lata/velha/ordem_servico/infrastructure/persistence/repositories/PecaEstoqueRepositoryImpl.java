@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.infrastructure.persistence.repositories;
 import br.com.lata.velha.ordem_servico.domain.entities.PecaEstoque;
 import br.com.lata.velha.ordem_servico.domain.repositories.PecaEstoqueRepository;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaEstoqueEntity;
+import br.com.lata.velha.shared.application.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +17,7 @@ import java.util.Set;
 public class PecaEstoqueRepositoryImpl implements PecaEstoqueRepository {
 
     private final PecaEstoqueJpaRepository jpaRepository;
+    private final Logger logger;
 
     @Override
     public PecaEstoque save(PecaEstoque pecaEstoque) {

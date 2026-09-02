@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.veiculo;
 import br.com.lata.velha.ordem_servico.application.dtos.request.VeiculoRequest;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,9 @@ class CriarVeiculoUseCaseTest {
     @Mock
     private CriarVeiculoGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("deve criar veículo com sucesso")
     void shouldCreateVeiculo() {
@@ -28,7 +32,7 @@ class CriarVeiculoUseCaseTest {
 
         when(gateway.salvarVeiculo(any())).thenReturn(saved);
 
-        CriarVeiculoUseCase useCase = new CriarVeiculoUseCase(gateway);
+        CriarVeiculoUseCase useCase = new CriarVeiculoUseCase(gateway, logger);
         Veiculo result = useCase.execute(request);
 
         assertThat(result).isNotNull();

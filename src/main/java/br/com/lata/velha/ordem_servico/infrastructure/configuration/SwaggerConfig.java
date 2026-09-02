@@ -6,14 +6,20 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import br.com.lata.velha.shared.application.logging.Logger;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@RequiredArgsConstructor
 public class SwaggerConfig {
+
+    private final Logger logger;
 
     @Bean
     public OpenAPI openAPI() {
+        logger.logInfo("Configurando OpenAPI");
         return new OpenAPI()
                 .info(new Info()
                         .title("Lata Velha — API de Oficina Mecânica")

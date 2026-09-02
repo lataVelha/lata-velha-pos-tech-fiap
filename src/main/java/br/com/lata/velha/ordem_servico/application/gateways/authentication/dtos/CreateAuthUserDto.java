@@ -5,5 +5,6 @@ import java.util.Set;
 public record CreateAuthUserDto(
         String email,
         String senha,
-        Set<String> roles
+        Set<String> roles,
+        String cpf
 ) { }

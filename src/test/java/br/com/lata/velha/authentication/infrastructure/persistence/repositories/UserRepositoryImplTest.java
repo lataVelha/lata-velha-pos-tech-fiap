@@ -7,6 +7,7 @@ import br.com.lata.velha.authentication.domain.value_objects.Credential;
 import br.com.lata.velha.authentication.domain.value_objects.UserData;
 import br.com.lata.velha.authentication.infrastructure.persistence.entities.UserEntity;
 import br.com.lata.velha.authentication.infrastructure.persistence.jpa.UserJpaRepository;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.Email;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +37,9 @@ class UserRepositoryImplTest {
     @Mock
     private PasswordHasher passwordHasher;
 
+    @Mock
+    private Logger logger;
+
     @InjectMocks
     private UserRepositoryImpl repository;
 
@@ -49,7 +53,7 @@ class UserRepositoryImplTest {
         rawUuid = UUID.randomUUID();
         userId = UserId.create(rawUuid);
         userEntity = new UserEntity(rawUuid, "joao", "joao@example.com", "hash", Set.of(), true,
-                LocalDateTime.now(), null);
+                LocalDateTime.now(), null, null);
         Credential credential = Credential.fromHash("hash", passwordHasher);
         var userData = new UserData(userId, "joao", Email.fromString("joao@example.com"), true);
         domainUser = new User(userData, credential, Set.of(), LocalDateTime.now(), null);
@@ -140,7 +144,7 @@ class UserRepositoryImplTest {
         @DisplayName("deve retornar false para usuário inativo")
         void shouldReturnFalseForInactiveUser() {
             UserEntity inactiveEntity = new UserEntity(rawUuid, "joao", "joao@example.com", "hash",
-                    Set.of(), false, LocalDateTime.now(), null);
+                    Set.of(), false, LocalDateTime.now(), null, null);
             when(jpaRepository.findById(rawUuid)).thenReturn(Optional.of(inactiveEntity));
 
             assertFalse(repository.isAtivoById(userId));

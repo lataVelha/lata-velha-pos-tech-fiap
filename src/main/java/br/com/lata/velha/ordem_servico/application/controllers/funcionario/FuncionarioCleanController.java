@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.application.presenters.funcionario.Atuali
 import br.com.lata.velha.ordem_servico.application.presenters.funcionario.BuscarFuncionarioPorIdPresenter;
 import br.com.lata.velha.ordem_servico.application.presenters.funcionario.CadastrarFuncionarioPresenter;
 import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 
 public class FuncionarioCleanController {
 
@@ -21,6 +22,8 @@ public class FuncionarioCleanController {
 
     private final DesativarFuncionarioGateway desativarGateway;
 
+    private final Logger logger;
+
     public FuncionarioCleanController(CadastrarFuncionarioGateway cadastrarGateway,
                                       AuthenticationService authService,
                                       CadastrarFuncionarioPresenter cadastrarPresenter,
@@ -28,7 +31,8 @@ public class FuncionarioCleanController {
                                       AtualizarFuncionarioPresenter atualizarPresenter,
                                       BuscarFuncionarioPorIdGateway buscarGateway,
                                       BuscarFuncionarioPorIdPresenter buscarPresenter,
-                                      DesativarFuncionarioGateway desativarGateway) {
+                                      DesativarFuncionarioGateway desativarGateway,
+                                      Logger logger) {
         this.cadastrarGateway = cadastrarGateway;
         this.authService = authService;
         this.cadastrarPresenter = cadastrarPresenter;
@@ -37,27 +41,33 @@ public class FuncionarioCleanController {
         this.buscarGateway = buscarGateway;
         this.buscarPresenter = buscarPresenter;
         this.desativarGateway = desativarGateway;
+        this.logger = logger;
     }
 
     public FuncionarioResponse cadastrar(CadastrarFuncionarioUseCase.Input input) {
-        return cadastrarPresenter.present(
-                new CadastrarFuncionarioUseCase(cadastrarGateway, authService).execute(input)
-        );
+        logger.logInfo("Iniciando cadastro de funcionário - cargoId={}", input.cargoId());
+        var funcionario = new CadastrarFuncionarioUseCase(cadastrarGateway, authService, logger).execute(input);
+        logger.logInfo("Cadastro de funcionário concluído com sucesso - funcionarioId={}", funcionario.getId());
+        return cadastrarPresenter.present(funcionario);
     }
 
     public FuncionarioResponse buscarPorId(Long id) {
-        return buscarPresenter.present(
-                new BuscarFuncionarioPorIdUseCase(buscarGateway).execute(id)
-        );
+        logger.logInfo("Iniciando busca de funcionário por id - funcionarioId={}", id);
+        var funcionario = new BuscarFuncionarioPorIdUseCase(buscarGateway, logger).execute(id);
+        logger.logInfo("Busca de funcionário por id concluída com sucesso - funcionarioId={}", id);
+        return buscarPresenter.present(funcionario);
     }
 
     public FuncionarioResponse atualizar(AtualizarFuncionarioUseCase.Input input) {
-        return atualizarPresenter.present(
-                new AtualizarFuncionarioUseCase(atualizarGateway).execute(input)
-        );
+        logger.logInfo("Iniciando atualização de funcionário - funcionarioId={}", input.id());
+        var funcionario = new AtualizarFuncionarioUseCase(atualizarGateway, logger).execute(input);
+        logger.logInfo("Atualização de funcionário concluída com sucesso - funcionarioId={}", input.id());
+        return atualizarPresenter.present(funcionario);
     }
 
     public void desativar(Long id) {
-        new DesativarFuncionarioUseCase(desativarGateway).execute(id);
+        logger.logInfo("Iniciando desativação de funcionário - funcionarioId={}", id);
+        new DesativarFuncionarioUseCase(desativarGateway, logger).execute(id);
+        logger.logInfo("Desativação de funcionário concluída com sucesso - funcionarioId={}", id);
     }
 }

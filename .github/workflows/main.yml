@@ -5,10 +5,47 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  # Push pra master builda/aplica de verdade (build+push da imagem, terraform
+  # apply). workflow_dispatch existe pra permitir disparo manual (com
+  # destroy=true, por exemplo) fora de um push.
+  workflow_dispatch:
+    inputs:
+      destroy:
+        description: "Destruir os recursos da aplicação em vez de aplicar"
+        type: boolean
+        default: false
+  # Reusavel: dá pra chamar de fora (ex: mono repo) com
+  # "uses: lataVelha/lata-velha-pos-tech-fiap/.github/workflows/main.yml@master".
+  # Pra isso funcionar, este repo precisa permitir acesso de fora em
+  # Settings > Actions > General > Access.
+  workflow_call:
+    inputs:
+      aws_region:
+        description: "Regiao AWS (default: var AWS_REGION deste repo)"
+        type: string
+        required: false
+      destroy:
+        description: "Destruir os recursos da aplicacao em vez de aplicar"
+        type: boolean
+        required: false
+        default: false
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: false
+      TF_MAIL_USERNAME:
+        required: true
+      TF_MAIL_PASSWORD:
+        required: true
 
 env:
   # Força actions JS a rodarem no Node 24 (algumas ainda pedem Node 20)
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  CLUSTER_NAME: "lata-velha-eks"
+  ECR_REPO_NAME: "lata-velha"
 
 jobs:
   # ============================================================
@@ -19,12 +56,20 @@ jobs:
   # ============================================================
   test:
     name: "CI · Testes automatizados"
+    if: inputs.destroy != true
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:
+      # Em PR, precisa checkar o código da PR (não o master) — nos outros
+      # eventos (push/workflow_call), o checkout padrão do actions/checkout
+      # resolveria pro repo CHAMADOR quando invocado via uses: cross-repo
+      # (ex: mono), por isso fixamos repo+ref explicitamente fora do PR.
       - name: Checkout do código
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || 'lataVelha/lata-velha-pos-tech-fiap' }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'master' }}
 
       - name: Configurar Java 21 (Corretto)
         uses: actions/setup-java@v4
@@ -37,102 +82,31 @@ jobs:
         run: mvn -B test -Dspring.profiles.active=test
 
   # ============================================================
-  # CD · PROVISIONAR INFRAESTRUTURA
-  # Garante VPC, EKS, RDS e ECR na AWS (recursos de base, sem
-  # depender do cluster já estar no ar). Exige os testes verdes e
-  # só roda em push para master (nunca em PR).
-  # ============================================================
-  tf-bootstrap:
-    name: "CD · Provisionar infraestrutura · VPC + EKS + RDS + ECR"
-    needs: test
-    # Só provisiona em push para master; em PR todo o CD é pulado.
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-
-    outputs:
-      ecr_url: ${{ steps.outputs.outputs.ecr_url }}
-      cluster_endpoint: ${{ steps.outputs.outputs.cluster_endpoint }}
-      cluster_ca_data: ${{ steps.outputs.outputs.cluster_ca_data }}
-      cluster_name: ${{ steps.outputs.outputs.cluster_name }}
-      state_bucket: ${{ steps.outputs.outputs.state_bucket }}
-
-    defaults:
-      run:
-        working-directory: infra/terraform
-
-    steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
-
-      - name: Autenticar na AWS
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Instalar Terraform 1.10
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.10.x"
-
-      - name: Provisionar bucket de estado (S3)
-        run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          BUCKET="lata-velha-tfstate-${ACCOUNT_ID}"
-          echo "STATE_BUCKET=${BUCKET}" >> $GITHUB_ENV
-          if ! aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
-            aws s3 mb "s3://$BUCKET" --region ${{ vars.AWS_REGION }}
-            aws s3api put-bucket-versioning \
-              --bucket "$BUCKET" \
-              --versioning-configuration Status=Enabled
-          fi
-
-      - name: Terraform Init — bootstrap
-        run: |
-          terraform -chdir=bootstrap init -reconfigure \
-            -backend-config="bucket=${STATE_BUCKET}" \
-            -backend-config="region=${{ vars.AWS_REGION }}"
-        env:
-          TF_VAR_region: ${{ vars.AWS_REGION }}
-          TF_VAR_db_username: ${{ secrets.TF_DB_USERNAME }}
-          TF_VAR_db_password: ${{ secrets.TF_DB_PASSWORD }}
-
-      - name: Terraform Apply — bootstrap (VPC, EKS, RDS, ECR)
-        run: terraform -chdir=bootstrap apply -auto-approve
-        env:
-          TF_VAR_region: ${{ vars.AWS_REGION }}
-          TF_VAR_db_username: ${{ secrets.TF_DB_USERNAME }}
-          TF_VAR_db_password: ${{ secrets.TF_DB_PASSWORD }}
-
-      - name: Exportar outputs do bootstrap
-        id: outputs
-        run: |
-          echo "ecr_url=$(terraform -chdir=bootstrap output -raw ecr_repository_url)" >> $GITHUB_OUTPUT
-          echo "cluster_endpoint=$(terraform -chdir=bootstrap output -raw cluster_endpoint)" >> $GITHUB_OUTPUT
-          echo "cluster_ca_data=$(terraform -chdir=bootstrap output -raw cluster_certificate_authority_data)" >> $GITHUB_OUTPUT
-          echo "cluster_name=$(terraform -chdir=bootstrap output -raw cluster_name)" >> $GITHUB_OUTPUT
-          echo "state_bucket=${STATE_BUCKET}" >> $GITHUB_OUTPUT
-
-  # ============================================================
   # CD · BUILD DA IMAGEM
-  # Builda a imagem Docker e publica no ECR com a tag = SHA do commit
-  # (imutável, usada pelo deploy). Usa cache de layers para acelerar.
+  # Builda a imagem Docker e publica no ECR (repositório provisionado
+  # pelo repo infra) com a tag = SHA do commit. Só roda em push para
+  # master (nunca em PR). Não depende do Terraform de nenhum outro
+  # repo — resolve a URL do ECR pelo nome fixo do repositório.
   # ============================================================
   build:
     name: "CD · Build & push da imagem → ECR"
-    needs: tf-bootstrap
+    needs: test
+    if: inputs.destroy != true && (github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch' || (github.ref == 'refs/heads/master' && github.event_name == 'push'))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     outputs:
       image: ${{ steps.meta.outputs.image }}
 
+    env:
+      REGION: ${{ inputs.aws_region || vars.AWS_REGION || 'us-east-1' }}
+
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
+        with:
+          repository: lataVelha/lata-velha-pos-tech-fiap
+          ref: master
 
       - name: Autenticar na AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -140,7 +114,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ env.REGION }}
 
       - name: Autenticar no Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
@@ -150,7 +124,9 @@ jobs:
 
       - name: Definir tag da imagem
         id: meta
-        run: echo "image=${{ needs.tf-bootstrap.outputs.ecr_url }}:${{ github.sha }}" >> $GITHUB_OUTPUT
+        run: |
+          ECR_URL=$(aws ecr describe-repositories --repository-names "$ECR_REPO_NAME" --query 'repositories[0].repositoryUri' --output text)
+          echo "image=${ECR_URL}:${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Build e push da imagem (ECR)
         uses: docker/build-push-action@v6
@@ -165,29 +141,30 @@ jobs:
 
   # ============================================================
   # CD · DEPLOY DA APLICAÇÃO
-  # Aplica ALB + app + cluster-autoscaler, usando os outputs do
-  # bootstrap para configurar os providers kubectl e helm.
+  # Aplica Deployment/Service/ConfigMap/Secret/HPA/PDB no cluster já
+  # provisionado pelo repo infra. As credenciais do banco (RDS) vêm
+  # do state do repo infra-db, lido via terraform_remote_state em
+  # terraform/main.tf — infra e infra-db precisam ter rodado antes.
+  # Os dados de conexão do EKS vêm via AWS CLI (describe-cluster),
+  # não via Terraform state de outro repo.
   # ============================================================
   tf-deploy:
-    name: "CD · Deploy na aplicação · ALB + App + Autoscaler"
-    needs: [build, tf-bootstrap]
+    name: "CD · Deploy da aplicação"
+    needs: build
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     # Serializa deploys: não roda dois apply em paralelo
     concurrency:
       group: deploy
       cancel-in-progress: false
 
-    outputs:
-      app_url: ${{ steps.outputs.outputs.app_url }}
-
     defaults:
       run:
-        working-directory: infra/terraform
+        working-directory: terraform
 
     env:
-      TF_VAR_region: ${{ vars.AWS_REGION }}
+      REGION: ${{ inputs.aws_region || vars.AWS_REGION || 'us-east-1' }}
       TF_VAR_docker_image: ${{ needs.build.outputs.image }}
       TF_VAR_mail_username: ${{ secrets.TF_MAIL_USERNAME }}
       TF_VAR_mail_password: ${{ secrets.TF_MAIL_PASSWORD }}
@@ -203,6 +180,9 @@ jobs:
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
+        with:
+          repository: lataVelha/lata-velha-pos-tech-fiap
+          ref: master
 
       - name: Autenticar na AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -210,25 +190,30 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ env.REGION }}
 
       - name: Instalar Terraform 1.10
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.10.x"
 
-      - name: Terraform Init — deploy
+      - name: Resolver bucket de estado e dados do cluster EKS
         run: |
-          terraform -chdir=deploy init -reconfigure \
-            -backend-config="bucket=${{ needs.tf-bootstrap.outputs.state_bucket }}" \
-            -backend-config="region=${{ vars.AWS_REGION }}"
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "TF_VAR_state_bucket=lata-velha-tfstate-${ACCOUNT_ID}" >> $GITHUB_ENV
+          echo "TF_VAR_region=${{ env.REGION }}" >> $GITHUB_ENV
+          echo "TF_VAR_cluster_name=${CLUSTER_NAME}" >> $GITHUB_ENV
+          echo "TF_VAR_cluster_endpoint=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.endpoint' --output text)" >> $GITHUB_ENV
+          echo "TF_VAR_cluster_ca_data=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.certificateAuthority.data' --output text)" >> $GITHUB_ENV
 
-      - name: Terraform Apply — deploy (ALB, app, autoscaler)
-        run: terraform -chdir=deploy apply -auto-approve
+      - name: Terraform Init
+        run: |
+          terraform init -reconfigure \
+            -backend-config="bucket=${TF_VAR_state_bucket}" \
+            -backend-config="region=${{ env.REGION }}"
 
-      - name: Exportar URL da aplicação
-        id: outputs
-        run: echo "app_url=$(terraform -chdir=deploy output -raw app_url)" >> $GITHUB_OUTPUT
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
 
   # ============================================================
   # CD · VERIFICAÇÃO DO DEPLOY
@@ -238,9 +223,12 @@ jobs:
   # ============================================================
   verify:
     name: "CD · Verificação do deploy"
-    needs: [tf-deploy, tf-bootstrap]
+    needs: tf-deploy
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+
+    env:
+      REGION: ${{ inputs.aws_region || vars.AWS_REGION || 'us-east-1' }}
 
     steps:
       - name: Autenticar na AWS
@@ -249,7 +237,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ env.REGION }}
 
       - name: Instalar kubectl
         uses: azure/setup-kubectl@v4
@@ -257,8 +245,8 @@ jobs:
       - name: Configurar kubeconfig do cluster EKS
         run: |
           aws eks update-kubeconfig \
-            --region ${{ vars.AWS_REGION }} \
-            --name ${{ needs.tf-bootstrap.outputs.cluster_name }}
+            --region ${{ env.REGION }} \
+            --name ${{ env.CLUSTER_NAME }}
 
       - name: Aguardar rollout do deployment
         run: |
@@ -266,9 +254,18 @@ jobs:
             -n lata-velha \
             --timeout=5m
 
+      # O ALB é interno desde que o API Gateway (repo infra) passou a ser o
+      # único ponto de entrada — bater direto no DNS do ALB não funciona
+      # mais de fora da VPC. O smoke test usa o endpoint público do API
+      # Gateway em vez disso.
       - name: Smoke test — health check HTTP
         run: |
-          URL="${{ needs.tf-deploy.outputs.app_url }}/actuator/health"
+          API_URL=$(aws apigatewayv2 get-apis --query "Items[?Name=='${ECR_REPO_NAME}-app-api'].ApiEndpoint" --output text)
+          if [ -z "$API_URL" ]; then
+            echo "ERRO: API Gateway '${ECR_REPO_NAME}-app-api' não encontrado — o repo infra (addons) já rodou?"
+            exit 1
+          fi
+          URL="${API_URL}/actuator/health"
           echo "Testando $URL ..."
           for i in $(seq 1 10); do
             STATUS=$(curl -sf -o /dev/null -w "%{http_code}" "$URL" 2>/dev/null || echo "000")
@@ -281,3 +278,66 @@ jobs:
           done
           echo "ERRO: aplicação não respondeu com 200 após 10 tentativas"
           exit 1
+
+  # ============================================================
+  # CD · DESTROY DA APLICAÇÃO
+  # Remove Deployment/Service/ConfigMap/Secret/HPA/PDB — equivalente ao
+  # "./apply.sh --destroy" local (terraform/apply.sh). Não builda nem
+  # testa nada, só destrói. Só roda quando chamado com destroy=true.
+  # ============================================================
+  destroy:
+    name: "CD · Destruir recursos da aplicação"
+    if: inputs.destroy == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    # Mesmo grupo de concorrência do tf-deploy — nunca aplicar e destruir
+    # em paralelo.
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    env:
+      REGION: ${{ inputs.aws_region || vars.AWS_REGION || 'us-east-1' }}
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        with:
+          repository: lataVelha/lata-velha-pos-tech-fiap
+          ref: master
+
+      - name: Autenticar na AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Instalar Terraform 1.10
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.x"
+
+      - name: Resolver bucket de estado e dados do cluster EKS
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "TF_VAR_state_bucket=lata-velha-tfstate-${ACCOUNT_ID}" >> $GITHUB_ENV
+          echo "TF_VAR_region=${{ env.REGION }}" >> $GITHUB_ENV
+          echo "TF_VAR_cluster_name=${CLUSTER_NAME}" >> $GITHUB_ENV
+          echo "TF_VAR_cluster_endpoint=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.endpoint' --output text)" >> $GITHUB_ENV
+          echo "TF_VAR_cluster_ca_data=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query 'cluster.certificateAuthority.data' --output text)" >> $GITHUB_ENV
+
+      - name: Terraform Init
+        run: |
+          terraform init -reconfigure \
+            -backend-config="bucket=${TF_VAR_state_bucket}" \
+            -backend-config="region=${{ env.REGION }}"
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve

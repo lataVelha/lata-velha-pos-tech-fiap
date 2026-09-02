@@ -24,7 +24,7 @@ public class FuncionarioController {
 
     @PostMapping
     @Transactional
-    @Operation(summary = "Cadastrar novo funcionário", description = "Cria funcionário e usuário de acesso (login/senha) vinculados a um cargo existente.")
+    @Operation(summary = "Cadastrar novo funcionário", description = "Cria funcionário e usuário de acesso (login/senha) vinculados a um cargo existente. O CPF é obrigatório e único — é ele que permite o login alternativo via a function de autenticação por CPF.")
     @ApiResponse(responseCode = "201", description = "Funcionário criado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos")
     @ApiResponse(responseCode = "404", description = "Cargo não encontrado")

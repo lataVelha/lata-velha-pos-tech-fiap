@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.domain.repositories.VeiculoRepository;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ProprietarioEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.VeiculoPersistenceMapper;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     private final VeiculoJpaRepository jpaRepository;
     private final ProprietarioJpaRepository proprietarioJpaRepository;
     private final VeiculoPersistenceMapper mapper;
+    private final Logger logger;
 
     @Override
     public Veiculo save(Veiculo veiculo) {
@@ -30,7 +32,10 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
 
         ProprietarioEntity proprietarioEntity = proprietarioJpaRepository
                 .findById(veiculo.getProprietarioId())
-                .orElseThrow(() -> ProprietarioNotFoundException.fromId(veiculo.getProprietarioId()));
+                .orElseThrow(() -> {
+                    logger.logWarn("Proprietário não encontrado ao salvar veículo - proprietarioId={}", veiculo.getProprietarioId());
+                    return ProprietarioNotFoundException.fromId(veiculo.getProprietarioId());
+                });
 
         var entity = mapper.toEntity(veiculo, proprietarioEntity);
         var saved = jpaRepository.save(entity);
@@ -41,7 +46,10 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     public Veiculo getActiveById(Long id) {
         return jpaRepository.findByIdAndAtivoTrue(id)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> VeiculoNotFoundException.fromId(id));
+                .orElseThrow(() -> {
+                    logger.logWarn("Veículo ativo não encontrado - veiculoId={}", id);
+                    return VeiculoNotFoundException.fromId(id);
+                });
     }
 
     @Override
@@ -72,18 +80,25 @@ public class VeiculoRepositoryImpl implements VeiculoRepository {
     public Veiculo findInactiveById(Long id) {
         return jpaRepository.findByIdAndAtivoFalse(id)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> VeiculoNotFoundException.fromId(id));
+                .orElseThrow(() -> {
+                    logger.logWarn("Veículo inativo não encontrado - veiculoId={}", id);
+                    return VeiculoNotFoundException.fromId(id);
+                });
     }
 
     @Override
     public Veiculo getActiveByIdAndProprietarioId(Long id, Long proprietarioId) {
         return jpaRepository.findByIdAndProprietarioIdAndAtivoTrue(id, proprietarioId)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> VeiculoNotFoundException.fromId(id));
+                .orElseThrow(() -> {
+                    logger.logWarn("Veículo ativo não encontrado para o proprietário - veiculoId={}, proprietarioId={}", id, proprietarioId);
+                    return VeiculoNotFoundException.fromId(id);
+                });
     }
 
     private void validatePlacaAvailability(Placa placa) {
         if (jpaRepository.existsByPlaca(placa.getValor())) {
+            logger.logWarn("Cadastro de veículo rejeitado: placa já cadastrada - placa={}", placa.getFormatted());
             throw new ResourceAlreadyExistsException(
                     "Já existe um veículo cadastrado com a placa: " + placa.getFormatted());
         }

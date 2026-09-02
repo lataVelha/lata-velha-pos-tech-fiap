@@ -1,8 +1,0 @@
-mail_username = "lata.velha.fiap@gmail.com"
-mail_password = "suxj nonb utdn dokg"   # Senha de App do Gmail (nao a senha da conta)
-dd_api_key    = "dda1..."                 # Datadog API key para OTLP ingest
-
-# As variaveis abaixo sao injetadas automaticamente pelo apply.sh — nao coloque aqui:
-# state_bucket, cluster_endpoint, cluster_ca_data, cluster_name
-# aws_access_key_id, aws_secret_access_key, aws_session_token
-# db_username, db_password  (lidos do estado do bootstrap)

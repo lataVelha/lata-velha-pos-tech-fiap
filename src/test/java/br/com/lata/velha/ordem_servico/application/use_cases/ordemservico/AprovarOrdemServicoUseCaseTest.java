@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.*;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +31,7 @@ class AprovarOrdemServicoUseCaseTest {
     @Mock private AprovarOrdemServicoGateway gateway;
     @Mock private NotificarOrdemServicoService notificarService;
     @Mock private NotificarAdminEncomendaPecaService notificarAdminEncomendaService;
+    @Mock private Logger logger;
 
     private AprovarOrdemServicoUseCase useCase;
 
@@ -44,7 +46,7 @@ class AprovarOrdemServicoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new AprovarOrdemServicoUseCase(gateway, notificarService, notificarAdminEncomendaService);
+        useCase = new AprovarOrdemServicoUseCase(gateway, notificarService, notificarAdminEncomendaService, logger);
         funcionario = new Funcionario(FUNCIONARIO_ID, "Ana Atendente", null, null);
         userId = UserId.random();
         lenient().when(gateway.getServicosAtivosPorIds(any()))

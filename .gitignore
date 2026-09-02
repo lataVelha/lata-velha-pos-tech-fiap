@@ -40,19 +40,18 @@ e2e/**/__pycache__/
 e2e/.env
 
 ### Terraform ###
-infra/terraform/**/.terraform/
-infra/terraform/**/.terraform.lock.hcl
-infra/terraform/**/terraform.tfvars
-infra/terraform/**/*.tfstate
-infra/terraform/**/*.tfstate.backup
-infra/terraform/**/*.tfstate.*.backup
-infra/terraform/**/*.auto.tfvars
-infra/terraform/**/override.tf
-infra/terraform/**/override.tf.json
-infra/terraform/**/*_override.tf
-infra/terraform/**/*_override.tf.json
-infra/terraform/**/crash.log
-infra/terraform/**/crash.*.log
+terraform/**/.terraform/
+terraform/**/terraform.tfvars
+terraform/**/*.tfstate
+terraform/**/*.tfstate.backup
+terraform/**/*.tfstate.*.backup
+terraform/**/*.auto.tfvars
+terraform/**/override.tf
+terraform/**/override.tf.json
+terraform/**/*_override.tf
+terraform/**/*_override.tf.json
+terraform/**/crash.log
+terraform/**/crash.*.log
 
 #python
 .venvs
@@ -62,6 +61,9 @@ __pycache__/
 *.so
 .Python
 temp/
+
+### Logging ###
+/log/
 
 ### Local profiles (may contain secrets) ###
 src/main/resources/application-local.yaml

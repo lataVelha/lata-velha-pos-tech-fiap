@@ -8,6 +8,7 @@ import br.com.lata.velha.authentication.domain.services.PasswordHasher;
 import br.com.lata.velha.authentication.domain.value_objects.Credential;
 import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
 import br.com.lata.velha.authentication.domain.value_objects.UserData;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +36,9 @@ class LoginUseCaseTest {
 
     @Mock
     private TokenProvider tokenProvider;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private LoginUseCase useCase;

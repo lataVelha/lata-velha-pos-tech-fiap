@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequ
 import br.com.lata.velha.ordem_servico.application.dtos.response.EnderecoResponse;
 import br.com.lata.velha.ordem_servico.application.dtos.response.ProprietarioResponse;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.ProprietarioNotFoundException;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,6 +51,9 @@ class ProprietarioControllerTest {
 
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockBean
+    private Logger logger;
 
     private ProprietarioResponse buildResponse() {
         var endereco = new EnderecoResponse("Rua das Flores", "01234-567", "123");

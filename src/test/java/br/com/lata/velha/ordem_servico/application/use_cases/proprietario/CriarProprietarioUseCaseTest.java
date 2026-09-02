@@ -4,6 +4,7 @@ import br.com.lata.velha.ordem_servico.application.dtos.request.ProprietarioRequ
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Documento;
 import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,9 @@ class CriarProprietarioUseCaseTest {
     @Mock
     private NotificarCadastroProprietarioUseCase notificarUseCase;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("deve criar proprietário com sucesso")
     void shouldCreateProprietario() {
@@ -34,7 +38,7 @@ class CriarProprietarioUseCaseTest {
 
         when(gateway.salvarProprietario(any())).thenReturn(saved);
 
-        var useCase = new CriarProprietarioUseCase(gateway, notificarUseCase);
+        var useCase = new CriarProprietarioUseCase(gateway, notificarUseCase, logger);
         var result = useCase.execute(request);
 
         assertThat(result).isNotNull();

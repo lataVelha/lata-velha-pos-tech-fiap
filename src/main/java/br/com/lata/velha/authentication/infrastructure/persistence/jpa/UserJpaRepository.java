@@ -12,6 +12,8 @@ import java.util.UUID;
 public interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
     boolean existsByEmail(String email);
 
+    boolean existsByCpf(String cpf);
+
     @Query("SELECT u FROM UserEntity u JOIN FETCH u.roles WHERE u.username = :username")
     Optional<UserEntity> findByUsernameWithRoles(String username);
 }

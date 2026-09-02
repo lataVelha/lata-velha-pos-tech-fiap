@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.controllers.veiculo.VeiculoCl
 import br.com.lata.velha.ordem_servico.application.dtos.request.VeiculoRequest;
 import br.com.lata.velha.ordem_servico.application.dtos.response.VeiculoResponse;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.VeiculoNotFoundException;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +49,9 @@ class VeiculoControllerTest {
 
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockBean
+    private Logger logger;
 
     private VeiculoResponse buildResponse() {
         return new VeiculoResponse(1L, 10L, "ABC1D23", "Fiat", "Uno", 2020, "Prata");

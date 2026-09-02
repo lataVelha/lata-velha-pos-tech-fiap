@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusPecaAlocada;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,7 @@ class EntradaPecaEstoqueUseCaseIT {
 
     @Autowired private EntradaPecaEstoqueGateway gateway;
     @Autowired private EntityManager em;
+    @Autowired private Logger logger;
 
     private EntradaPecaEstoqueUseCase useCase;
 
@@ -42,7 +44,7 @@ class EntradaPecaEstoqueUseCaseIT {
 
     @BeforeEach
     void setUp() {
-        useCase = new EntradaPecaEstoqueUseCase(gateway);
+        useCase = new EntradaPecaEstoqueUseCase(gateway, logger);
 
         PecaEntity peca = new PecaEntity();
         peca.setNome("Filtro de óleo");

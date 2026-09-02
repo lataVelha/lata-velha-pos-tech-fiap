@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.FuncionarioNotFoundException;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.FuncionarioEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.FuncionarioPersistenceMapper;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,9 @@ class FuncionarioRepositoryImplTest {
 
     @Mock
     private FuncionarioPersistenceMapper mapper;
+
+    @Mock
+    private Logger logger;
 
     @InjectMocks
     private FuncionarioRepositoryImpl repository;

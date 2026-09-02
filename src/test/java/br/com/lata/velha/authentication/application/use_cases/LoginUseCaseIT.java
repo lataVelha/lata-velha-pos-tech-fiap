@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.application.gateways.authentication.Authe
 import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioGateway;
 import br.com.lata.velha.ordem_servico.application.use_cases.funcionario.CadastrarFuncionarioUseCase;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.CargoEntity;
+import br.com.lata.velha.shared.application.logging.Logger;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,9 @@ class LoginUseCaseIT {
     @Autowired
     private EntityManager em;
 
+    @Autowired
+    private Logger logger;
+
     private static final String USERNAME = "tecnico@example.com";
     private static final String SENHA = "Senha1@!";
 
@@ -58,8 +62,8 @@ class LoginUseCaseIT {
 
         em.flush();
 
-        var input = new CadastrarFuncionarioUseCase.Input("Técnico", USERNAME, SENHA, cargo.getId());
-        new CadastrarFuncionarioUseCase(cadastrarGateway, authService).execute(input);
+        var input = new CadastrarFuncionarioUseCase.Input("Técnico", USERNAME, SENHA, cargo.getId(), "77889900198");
+        new CadastrarFuncionarioUseCase(cadastrarGateway, authService, logger).execute(input);
 
         em.flush();
     }

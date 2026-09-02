@@ -4,6 +4,7 @@ import br.com.lata.velha.ordem_servico.application.services.ordemservico.Notific
 import br.com.lata.velha.ordem_servico.domain.entities.Funcionario;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +26,7 @@ class FinalizarDiagnosticoUseCaseTest {
 
     @Mock private FinalizarDiagnosticoGateway gateway;
     @Mock private NotificarOrdemServicoService notificarService;
+    @Mock private Logger logger;
 
     private FinalizarDiagnosticoUseCase useCase;
 
@@ -39,7 +41,7 @@ class FinalizarDiagnosticoUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new FinalizarDiagnosticoUseCase(gateway, notificarService);
+        useCase = new FinalizarDiagnosticoUseCase(gateway, notificarService, logger);
         userId = UserId.random();
         funcionario = new Funcionario(MECANICO_ID, "Carlos Mecânico", null, null);
     }

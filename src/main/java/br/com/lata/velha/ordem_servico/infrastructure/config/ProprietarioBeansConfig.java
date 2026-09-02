@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.application.presenters.proprietario.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.proprietario.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class ProprietarioBeansConfig {
 
+    private final Logger logger;
     private final CriarProprietarioGateway criarGateway;
     private final CriarProprietarioPresenter criarPresenter;
     private final AtualizarProprietarioGateway atualizarGateway;
@@ -31,6 +33,7 @@ public class ProprietarioBeansConfig {
 
     @Bean
     public ProprietarioCleanController proprietarioCleanController() {
+        logger.logInfo("Configurando ProprietarioCleanController");
         return new ProprietarioCleanController(
                 criarGateway,
                 criarPresenter,
@@ -46,6 +49,7 @@ public class ProprietarioBeansConfig {
                 reativarGateway,
                 reativarPresenter,
                 emailProvider,
-                templateProvider);
+                templateProvider,
+                logger);
     }
 }

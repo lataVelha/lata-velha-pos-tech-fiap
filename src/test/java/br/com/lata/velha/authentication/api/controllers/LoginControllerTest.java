@@ -2,6 +2,7 @@ package br.com.lata.velha.authentication.api.controllers;
 
 import br.com.lata.velha.authentication.application.use_cases.LoginUseCase;
 import br.com.lata.velha.authentication.domain.exceptions.InvalidLoginException;
+import br.com.lata.velha.shared.application.logging.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,9 @@ class LoginControllerTest {
 
     @MockBean
     private JwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockBean
+    private Logger logger;
 
     @Test
     @DisplayName("POST /auth/login deve retornar 200 e token com credenciais válidas")

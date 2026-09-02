@@ -19,6 +19,7 @@ import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.PecaE
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ProprietarioEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.ServicoEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.gateways.OrdemServicoGatewayImpl;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -60,6 +61,7 @@ class CriarOrdemServicoCompletaUseCaseIT {
     @Autowired private AdicionarServicoGateway adicionarServicoGateway;
     @Autowired private NotificarOrdemServicoGateway notificarGateway;
     @Autowired private EntityManager em;
+    @Autowired private Logger logger;
 
     @MockBean private EmailProvider emailProvider;
     @MockBean private EmailTemplateProvider emailTemplateProvider;
@@ -78,11 +80,11 @@ class CriarOrdemServicoCompletaUseCaseIT {
             return proj;
         }).when(gatewayImpl).getOrdemServicoProjectionById(anyLong());
 
-        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider);
-        var notificarCadastroProprietario = new NotificarCadastroProprietarioUseCase(emailProvider, emailTemplateProvider);
+        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider, logger);
+        var notificarCadastroProprietario = new NotificarCadastroProprietarioUseCase(emailProvider, emailTemplateProvider, logger);
         useCase = new CriarOrdemServicoCompletaUseCase(
                 criarOrdemServicoGateway, criarProprietarioGateway, criarVeiculoGateway,
-                adicionarServicoGateway, notificarService, notificarCadastroProprietario);
+                adicionarServicoGateway, notificarService, notificarCadastroProprietario, logger);
 
         RoleEntity role = new RoleEntity(null, "ATENDENTE");
         em.persist(role);

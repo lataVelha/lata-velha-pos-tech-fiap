@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.veiculo;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.entities.Veiculo;
 import br.com.lata.velha.ordem_servico.domain.value_objects.Placa;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,9 @@ class ListarVeiculosUseCaseTest {
     @Mock
     private ListarVeiculosGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("deve listar veículos paginado")
     void shouldListPaginated() {
@@ -29,7 +33,7 @@ class ListarVeiculosUseCaseTest {
 
         when(gateway.findAll(0, 10)).thenReturn(paginatedResult);
 
-        ListarVeiculosUseCase useCase = new ListarVeiculosUseCase(gateway);
+        ListarVeiculosUseCase useCase = new ListarVeiculosUseCase(gateway, logger);
         PaginatedResult<Veiculo> result = useCase.execute(0, 10);
 
         assertThat(result).isNotNull();

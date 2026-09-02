@@ -3,21 +3,20 @@ package br.com.lata.velha.ordem_servico.application.use_cases.proprietario;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailProvider;
 import br.com.lata.velha.ordem_servico.application.gateways.EmailTemplateProvider;
 import br.com.lata.velha.ordem_servico.domain.entities.Proprietario;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.lata.velha.shared.application.logging.Logger;
 
 import java.util.Map;
 
 public class NotificarCadastroProprietarioUseCase {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificarCadastroProprietarioUseCase.class);
-
     private final EmailProvider emailProvider;
     private final EmailTemplateProvider templateProvider;
+    private final Logger logger;
 
-    public NotificarCadastroProprietarioUseCase(EmailProvider emailProvider, EmailTemplateProvider templateProvider) {
+    public NotificarCadastroProprietarioUseCase(EmailProvider emailProvider, EmailTemplateProvider templateProvider, Logger logger) {
         this.emailProvider = emailProvider;
         this.templateProvider = templateProvider;
+        this.logger = logger;
     }
 
     public void execute(Proprietario proprietario) {
@@ -29,9 +28,10 @@ public class NotificarCadastroProprietarioUseCase {
 
             String html = templateProvider.render("proprietario-cadastro", variables);
             emailProvider.send(proprietario.getEmail(), "Bem-vindo ao Lata Velha!", html);
+            logger.logInfo("E-mail de boas-vindas enviado - proprietarioId={}", proprietario.getId());
 
         } catch (Exception e) {
-            log.error("Falha ao enviar email de cadastro para: {}", proprietario.getEmail(), e);
+            logger.logError("Falha ao enviar e-mail de cadastro de proprietário - proprietarioId=" + proprietario.getId(), e);
         }
     }
 }

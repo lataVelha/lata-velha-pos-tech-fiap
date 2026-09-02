@@ -7,6 +7,7 @@ import br.com.lata.velha.ordem_servico.application.services.ordemservico.Notific
 import br.com.lata.velha.ordem_servico.application.services.ordemservico.NotificarOrdemServicoService;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -39,6 +40,7 @@ class IniciarDiagnosticoUseCaseIT {
     @Autowired private IniciarDiagnosticoGateway gateway;
     @Autowired private NotificarOrdemServicoGateway notificarGateway;
     @Autowired private EntityManager em;
+    @Autowired private Logger logger;
 
     @MockBean private EmailProvider emailProvider;
     @MockBean private EmailTemplateProvider emailTemplateProvider;
@@ -51,8 +53,8 @@ class IniciarDiagnosticoUseCaseIT {
 
     @BeforeEach
     void setUp() {
-        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider);
-        useCase = new IniciarDiagnosticoUseCase(gateway, notificarService);
+        var notificarService = new NotificarOrdemServicoService(notificarGateway, emailProvider, emailTemplateProvider, logger);
+        useCase = new IniciarDiagnosticoUseCase(gateway, notificarService, logger);
 
         RoleEntity role = new RoleEntity(null, "MECANICO");
         em.persist(role);

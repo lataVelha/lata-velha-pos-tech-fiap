@@ -3,6 +3,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.ordemservico;
 import br.com.lata.velha.ordem_servico.application.dtos.response.TotaisOrdemServicoResponse;
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusExecucaoServico;
+import br.com.lata.velha.shared.application.logging.Logger;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,7 +18,14 @@ public class CalcularTotaisOrdemServicoUseCase {
             StatusExecucaoServico.FINALIZADO
     );
 
+    private final Logger logger;
+
+    public CalcularTotaisOrdemServicoUseCase(Logger logger) {
+        this.logger = logger;
+    }
+
     public TotaisOrdemServicoResponse execute(List<ExecucaoServico> execucoes) {
+        logger.logInfo("Calculando totais de ordem de serviço - quantidadeExecucoes={}", execucoes.size());
         var maoDeObraAprovada = execucoes.stream()
                 .filter(e -> STATUS_APROVADOS.contains(e.getStatus()))
                 .map(ExecucaoServico::getValorMaoDeObra)

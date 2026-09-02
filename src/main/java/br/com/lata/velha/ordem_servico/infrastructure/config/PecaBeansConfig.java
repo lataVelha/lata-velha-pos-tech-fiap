@@ -6,6 +6,7 @@ import br.com.lata.velha.ordem_servico.application.presenters.peca.*;
 import br.com.lata.velha.ordem_servico.application.presenters.pecaestoque.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.peca.*;
 import br.com.lata.velha.ordem_servico.application.use_cases.pecaestoque.*;
+import br.com.lata.velha.shared.application.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class PecaBeansConfig {
 
+    private final Logger logger;
     private final CadastrarPecaGateway cadastrarGateway;
     private final CadastrarPecaPresenter cadastrarPresenter;
     private final AtualizarPecaGateway atualizarGateway;
@@ -35,6 +37,7 @@ public class PecaBeansConfig {
 
     @Bean
     public PecaCleanController pecaCleanController() {
+        logger.logInfo("Configurando PecaCleanController");
         return new PecaCleanController(
                 cadastrarGateway,
                 cadastrarPresenter,
@@ -44,11 +47,13 @@ public class PecaBeansConfig {
                 buscarPorIdPresenter,
                 buscarTodosGateway,
                 buscarTodosPresenter,
-                desativarGateway);
+                desativarGateway,
+                logger);
     }
 
     @Bean
     public PecaEstoqueCleanController pecaEstoqueCleanController() {
+        logger.logInfo("Configurando PecaEstoqueCleanController");
         return new PecaEstoqueCleanController(
                 buscarEstoqueGateway,
                 buscarEstoquePresenter,
@@ -57,6 +62,7 @@ public class PecaBeansConfig {
                 saidaGateway,
                 saidaPresenter,
                 ajustarGateway,
-                ajustarPresenter);
+                ajustarPresenter,
+                logger);
     }
 }

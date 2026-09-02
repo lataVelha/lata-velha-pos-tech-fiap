@@ -2,6 +2,7 @@ package br.com.lata.velha.ordem_servico.application.use_cases.servico;
 
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.ordem_servico.domain.entities.Servico;
+import br.com.lata.velha.shared.application.logging.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,9 @@ class BuscarServicosUseCaseTest {
     @Mock
     private BuscarServicosGateway gateway;
 
+    @Mock
+    private Logger logger;
+
     @Test
     @DisplayName("Deve listar serviços ativos de forma paginada")
     void deveListarServicosAtivosDeFormaPaginada() {
@@ -29,7 +33,7 @@ class BuscarServicosUseCaseTest {
 
         when(gateway.findAll(0, 10)).thenReturn(page);
 
-        var useCase = new BuscarServicosUseCase(gateway);
+        var useCase = new BuscarServicosUseCase(gateway, logger);
         PaginatedResult<Servico> result = useCase.execute(0, 10);
 
         assertThat(result.content()).hasSize(2);

@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.presenters.pecaalocada.Buscar
 import br.com.lata.velha.ordem_servico.application.presenters.pecaalocada.BuscarPecasAlocadasPresenter;
 import br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada.BuscarPecaAlocadaPorIdGateway;
 import br.com.lata.velha.ordem_servico.application.use_cases.pecaalocada.BuscarPecasAlocadasGateway;
+import br.com.lata.velha.shared.application.logging.Logger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class PecaAlocadaBeansConfig {
 
+    private final Logger logger;
     private final BuscarPecaAlocadaPorIdGateway buscarPorIdGateway;
     private final BuscarPecaAlocadaPorIdPresenter buscarPorIdPresenter;
     private final BuscarPecasAlocadasGateway buscarTodosGateway;
@@ -20,10 +22,12 @@ public class PecaAlocadaBeansConfig {
 
     @Bean
     public PecaAlocadaCleanController pecaAlocadaCleanController() {
+        logger.logInfo("Configurando PecaAlocadaCleanController");
         return new PecaAlocadaCleanController(
                 buscarPorIdGateway,
                 buscarPorIdPresenter,
                 buscarTodosGateway,
-                buscarTodosPresenter);
+                buscarTodosPresenter,
+                logger);
     }
 }

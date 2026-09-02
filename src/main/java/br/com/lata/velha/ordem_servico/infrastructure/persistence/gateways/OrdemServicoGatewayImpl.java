@@ -5,6 +5,7 @@ import br.com.lata.velha.ordem_servico.application.use_cases.ordemservico.*;
 import br.com.lata.velha.ordem_servico.domain.entities.*;
 import br.com.lata.velha.ordem_servico.domain.repositories.*;
 import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
+import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import br.com.lata.velha.shared.domain.value_objects.UserId;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ public class OrdemServicoGatewayImpl implements
     private final ServicoRepository servicoRepository;
     private final PecaRepository pecaRepository;
     private final ExecucaoServicoMetricaRepository execucaoServicoMetricaRepository;
+    private final Logger logger;
 
     @Override
     public Proprietario getProprietarioAtivoPorId(Long id) {
@@ -76,7 +78,10 @@ public class OrdemServicoGatewayImpl implements
                 .content()
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("OrdemServico não encontrada: " + id));
+                .orElseThrow(() -> {
+                    logger.logWarn("Projeção de ordem de serviço não encontrada - osId={}", id);
+                    return new NoSuchElementException("OrdemServico não encontrada: " + id);
+                });
     }
 
     @Override
