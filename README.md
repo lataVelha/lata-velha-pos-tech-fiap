@@ -26,6 +26,7 @@
 - [Como rodar (Docker Compose)](#como-rodar)
 - [Configurações por Contexto](#configurações-por-contexto)
 - [Autenticação](#autenticação)
+- [Observabilidade](#observabilidade)
 - [Testes](#testes)
 - [SonarQube](#sonarqube)
 - [Tecnologias](#tecnologias)
@@ -290,6 +291,35 @@ conferida contra o mesmo hash BCrypt (`USERS.CREDENTIAL`). Emite o mesmo tipo de
 chave RSA, mesmo `sub`/`scope`), só trocando o identificador (CPF em vez de email). É só outro
 meio de fazer login — a equipe decidiu manter os dois no app.
 
+## Observabilidade
+
+A aplicação envia **traces**, **métricas** e **logs** para o **Datadog** via OpenTelemetry (OTLP).
+
+**Como funciona:**
+- A biblioteca `opentelemetry-spring-boot-starter` instrumenta automaticamente controllers, JPA, JDBC, logs e segurança.
+- Traces e métricas são exportados via OTLP/HTTP para `https://otlp.us5.datadoghq.com`.
+- Logs são enviados pelo appender `OpenTelemetryAppender` do Logback, com `trace_id` e `span_id` automáticos.
+- Datadog correlaciona os três sinais pelo mesmo `trace_id`.
+
+> Se você usar outro site Datadog (EU, AP1, US1, US3, etc.), substitua `us5` pela região correta nos endpoints.
+
+**Variáveis de ambiente obrigatórias em produção:**
+
+```bash
+DD_API_KEY=your-datadog-api-key
+OTEL_SERVICE_NAME=lata-velha
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.us5.datadoghq.com
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=https://otlp.us5.datadoghq.com/v1/traces
+OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=https://otlp.us5.datadoghq.com/v1/metrics
+OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=https://otlp.us5.datadoghq.com/v1/logs
+OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=delta
+```
+
+> Em desenvolvimento, sem `DD_API_KEY`, a aplicação continua funcionando normalmente; apenas descarta os dados de telemetria (exporter retorna 403 e segue em frente).
+
+**K8s:** as variáveis de ambiente públicas estão no `infra/k8s/configmap.yaml`; a `DD_API_KEY` fica no `infra/k8s/secret.yaml` e é injetada pelo Terraform via `TF_VAR_dd_api_key`.
+
 ## Testes
 
 Rode os testes com:
@@ -387,3 +417,5 @@ authorizer) e este repo (deploy da aplicação).
 | Lombok            | 1.18.32   | Redução de boilerplate            |
 | Spring Mail       | via 3.2   | Envio de emails (Gmail SMTP)      |
 | Thymeleaf         | via 3.2   | Templates de email                |
+| OpenTelemetry     | 2.11.0    | Traces, métricas e logs           |
+| Datadog OTLP      | ingest    | Backend de observabilidade        |  
