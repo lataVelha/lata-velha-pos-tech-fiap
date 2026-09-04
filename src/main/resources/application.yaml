@@ -104,8 +104,12 @@ otel:
     name: ${OTEL_SERVICE_NAME:${spring.application.name}}
   resource:
     attributes:
+      service.name: ${OTEL_SERVICE_NAME:${spring.application.name}}
+      deployment.environment: ${DEPLOYMENT_ENVIRONMENT_NAME:local}
       deployment.environment.name: ${DEPLOYMENT_ENVIRONMENT_NAME:local}
       service.version: ${SERVICE_VERSION:0.0.1}
+      service.instance.id: ${HOSTNAME:unknown}
+      host.name: ${HOSTNAME:unknown}
   exporter:
     otlp:
       enabled: ${OTEL_EXPORTER_OTLP_ENABLED:true}
@@ -127,10 +131,25 @@ otel:
         endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:https://otlp.us5.datadoghq.com/v1/logs}
       headers:
         dd-api-key: ${DD_API_KEY:}
-        dd-otel-span-mapping: '{"span_name_as_resource_name": true}'
-        dd-otel-metric-config: '{"resource_attributes_as_tags": true}'
   instrumentation:
+    common-endpoint:
+      capture-request-headers: true
+      capture-response-headers: true
     logback-appender:
       enabled: true
       experimental:
         capture-mdc-attributes: '*'
+    spring-webmvc:
+      enabled: true
+      experimental:
+        capture-request-parameters: true
+    spring-webflux:
+      enabled: true
+    spring-data:
+      enabled: true
+    jdbc:
+      enabled: true
+    log4j-appender:
+      enabled: false
+    java-util-logging:
+      enabled: false

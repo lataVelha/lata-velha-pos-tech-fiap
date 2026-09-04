@@ -7,10 +7,7 @@ spring:
     username: admin
     password: admin123
 
-otel:
-  exporter:
-    otlp:
-      enabled: false
-  instrumentation:
-    logback-appender:
-      enabled: false
+logging:
+  level:
+    br.com.lata.velha.shared.infrastructure.observability: DEBUG
+    io.opentelemetry: DEBUG
