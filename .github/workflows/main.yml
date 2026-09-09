@@ -168,6 +168,14 @@ jobs:
       TF_VAR_docker_image: ${{ needs.build.outputs.image }}
       TF_VAR_mail_username: ${{ secrets.TF_MAIL_USERNAME }}
       TF_VAR_mail_password: ${{ secrets.TF_MAIL_PASSWORD }}
+      TF_VAR_dd_api_key: ${{ secrets.TF_DD_API_KEY }}
+      TF_VAR_state_bucket: ${{ needs.tf-bootstrap.outputs.state_bucket }}
+      TF_VAR_cluster_endpoint: ${{ needs.tf-bootstrap.outputs.cluster_endpoint }}
+      TF_VAR_cluster_ca_data: ${{ needs.tf-bootstrap.outputs.cluster_ca_data }}
+      TF_VAR_cluster_name: ${{ needs.tf-bootstrap.outputs.cluster_name }}
+      TF_VAR_aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      TF_VAR_aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_VAR_aws_session_token: ${{ secrets.AWS_SESSION_TOKEN }}
 
     steps:
       - name: Checkout do código

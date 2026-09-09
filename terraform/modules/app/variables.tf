@@ -31,3 +31,9 @@ variable "mail_password" {
   type        = string
   sensitive   = true
 }
+
+variable "dd_api_key" {
+  description = "Datadog API key para OTLP ingest"
+  type        = string
+  sensitive   = true
+}

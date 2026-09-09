@@ -19,3 +19,11 @@ jwt:
     key: classpath:app.key
   issuer: mybackend
   expires-in: 300
+
+otel:
+  exporter:
+    otlp:
+      enabled: false
+  instrumentation:
+    logback-appender:
+      enabled: false

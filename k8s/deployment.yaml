@@ -49,6 +49,11 @@ spec:
                 name: lata-velha-config
             - secretRef:
                 name: lata-velha-db-secret
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           # /tmp gravável para o work dir do Tomcat (FS raiz é read-only)
           volumeMounts:
             - name: tmp

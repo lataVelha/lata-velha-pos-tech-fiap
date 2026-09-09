@@ -11,3 +11,12 @@ data:
   SPRING_MAIL_PORT: "587"
   JWT_ISSUER: "lata-velha"
   JWT_EXPIRES_IN: "3600"
+  OTEL_SERVICE_NAME: "lata-velha"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  # Aponta para o Datadog Agent DaemonSet (host do node)
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://${HOST_IP}:4318"
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://${HOST_IP}:4318/v1/traces"
+  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://${HOST_IP}:4318/v1/metrics"
+  OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: "http://${HOST_IP}:4318/v1/logs"
+  OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: "delta"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment.name=prod,service.version=0.0.1,service.name=lata-velha"

@@ -9,10 +9,10 @@
                      converterClass="br.com.lata.velha.shared.infrasctructure.logging.LevelColorEndConverter"/>
 
     <property name="CONSOLE_LOG_PATTERN"
-              value="%levelColorStart%-5level [%X{traceId:-N/A}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %C{0}.%M : %m%n%wEx%levelColorEnd"/>
+              value="%levelColorStart%-5level [%X{trace_id:-N/A}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %C{0}.%M : %m%n%wEx%levelColorEnd"/>
 
     <property name="FILE_LOG_PATTERN"
-              value="%-5level [%X{traceId:-N/A}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %C{0}.%M : %m%n%wEx"/>
+              value="%-5level [%X{trace_id:-N/A}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %C{0}.%M : %m%n%wEx"/>
 
     <springProfile name="!prod">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -21,8 +21,15 @@
             </encoder>
         </appender>
 
+        <appender name="OpenTelemetry"
+                  class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+            <captureExperimentalAttributes>true</captureExperimentalAttributes>
+            <captureCodeAttributes>true</captureCodeAttributes>
+        </appender>
+
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="OpenTelemetry"/>
         </root>
     </springProfile>
 
@@ -39,8 +46,15 @@
             </encoder>
         </appender>
 
+        <appender name="OpenTelemetry"
+                  class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+            <captureExperimentalAttributes>true</captureExperimentalAttributes>
+            <captureCodeAttributes>true</captureCodeAttributes>
+        </appender>
+
         <root level="INFO">
             <appender-ref ref="FILE_DEV"/>
+            <appender-ref ref="OpenTelemetry"/>
         </root>
     </springProfile>
 
@@ -52,8 +66,15 @@
             </encoder>
         </appender>
 
+        <appender name="OpenTelemetry"
+                  class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+            <captureExperimentalAttributes>true</captureExperimentalAttributes>
+            <captureCodeAttributes>true</captureCodeAttributes>
+        </appender>
+
         <root level="INFO">
             <appender-ref ref="CONSOLE_JSON"/>
+            <appender-ref ref="OpenTelemetry"/>
         </root>
     </springProfile>
 
