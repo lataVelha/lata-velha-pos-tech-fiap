@@ -66,3 +66,10 @@ variable "mail_password" {
     error_message = "mail_password nao pode ser vazio. Mesmo motivo do mail_username."
   }
 }
+
+variable "dd_api_key" {
+  description = "Datadog API key para OTLP ingest"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
