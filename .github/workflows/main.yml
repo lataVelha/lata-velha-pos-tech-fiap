@@ -40,6 +40,8 @@ on:
         required: true
       TF_MAIL_PASSWORD:
         required: true
+      TF_DD_API_KEY:
+        required: false
 
 env:
   # Força actions JS a rodarem no Node 24 (algumas ainda pedem Node 20)
