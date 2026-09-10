@@ -4,6 +4,7 @@ import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.exceptions.not_found_exceptions.OrdemServicoNotFoundException;
 import br.com.lata.velha.ordem_servico.domain.repositories.OrdemServicoRepository;
 import br.com.lata.velha.ordem_servico.domain.view.OrdemServicoProjection;
+import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.HistoricoEstadoOsEntity;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.OrdemServicoEntity;
 import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
@@ -20,13 +21,30 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
 
     private final OrdemServicoJpaRepository jpaRepository;
     private final ExecucaoServicoJpaRepository execucaoServicoJpaRepository;
+    private final HistoricoEstadoOsJpaRepository historicoEstadoOsJpaRepository;
     private final Logger logger;
 
     @Override
     public OrdemServico save(OrdemServico ordemServico) {
         var entity = OrdemServicoEntity.fromDomain(ordemServico);
         var saved = jpaRepository.save(entity);
+        persistirHistorico(ordemServico, saved.getId());
         return saved.toDomain();
+    }
+
+    private void persistirHistorico(OrdemServico ordemServico, Long osId) {
+        var historico = ordemServico.getHistoricoEstados().stream()
+                .map(entrada -> {
+                    var entradaEntity = HistoricoEstadoOsEntity.fromDomain(entrada);
+                    if (entradaEntity.getOsId() == null) {
+                        entradaEntity.setOsId(osId);
+                    }
+                    return entradaEntity;
+                })
+                .toList();
+        if (!historico.isEmpty()) {
+            historicoEstadoOsJpaRepository.saveAll(historico);
+        }
     }
 
     @Override

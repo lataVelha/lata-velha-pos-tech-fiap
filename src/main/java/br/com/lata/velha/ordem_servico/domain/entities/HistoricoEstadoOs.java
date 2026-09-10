@@ -9,7 +9,7 @@ public class HistoricoEstadoOs {
     private LocalDateTime dataInicio;
     private LocalDateTime dataFim;
 
-    private HistoricoEstadoOs(Long id, Long osId, String estadoOs, LocalDateTime dataInicio, LocalDateTime dataFim) {
+    public HistoricoEstadoOs(Long id, Long osId, String estadoOs, LocalDateTime dataInicio, LocalDateTime dataFim) {
         this.id = id;
         this.osId = osId;
         this.estadoOs = estadoOs;
@@ -18,11 +18,20 @@ public class HistoricoEstadoOs {
     }
 
     public static HistoricoEstadoOs criar(Long osId, String estadoOs, LocalDateTime dataInicio, LocalDateTime dataFim) {
-        if (osId == null) throw new IllegalArgumentException("O ID da OS é obrigatório.");
-        if (estadoOs == null ) throw new IllegalArgumentException("O estado é obrigatório.");
+        if (estadoOs == null) throw new IllegalArgumentException("O estado é obrigatório.");
         if (dataInicio == null) throw new IllegalArgumentException("A data de início é obrigatória.");
 
         return new HistoricoEstadoOs(null, osId, estadoOs, dataInicio, dataFim);
+    }
+
+    public void fechar(LocalDateTime dataFim) {
+        if (this.dataFim == null) {
+            this.dataFim = dataFim;
+        }
+    }
+
+    public boolean isAberto() {
+        return this.dataFim == null;
     }
 
     public Long getId() { return id; }
@@ -31,4 +40,3 @@ public class HistoricoEstadoOs {
     public LocalDateTime getDataInicio() { return dataInicio; }
     public LocalDateTime getDataFim() { return dataFim; }
 }
-

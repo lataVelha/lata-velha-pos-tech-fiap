@@ -1,7 +1,7 @@
 package br.com.lata.velha.ordem_servico.application.controllers.historicoestadoos;
 
 import br.com.lata.velha.ordem_servico.application.use_cases.historicoestadoos.BuscarHistoricoEstadoUseCase;
-import br.com.lata.velha.ordem_servico.domain.view.TempoPorEstado;
+import br.com.lata.velha.ordem_servico.domain.view.TempoMedioPorEstado;
 import br.com.lata.velha.shared.application.logging.Logger;
 
 import java.time.LocalDateTime;
@@ -17,8 +17,8 @@ public class HistoricoEstadoOsCleanController {
         this.buscarHistoricoEstadoUseCase = buscarHistoricoEstadoUseCase;
     }
 
-    public List<TempoPorEstado> buscarHistoricoEstadoOs(LocalDateTime inicio, LocalDateTime fim) {
-        logger.logInfo("Buscando histórico de estado da OS - inicio={}, fim={}", inicio, fim);
+    public List<TempoMedioPorEstado> buscarTempoMedioPorEstado(LocalDateTime inicio, LocalDateTime fim) {
+        logger.logInfo("Buscando tempo médio por estado da OS - inicio={}, fim={}", inicio, fim);
         BuscarHistoricoEstadoUseCase.Input input = new BuscarHistoricoEstadoUseCase.Input(inicio, fim);
         return buscarHistoricoEstadoUseCase.execute(input);
     }

@@ -9,5 +9,6 @@ CREATE TABLE historico_estado_os (
     CONSTRAINT fk_historico_os FOREIGN KEY (os_id) REFERENCES ordem_servico (id) ON DELETE CASCADE
 );
 
--- 1. Índice para acelerar a busca por todo o histórico de uma OS
 CREATE INDEX idx_historico_os_id ON historico_estado_os(os_id);
+
+CREATE INDEX idx_historico_data_inicio ON historico_estado_os(data_inicio);
