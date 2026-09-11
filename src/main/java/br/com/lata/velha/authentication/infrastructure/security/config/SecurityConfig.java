@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/ordens-servico/metricas/**").hasRole(ADMIN)
                         .requestMatchers(HttpMethod.GET,"/ordens-servico/**").hasAnyRole(USER, MECANICO, ADMIN)
                         .requestMatchers(HttpMethod.GET,"/ordens-servico/status-service").hasAnyRole(USER, MECANICO, ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/historico/**").hasRole(ADMIN)
 
 
                         // qualquer outra rota exige autenticação

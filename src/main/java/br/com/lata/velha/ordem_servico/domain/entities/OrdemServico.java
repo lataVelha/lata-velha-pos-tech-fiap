@@ -26,8 +26,13 @@ public final class OrdemServico {
     private Long mecanicoResponsavelId;
 
     private final List<ExecucaoServico> execucaoServicos;
+    private final List<HistoricoEstadoOs> historicoEstados;
 
     public OrdemServico(Long id, Long proprietarioId, Long veiculoId, String reclamacaoProprietario, StatusOrdemServico status, LocalDateTime criadoEm, LocalDateTime iniciadoEm, LocalDateTime finalizadoEm, LocalDateTime entregueEm, LocalDateTime atualizadoEm, Long atendenteInicioId, Long mecanicoResponsavelId, List<ExecucaoServico> execucaoServicos) {
+        this(id, proprietarioId, veiculoId, reclamacaoProprietario, status, criadoEm, iniciadoEm, finalizadoEm, entregueEm, atualizadoEm, atendenteInicioId, mecanicoResponsavelId, execucaoServicos, new ArrayList<>());
+    }
+
+    public OrdemServico(Long id, Long proprietarioId, Long veiculoId, String reclamacaoProprietario, StatusOrdemServico status, LocalDateTime criadoEm, LocalDateTime iniciadoEm, LocalDateTime finalizadoEm, LocalDateTime entregueEm, LocalDateTime atualizadoEm, Long atendenteInicioId, Long mecanicoResponsavelId, List<ExecucaoServico> execucaoServicos, List<HistoricoEstadoOs> historicoEstados) {
         this.id = id;
         this.proprietarioId = proprietarioId;
         this.veiculoId = veiculoId;
@@ -41,10 +46,13 @@ public final class OrdemServico {
         this.atendenteInicioId = atendenteInicioId;
         this.mecanicoResponsavelId = mecanicoResponsavelId;
         this.execucaoServicos = execucaoServicos;
+        this.historicoEstados = historicoEstados != null ? historicoEstados : new ArrayList<>();
     }
 
     public static OrdemServico create(Long proprietarioId, Long veiculoId, String reclamacaoProprietario, Long atendenteInicioId) {
-        return new OrdemServico(null, proprietarioId, veiculoId, reclamacaoProprietario, StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, null, atendenteInicioId, null, new ArrayList<>());
+        var ordemServico = new OrdemServico(null, proprietarioId, veiculoId, reclamacaoProprietario, StatusOrdemServico.RECEBIDA, LocalDateTime.now(), null, null, null, null, atendenteInicioId, null, new ArrayList<>());
+        ordemServico.historicoEstados.add(HistoricoEstadoOs.criar(null, StatusOrdemServico.RECEBIDA.name(), ordemServico.criadoEm, null));
+        return ordemServico;
     }
 
     /* ================== FLUXO ================== */
@@ -52,7 +60,7 @@ public final class OrdemServico {
     public void iniciarDiagnostico(Long mecanicoId) {
         validarStatus(StatusOrdemServico.RECEBIDA);
         this.mecanicoResponsavelId = mecanicoId;
-        this.status = StatusOrdemServico.EM_DIAGNOSTICO;
+        mudarStatus(StatusOrdemServico.EM_DIAGNOSTICO);
         touch();
     }
 
@@ -60,10 +68,10 @@ public final class OrdemServico {
         validarStatus(StatusOrdemServico.EM_DIAGNOSTICO);
         if(this.execucaoServicos.isEmpty()) {
             this.mecanicoResponsavelId = mecanicoId;
-            this.status = StatusOrdemServico.FINALIZADA;
+            mudarStatus(StatusOrdemServico.FINALIZADA);
             this.finalizadoEm = LocalDateTime.now();
         } else {
-            this.status = StatusOrdemServico.AGUARDANDO_APROVACAO;
+            mudarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
         }
         touch();
     }
@@ -80,13 +88,13 @@ public final class OrdemServico {
         if (nenhumAprovado)
             throw new IllegalStateException("É necessário pelo menos um serviço aprovado para aprovar a OS.");
         this.atendenteAprovacaoId = atendenteId;
-        this.status = StatusOrdemServico.APROVADA;
+        mudarStatus(StatusOrdemServico.APROVADA);
         touch();
     }
 
     public void iniciarExecucao() {
         validarStatus(StatusOrdemServico.APROVADA);
-        this.status = StatusOrdemServico.EM_EXECUCAO;
+        mudarStatus(StatusOrdemServico.EM_EXECUCAO);
         this.iniciadoEm = LocalDateTime.now();
         touch();
     }
@@ -94,7 +102,7 @@ public final class OrdemServico {
     public void reprovar(Long atendenteId) {
         validarStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
         this.atendenteAprovacaoId = atendenteId;
-        this.status = StatusOrdemServico.REPROVADA;
+        mudarStatus(StatusOrdemServico.REPROVADA);
         this.finalizadoEm = LocalDateTime.now();
         touch();
     }
@@ -106,7 +114,7 @@ public final class OrdemServico {
         if (existeExecucaoNaoConcluida)
             throw new IllegalStateException("Existem execuções de serviço não finalizadas para esta OS!");
         this.mecanicoResponsavelId = mecanicoId;
-        this.status = StatusOrdemServico.FINALIZADA;
+        mudarStatus(StatusOrdemServico.FINALIZADA);
         this.finalizadoEm = LocalDateTime.now();
         touch();
     }
@@ -115,7 +123,7 @@ public final class OrdemServico {
         if (!this.isFinalizada() && !this.isReprovada())
             throw new IllegalStateException("Esta Ordem de Serviço não foi Finalizada: " + this.getId());
         this.atendenteInicioId =atendenteId;
-        this.status = StatusOrdemServico.ENTREGUE;
+        mudarStatus(StatusOrdemServico.ENTREGUE);
         this.entregueEm = LocalDateTime.now();
         touch();
     }
@@ -217,6 +225,17 @@ public final class OrdemServico {
         this.atualizadoEm = LocalDateTime.now();
     }
 
+    private void mudarStatus(StatusOrdemServico novo) {
+        if (this.status == novo) return;
+
+        var agora = LocalDateTime.now();
+        this.historicoEstados.stream()
+                .filter(HistoricoEstadoOs::isAberto)
+                .forEach(h -> h.fechar(agora));
+        this.historicoEstados.add(HistoricoEstadoOs.criar(this.id, novo.name(), agora, null));
+        this.status = novo;
+    }
+
     /* ================== GETTERS ================== */
 
     public Long getId() { return id; }
@@ -233,6 +252,7 @@ public final class OrdemServico {
     public Long getAtendenteAprovacaoId() { return atendenteAprovacaoId; }
     public Long getMecanicoResponsavelId() { return mecanicoResponsavelId; }
     public List<ExecucaoServico> getExecucaoServicos() { return execucaoServicos; }
+    public List<HistoricoEstadoOs> getHistoricoEstados() { return historicoEstados; }
 
     /* ================== OBJECT ================== */
 

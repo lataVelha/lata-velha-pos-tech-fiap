@@ -1,6 +1,7 @@
 package br.com.lata.velha.ordem_servico.infrastructure.persistence.entities;
 
 import br.com.lata.velha.ordem_servico.domain.entities.ExecucaoServico;
+import br.com.lata.velha.ordem_servico.domain.entities.HistoricoEstadoOs;
 import br.com.lata.velha.ordem_servico.domain.entities.OrdemServico;
 import br.com.lata.velha.ordem_servico.domain.enums.StatusOrdemServico;
 import jakarta.persistence.*;
@@ -67,10 +68,15 @@ public class OrdemServicoEntity {
     @JoinColumn(name = "OS_ID")
     private List<ExecucaoServicoEntity> servicos;
 
+    @OneToMany
+    @JoinColumn(name = "os_id", insertable = false, updatable = false)
+    private List<HistoricoEstadoOsEntity> historicoEstados = new ArrayList<>();
+
     public static OrdemServicoEntity fromDomain(OrdemServico domain) {
         var servicos = domain.getExecucaoServicos().stream()
                 .map(ExecucaoServicoEntity::fromDomain)
                 .collect(Collectors.toCollection(ArrayList::new));
+        var historicoEstados = new ArrayList<HistoricoEstadoOsEntity>();
         return new OrdemServicoEntity(
                 domain.getId(),
                 domain.getProprietarioId(),
@@ -85,7 +91,8 @@ public class OrdemServicoEntity {
                 domain.getAtendenteInicioId(),
                 domain.getMecanicoResponsavelId(),
                 domain.calcularValorTotal(),
-                servicos
+                servicos,
+                historicoEstados
         );
     }
 
@@ -104,6 +111,12 @@ public class OrdemServicoEntity {
     }
 
     private OrdemServico map(List<ExecucaoServico> servicos){
+        var historicoDomain = new ArrayList<HistoricoEstadoOs>();
+        if (this.historicoEstados != null) {
+            this.historicoEstados.stream()
+                    .map(HistoricoEstadoOsEntity::toDomain)
+                    .forEach(historicoDomain::add);
+        }
         return new OrdemServico(
                 id,
                 proprietarioId,
@@ -117,7 +130,8 @@ public class OrdemServicoEntity {
                 atualizadoEm,
                 atendenteInicioId,
                 mecanicoResponsavelId,
-                servicos
+                servicos,
+                historicoDomain
         );
     }
 }
