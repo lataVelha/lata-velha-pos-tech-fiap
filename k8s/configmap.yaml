@@ -14,9 +14,6 @@ data:
   OTEL_SERVICE_NAME: "lata-velha-api"
   OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
   OTEL_JAVA_GLOBAL_AUTOCONFIGURE_ENABLED: "true"
-  OTEL_EXPORTER_OTLP_ENDPOINT: "http://$(HOST_IP):4318"
-  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://$(HOST_IP):4318/v1/traces"
-  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://$(HOST_IP):4318/v1/metrics"
-  OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: "http://$(HOST_IP):4318/v1/logs"
+  # Variáveis OTel com $(HOST_IP) movidas para deployment.yaml (expansão correta)
   OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: "delta"
   OTEL_RESOURCE_ATTRIBUTES: "deployment.environment.name=prod,service.version=0.0.1,service.name=lata-velha-api"
