@@ -1,6 +1,6 @@
 spring:
   application:
-    name: Lata-Velha
+    name: lata-velha-api
   profiles:
     active: ${ENVIRONMENT:dev}
 
