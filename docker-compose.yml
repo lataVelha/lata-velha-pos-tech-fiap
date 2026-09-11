@@ -7,7 +7,7 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-docker}
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-docker}
       DD_API_KEY: ${DD_API_KEY}
-      OTEL_SERVICE_NAME: lata-velha
+      OTEL_SERVICE_NAME: lata-velha-api
       OTEL_RESOURCE_ATTRIBUTES: deployment.environment.name=docker,service.version=0.0.1,service.name=lata-velha
       OTEL_TRACES_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
