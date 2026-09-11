@@ -36,7 +36,10 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
     }
 
     private void persistirHistorico(OrdemServico ordemServico, Long osId) {
-        var historico = ordemServico.getHistoricoEstados().stream()
+        var historicoDomain = ordemServico.getHistoricoEstados();
+        logger.logInfo("Persistindo histórico de estados - osId={}, totalRegistros={}", osId, historicoDomain.size());
+        
+        var historico = historicoDomain.stream()
                 .map(entrada -> {
                     var entradaEntity = HistoricoEstadoOsEntity.fromDomain(entrada);
                     if (entradaEntity.getOsId() == null) {
@@ -44,12 +47,16 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
                     }
                     if (entrada.getDataFim() != null) {
                         long segundos = Duration.between(entrada.getDataInicio(), entrada.getDataFim()).getSeconds();
+                        logger.logInfo("Emitindo métrica de duração - osId={}, estado={}, segundos={}", osId, entrada.getEstadoOs(), segundos);
                         historicoMetrics.registrar(entrada.getEstadoOs(), segundos);
+                    } else {
+                        logger.logInfo("Estado aberto (sem métrica) - osId={}, estado={}", osId, entrada.getEstadoOs());
                     }
                     return entradaEntity;
                 })
                 .toList();
         if (!historico.isEmpty()) {
+            logger.logInfo("Salvando registros de histórico - osId={}, quantidade={}", osId, historico.size());
             historicoEstadoOsJpaRepository.saveAll(historico);
         }
     }

@@ -13,6 +13,8 @@ data:
   JWT_EXPIRES_IN: "3600"
   OTEL_SERVICE_NAME: "lata-velha-api"
   OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  # Habilita auto-configuração do OTel SDK (necessário para métricas customizadas)
+  OTEL_JAVA_GLOBAL_AUTOCONFIGURE_ENABLED: "true"
   # Aponta para o Datadog Agent DaemonSet (host do node)
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://${HOST_IP}:4318"
   OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://${HOST_IP}:4318/v1/traces"
