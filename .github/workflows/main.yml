@@ -291,7 +291,7 @@ jobs:
     name: "CD · Destruir recursos da aplicação"
     if: inputs.destroy == true
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 40
 
     # Mesmo grupo de concorrência do tf-deploy — nunca aplicar e destruir
     # em paralelo.
@@ -305,6 +305,10 @@ jobs:
 
     env:
       REGION: ${{ inputs.aws_region || vars.AWS_REGION || 'us-east-1' }}
+      TF_VAR_docker_image: "dummy"
+      TF_VAR_mail_username: "dummy"
+      TF_VAR_mail_password: "dummy"
+      TF_VAR_dd_api_key: "dummy"
 
     steps:
       - name: Checkout do código
@@ -341,5 +345,8 @@ jobs:
             -backend-config="bucket=${TF_VAR_state_bucket}" \
             -backend-config="region=${{ env.REGION }}"
 
+      - name: Listar resources no state
+        run: terraform state list
+
       - name: Terraform Destroy
-        run: terraform destroy -auto-approve
+        run: terraform destroy -auto-approve -lock-timeout=0
