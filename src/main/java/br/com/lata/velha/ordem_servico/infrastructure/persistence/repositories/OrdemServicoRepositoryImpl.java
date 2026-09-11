@@ -8,11 +8,13 @@ import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.Histo
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.entities.OrdemServicoEntity;
 import br.com.lata.velha.shared.application.logging.Logger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
+import br.com.lata.velha.shared.infrastructure.observability.HistoricoMetrics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import java.time.Duration;
 import java.util.List;
 
 @Repository
@@ -22,6 +24,7 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
     private final OrdemServicoJpaRepository jpaRepository;
     private final ExecucaoServicoJpaRepository execucaoServicoJpaRepository;
     private final HistoricoEstadoOsJpaRepository historicoEstadoOsJpaRepository;
+    private final HistoricoMetrics historicoMetrics;
     private final Logger logger;
 
     @Override
@@ -38,6 +41,10 @@ public class OrdemServicoRepositoryImpl implements OrdemServicoRepository {
                     var entradaEntity = HistoricoEstadoOsEntity.fromDomain(entrada);
                     if (entradaEntity.getOsId() == null) {
                         entradaEntity.setOsId(osId);
+                    }
+                    if (entrada.getDataFim() != null) {
+                        long segundos = Duration.between(entrada.getDataInicio(), entrada.getDataFim()).getSeconds();
+                        historicoMetrics.registrar(entrada.getEstadoOs(), segundos);
                     }
                     return entradaEntity;
                 })
