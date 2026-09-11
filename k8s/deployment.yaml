@@ -54,6 +54,14 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://$(HOST_IP):4318"
+            - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+              value: "http://$(HOST_IP):4318/v1/traces"
+            - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+              value: "http://$(HOST_IP):4318/v1/metrics"
+            - name: OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
+              value: "http://$(HOST_IP):4318/v1/logs"
           # /tmp gravável para o work dir do Tomcat (FS raiz é read-only)
           volumeMounts:
             - name: tmp
