@@ -5,6 +5,10 @@ metadata:
   namespace: lata-velha
   labels:
     app: lata-velha-api
+    # O app ja usa o OTel Spring Boot Starter (SDK proprio). Sem este label,
+    # o Admission Controller do Datadog injetaria o Datadog Java Agent
+    # tambem — dupla instrumentacao (spans duplicados/conflito).
+    admission.datadoghq.com/enabled: "false"
 spec:
   strategy:
     type: RollingUpdate

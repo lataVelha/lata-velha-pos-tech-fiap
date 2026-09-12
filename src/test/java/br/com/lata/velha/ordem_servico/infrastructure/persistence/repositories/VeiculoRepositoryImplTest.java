@@ -11,7 +11,7 @@ import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.Propri
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.VeiculoPersistenceMapper;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
-import br.com.lata.velha.shared.infrasctructure.logging.Slf4jLogger;
+import br.com.lata.velha.shared.infrastructure.logging.Slf4jLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
