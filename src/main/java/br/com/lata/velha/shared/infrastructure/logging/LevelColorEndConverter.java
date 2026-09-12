@@ -1,4 +1,4 @@
-package br.com.lata.velha.shared.infrasctructure.logging;
+package br.com.lata.velha.shared.infrastructure.logging;
 
 import ch.qos.logback.classic.pattern.ClassicConverter;
 import ch.qos.logback.classic.spi.ILoggingEvent;

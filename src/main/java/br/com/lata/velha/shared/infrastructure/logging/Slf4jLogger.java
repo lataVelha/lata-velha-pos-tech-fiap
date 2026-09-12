@@ -1,4 +1,4 @@
-package br.com.lata.velha.shared.infrasctructure.logging;
+package br.com.lata.velha.shared.infrastructure.logging;
 
 import br.com.lata.velha.shared.application.logging.Logger;
 import lombok.extern.slf4j.Slf4j;

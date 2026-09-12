@@ -7,7 +7,7 @@ import br.com.lata.velha.ordem_servico.domain.value_objects.Endereco;
 import br.com.lata.velha.ordem_servico.domain.value_objects.NumeroCelular;
 import br.com.lata.velha.ordem_servico.infrastructure.persistence.mappers.ProprietarioPersistenceMapper;
 import br.com.lata.velha.shared.domain.exceptions.ResourceAlreadyExistsException;
-import br.com.lata.velha.shared.infrasctructure.logging.Slf4jLogger;
+import br.com.lata.velha.shared.infrastructure.logging.Slf4jLogger;
 import br.com.lata.velha.shared.domain.pagination.PaginatedResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

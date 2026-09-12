@@ -1,4 +1,4 @@
-package br.com.lata.velha.shared.infrasctructure.logging;
+package br.com.lata.velha.shared.infrastructure.logging;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
