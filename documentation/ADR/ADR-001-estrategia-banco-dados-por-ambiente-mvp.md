@@ -1,12 +1,8 @@
 # ADR-001 — Estratégia de Banco de Dados por Ambiente no MVP
 
-## Data
-
-27/04/2026
-
 ## Status
 
-**Aceita**
+Aceito.
 
 ---
 
