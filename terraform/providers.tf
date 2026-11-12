@@ -1,7 +1,6 @@
-# Necessario desde que este repo passou a criar recursos aws_apigatewayv2_*
-# diretamente (integracao com o ALB + rotas publicas/protegidas) — antes só
-# tinha o provider kubectl, porque o unico recurso daqui era o modulo "app"
-# (Deployment/Service/etc, tudo via kubectl).
+# Provider AWS usado pelo backend S3 e pelos remote states.
+# A borda (API Gateway/ALB) agora vive no repo infra (addons + edge); o app
+# so mantem o Deployment/Service/etc via kubectl.
 provider "aws" {
   region = var.region
 }

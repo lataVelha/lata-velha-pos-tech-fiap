@@ -171,10 +171,9 @@ jobs:
       TF_VAR_mail_username: ${{ secrets.TF_MAIL_USERNAME }}
       TF_VAR_mail_password: ${{ secrets.TF_MAIL_PASSWORD }}
       TF_VAR_dd_api_key: ${{ secrets.TF_DD_API_KEY }}
-      TF_VAR_state_bucket: ${{ needs.tf-bootstrap.outputs.state_bucket }}
-      TF_VAR_cluster_endpoint: ${{ needs.tf-bootstrap.outputs.cluster_endpoint }}
-      TF_VAR_cluster_ca_data: ${{ needs.tf-bootstrap.outputs.cluster_ca_data }}
-      TF_VAR_cluster_name: ${{ needs.tf-bootstrap.outputs.cluster_name }}
+      TF_VAR_service_version: ${{ github.sha }}
+      # state_bucket/cluster_* sao resolvidos no step abaixo via GITHUB_ENV
+      # (nao ha job tf-bootstrap neste workflow).
       TF_VAR_aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       TF_VAR_aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       TF_VAR_aws_session_token: ${{ secrets.AWS_SESSION_TOKEN }}
@@ -256,21 +255,20 @@ jobs:
             -n lata-velha \
             --timeout=5m
 
-      # O ALB é interno desde que o API Gateway (repo infra) passou a ser o
-      # único ponto de entrada — bater direto no DNS do ALB não funciona
-      # mais de fora da VPC. O smoke test usa o endpoint público do API
-      # Gateway em vez disso.
-      - name: Smoke test — health check HTTP
+      # O app nao e mais dono das rotas do API Gateway (stack edge). O smoke
+      # test vai direto no Service via port-forward, para funcionar tanto
+      # durante o cutover (API sem rotas por alguns instantes) quanto depois.
+      - name: Smoke test — health check direto no Service
         run: |
-          API_URL=$(aws apigatewayv2 get-apis --query "Items[?Name=='${ECR_REPO_NAME}-app-api'].ApiEndpoint" --output text)
-          if [ -z "$API_URL" ]; then
-            echo "ERRO: API Gateway '${ECR_REPO_NAME}-app-api' não encontrado — o repo infra (addons) já rodou?"
-            exit 1
-          fi
-          URL="${API_URL}/actuator/health"
+          kubectl port-forward -n lata-velha svc/lata-velha-api 18080:80 >/tmp/app-port-forward.log 2>&1 &
+          PF_PID=$!
+          trap 'kill "$PF_PID" 2>/dev/null || true' EXIT
+          sleep 3
+
+          URL="http://127.0.0.1:18080/actuator/health"
           echo "Testando $URL ..."
           for i in $(seq 1 10); do
-            STATUS=$(curl -sf -o /dev/null -w "%{http_code}" "$URL" 2>/dev/null || echo "000")
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL" 2>/dev/null || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "OK — status $STATUS"
               exit 0
@@ -309,6 +307,7 @@ jobs:
       TF_VAR_mail_username: "dummy"
       TF_VAR_mail_password: "dummy"
       TF_VAR_dd_api_key: "dummy"
+      TF_VAR_service_version: "0.0.1"
 
     steps:
       - name: Checkout do código

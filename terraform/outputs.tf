@@ -1,4 +1,2 @@
-output "app_api_endpoint" {
-  description = "URL pública da aplicação (API Gateway)"
-  value       = local.addons.app_api_endpoint
-}
+# O app nao expoe mais output de borda: as rotas do API Gateway e as
+# listener rules do ALB ficam no repo infra (addons + edge).

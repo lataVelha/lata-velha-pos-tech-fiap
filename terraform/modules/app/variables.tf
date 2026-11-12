@@ -37,3 +37,8 @@ variable "dd_api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "service_version" {
+  description = "SHA/tag da imagem — vira a tag service.version nos spans"
+  type        = string
+}
