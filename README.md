@@ -77,10 +77,11 @@ Endpoints novos da fase:
 
 ### Provisionamento, deploy e operação
 
-A infraestrutura foi dividida em quatro repositórios, cada um com seu próprio state e
-pipeline de CI/CD. Este repo (`app`) aplica o deploy k8s da aplicação e anexa a própria
-integração com o ALB + rotas no API Gateway compartilhado — detalhes em
-**[`terraform/README.md`](./terraform/README.md)**.
+A infraestrutura foi dividida em repositórios por serviço, cada um com seu próprio state e
+pipeline de CI/CD. Este repo (`app`) aplica apenas o deploy k8s do monolito (baseline de
+transição). A integração com o ALB e as rotas do API Gateway compartilhado ficam no repo
+`infra` (stacks `addons` + `edge`); o `app` é **opcional** no pipeline
+(`DEPLOY_APP=false`). Detalhes em **[`terraform/README.md`](./terraform/README.md)**.
 
 #### Dependências
 

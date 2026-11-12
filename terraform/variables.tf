@@ -9,18 +9,6 @@ variable "state_bucket" {
   type        = string
 }
 
-variable "addons_state_key" {
-  description = "Chave do state do repo infra (addons) dentro do state_bucket, de onde vem api_id/alb_listener_arn/vpc_link_id"
-  type        = string
-  default     = "lata-velha/infra-addons/terraform.tfstate"
-}
-
-variable "lambda_state_key" {
-  description = "Chave do state do repo lambda dentro do state_bucket, de onde vem o jwt_authorizer_id"
-  type        = string
-  default     = "lata-velha/lambda-auth-cpf/terraform.tfstate"
-}
-
 # Conexao com o EKS (provisionado pelo repo infra) — lidas via AWS CLI no
 # pipeline/apply.sh e passadas como TF_VAR_, ja que provider config nao usa
 # data sources para a propria inicializacao.
@@ -72,4 +60,10 @@ variable "dd_api_key" {
   type        = string
   sensitive   = true
   default     = ""
+}
+
+variable "service_version" {
+  description = "SHA/tag da imagem — vira a tag service.version nos spans"
+  type        = string
+  default     = "0.0.1"
 }

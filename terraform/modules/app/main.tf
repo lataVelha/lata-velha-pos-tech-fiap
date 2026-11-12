@@ -7,7 +7,9 @@ resource "kubectl_manifest" "namespace" {
 }
 
 resource "kubectl_manifest" "configmap" {
-  yaml_body  = file("${local.k8s_dir}/configmap.yaml")
+  yaml_body = templatefile("${local.k8s_dir}/configmap.yaml", {
+    service_version = var.service_version
+  })
   depends_on = [kubectl_manifest.namespace]
 }
 
