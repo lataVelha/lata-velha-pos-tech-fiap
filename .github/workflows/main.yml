@@ -29,6 +29,11 @@ on:
         type: boolean
         required: false
         default: false
+      skip_tests:
+        description: "Pula o job de testes (usado pelo mono, que ja testou no `validate` antes de chamar). Default false: chamada direta sempre testa"
+        type: boolean
+        required: false
+        default: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -58,7 +63,7 @@ jobs:
   # ============================================================
   test:
     name: "CI · Testes automatizados"
-    if: inputs.destroy != true
+    if: inputs.destroy != true && inputs.skip_tests != true
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
@@ -93,7 +98,14 @@ jobs:
   build:
     name: "CD · Build & push da imagem → ECR"
     needs: test
-    if: inputs.destroy != true && (github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch' || (github.ref == 'refs/heads/master' && github.event_name == 'push'))
+    # `always()` + checagem explícita do `needs`: com skip_tests=true (chamada
+    # do mono) o job `test` é skipped — sem isso o `needs` pularia o build.
+    if: >
+      always() &&
+      inputs.destroy != true &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped') &&
+      (github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch' ||
+       (github.ref == 'refs/heads/master' && github.event_name == 'push'))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
